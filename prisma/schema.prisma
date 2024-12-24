@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  access_token      String
+  createdAt         DateTime @default(now()) @db.Date
+  expires_at        BigInt
+  id_token          String
+  provider          String
+  providerAccountId String
+  scope             String
+  token_type        String
+  type              String
+  updatedAt         DateTime @updatedAt @db.Date
+  userId            String   @db.ObjectId
+  User              User     @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  brand       String
+  category    String
+  description String
+  image       String
+  inStock     Boolean
+  name        String
+  price       Float
+  reviews     Review[]
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt      DateTime  @default(now()) @db.Date
+  email          String    @unique
+  emailVerified  DateTime?
+  hashedPassword String?
+  image          String?
+  name           String? 
+  gender           String?
+  surname        String?
+  phone          String?
+  birthday       DateTime?  @db.Date
+  role           String    @default("USER")
+  updatedAt      DateTime  @updatedAt @db.Date
+  addresses      String?
+  accounts       Account[] 
+  reviews        Review[]
+}
+
+model Review {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  productId   String   @db.ObjectId
+  rating      Int
+  comment     String?
+  createdDate DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Address {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  title       String
+  city        String
+  address     String
+  postalCode  String
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+.mybackground{
+  background-image: url("https://lightcastlepartners.com/wp-content/uploads/2023/05/digital-payment-feature.webp");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
