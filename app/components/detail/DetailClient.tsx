@@ -41,7 +41,7 @@ const DetailClient = ({ product }: { product: any }) => {
     if (cardProduct.quantity === 1) return
     setCardProduct(prev => ({ ...prev, quantity: prev.quantity - 1 }))
   }
-  let productRating = product?.reviews?.reduce((acc: number, item: any) => acc + item.rating, 0) / product?.reviews?.length
+  const productRating = product?.reviews?.reduce((acc: number, item: any) => acc + item.rating, 0) / product?.reviews?.length
   return (
     <div>
       <PageContainer>

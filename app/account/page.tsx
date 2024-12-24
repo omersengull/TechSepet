@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { MdArrowForwardIos } from "react-icons/md";
 import { getCurrentUser } from "../actions/getCurrentUser";
 import { signOut } from "next-auth/react";
-import toast from "react-hot-toast";
 import { User } from "@prisma/client";
-interface UserProps {
-  currentUser: User | null | undefined;
-}
 const Page = ({ currentUser }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null | undefined>(currentUser);
@@ -16,11 +12,21 @@ const Page = ({ currentUser }) => {
   useEffect(() => {
     const fetchUser = async () => {
       const user = await getCurrentUser();
-      setUser(user);
+  
+      if (user) {
+        setUser({
+          ...user,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+          emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
+          hashedPassword:'',
+        });
+      }
     };
-
+  
     fetchUser();
   }, []);
+  
   const handleSignOut = async () => {
     try {
 

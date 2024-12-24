@@ -14,7 +14,7 @@ const ProductsCard = ({ product }: { product: any }) => {
     }
     const router = useRouter();
     const { addToBasket } = useCart();
-    let productRating = product?.reviews?.reduce((acc: number, item: any) => acc + item.rating, 0) / product?.reviews?.length;
+    const productRating = product?.reviews?.reduce((acc: number, item: any) => acc + item.rating, 0) / product?.reviews?.length;
 
     const handleClick = () => {
 

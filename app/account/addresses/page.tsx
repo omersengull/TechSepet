@@ -10,14 +10,25 @@ import { SkeletonCard } from "@/app/skeleton/skeletonCard";
 
 interface User {
   id: string;
-  name: string;
+  name: string | null;
+  createdAt: Date; // createdAt özelliğini ekledik
+  updatedAt: Date;
+  emailVerified: Date | null;
+  addresses: string | null;
+  email: string;
+  image: string | null;
+  gender: string | null;
+  surname: string | null;
+  phone: string | null;
+  birthday: Date | null;
+  role: string;
 }
 
 const Page = () => {
   const [error, setError] = useState("");
-  const [cities, setCities] = useState([]); // Şehirler
+  const [cities, setCities] = useState<String[]>([]); // Şehirler
   const [selectedCity, setSelectedCity] = useState(""); // Seçilen şehir
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User | null | undefined>(undefined);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showModal, setShowModal] = useState(false);
   const popupRef = useRef<HTMLDivElement | null>(null);
@@ -33,16 +44,22 @@ const Page = () => {
   // Şehir listesini statik olarak ayarlıyoruz
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const currentUser: any = await getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Kullanıcı bilgileri alınırken hata oluştu:", error);
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        setUser({
+          ...currentUser,
+          createdAt: new Date(currentUser.createdAt),
+          updatedAt: new Date(currentUser.updatedAt),
+          emailVerified: currentUser.emailVerified ? new Date(currentUser.emailVerified) : null,
+        });
+      } else {
+        setUser(undefined); // Eğer null ise undefined olarak ayarla
       }
     };
 
     fetchUser();
   }, []);
+
 
   useEffect(() => {
     if (user?.id) {
@@ -110,7 +127,7 @@ const Page = () => {
             title: addressTitle,
             city: selectedCity,
             address,
-            postalCode: Number(postalCode),
+            postalCode: postalCode.toString(), // Tür uyumu için string'e dönüştürüldü
             createdAt: new Date(),
           },
         ]);
@@ -128,8 +145,8 @@ const Page = () => {
     }
   };
 
-  const handleOutsideClick = (event: any) => {
-    if (popupRef.current && !popupRef.current.contains(event.target)) {
+  const handleOutsideClick = (event: MouseEvent) => {
+    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
       setShowModal(false);
       document.removeEventListener("mousedown", handleOutsideClick);
     }
@@ -207,7 +224,7 @@ const Page = () => {
             >
               <option value="">Şehir Seçin</option>
               {cities.map((city, index) => (
-                <option key={index} value={city}>
+                <option key={index} value={city.toString()}>
                   {city}
                 </option>
               ))}

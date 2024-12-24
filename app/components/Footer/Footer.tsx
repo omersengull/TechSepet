@@ -110,21 +110,21 @@ const Footer = () => {
             <div className="app-download-section  p-6 text-center">
                 <h2 className="text-xl font-bold mb-4">TechSepet uygulamasını indirin</h2>
                 <div className="app-buttons flex justify-center gap-4">
-                    <a href="https://www.apple.com/app-store/" target="_blank">
+                    <a href="https://www.apple.com/app-store/" target="_blank" rel="noreferrer">
                         <img
                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/203px-Download_on_the_App_Store_Badge.svg.png"
                             alt="App Store"
                             className="w-40"
                         />
                     </a>
-                    <a href="https://play.google.com/store" target="_blank">
+                    <a href="https://play.google.com/store" target="_blank" rel="noreferrer">
                         <img
                             src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                             alt="Google Play"
                             className="w-40"
                         />
                     </a>
-                    <a href="https://appgallery.huawei.com/" target="_blank">
+                    <a href="https://appgallery.huawei.com/" target="_blank" rel="noreferrer">
                         <img
                             src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Huawei_AppGallery_white_badge_EN.png"
                             alt="App Gallery"
