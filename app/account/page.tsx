@@ -1,33 +1,40 @@
 "use client";
-import React from "react"; // React'ı ekledik
+
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { MdArrowForwardIos } from "react-icons/md";
 import { getCurrentUser } from "../actions/getCurrentUser";
 import { signOut } from "next-auth/react";
 import { User } from "@prisma/client";
 
-const Page = ({ currentUser }: { currentUser: User | null }) => {
+interface PageProps {
+  currentUser?: User | null;
+}
+
+const Page: React.FC<PageProps> = ({ currentUser }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null | undefined>(currentUser);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await getCurrentUser();
-
-      if (user) {
-        setUser({
-          ...user,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt),
-          emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
-          hashedPassword: "",
-        });
+      if (!currentUser) {
+        const fetchedUser = await getCurrentUser();
+        if (fetchedUser) {
+          setUser({
+            ...fetchedUser,
+            createdAt: new Date(fetchedUser.createdAt),
+            updatedAt: new Date(fetchedUser.updatedAt),
+            emailVerified: fetchedUser.emailVerified
+              ? new Date(fetchedUser.emailVerified)
+              : null,
+            hashedPassword: "", // Hassas veriler boş bırakıldı
+          });
+        }
       }
     };
 
     fetchUser();
-  }, []);
+  }, [currentUser]);
 
   const handleSignOut = async () => {
     try {
@@ -42,7 +49,7 @@ const Page = ({ currentUser }: { currentUser: User | null }) => {
   return (
     <div className="h-screen flex flex-col items-center justify-start">
       <h2 className="mt-3 font-bold text-xl">
-        Hoş geldiniz {currentUser?.name} {currentUser?.surname}
+        Hoş geldiniz {user?.name} {user?.surname}
       </h2>
       <div className="mt-5 space-y-3 w-full max-w-md">
         <div
@@ -67,7 +74,7 @@ const Page = ({ currentUser }: { currentUser: User | null }) => {
           <MdArrowForwardIos />
         </div>
         <div
-          onClick={() => handleSignOut()}
+          onClick={handleSignOut}
           className="mb-5 flex items-center justify-between border-2 px-5 py-2 rounded-xl cursor-pointer"
         >
           <span>Çıkış Yap</span>
