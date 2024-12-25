@@ -7,34 +7,29 @@ import { getCurrentUser } from "../actions/getCurrentUser";
 import { signOut } from "next-auth/react";
 import { User } from "@prisma/client";
 
-interface PageProps {
-  currentUser?: User | null;
-}
-
-const Page: React.FC<PageProps> = ({ currentUser }) => {
+// Bileşen tipi tanımı kaldırıldı, Next.js "default export" ile uyumlu hale getirildi.
+const Page = () => {
   const router = useRouter();
-  const [user, setUser] = useState<User | null | undefined>(currentUser);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!currentUser) {
-        const fetchedUser = await getCurrentUser();
-        if (fetchedUser) {
-          setUser({
-            ...fetchedUser,
-            createdAt: new Date(fetchedUser.createdAt),
-            updatedAt: new Date(fetchedUser.updatedAt),
-            emailVerified: fetchedUser.emailVerified
-              ? new Date(fetchedUser.emailVerified)
-              : null,
-            hashedPassword: "", // Hassas veriler boş bırakıldı
-          });
-        }
+      const fetchedUser = await getCurrentUser();
+      if (fetchedUser) {
+        setUser({
+          ...fetchedUser,
+          createdAt: new Date(fetchedUser.createdAt),
+          updatedAt: new Date(fetchedUser.updatedAt),
+          emailVerified: fetchedUser.emailVerified
+            ? new Date(fetchedUser.emailVerified)
+            : null,
+          hashedPassword: "", // Hassas veriler boş bırakıldı
+        });
       }
     };
 
     fetchUser();
-  }, [currentUser]);
+  }, []);
 
   const handleSignOut = async () => {
     try {
