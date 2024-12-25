@@ -11,7 +11,7 @@ import { SkeletonCard } from "@/app/skeleton/skeletonCard";
 interface User {
   id: string;
   name: string | null;
-  createdAt: Date; // createdAt özelliğini ekledik
+  createdAt: Date;
   updatedAt: Date;
   emailVerified: Date | null;
   addresses: string | null;
@@ -26,40 +26,42 @@ interface User {
 
 const Page = () => {
   const [error, setError] = useState("");
-  const [cities, setCities] = useState<string[]>([]); // Şehirler
-  const [selectedCity, setSelectedCity] = useState(""); // Seçilen şehir
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [cities, setCities] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [user, setUser] = useState<User | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showModal, setShowModal] = useState(false);
   const popupRef = useRef<HTMLDivElement | null>(null);
-  const [addressTitle, setAddressTitle] = useState(""); // Adres başlığı
-  const [address, setAddress] = useState(""); // Adres
-  const [postalCode, setPostalCode] = useState(""); // Posta kodu
+  const [addressTitle, setAddressTitle] = useState("");
+  const [address, setAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+
   const handleDelete = (id: string) => {
     setAddresses((prevAddresses) =>
       prevAddresses.filter((address) => address.id !== id)
     );
   };
 
-  // Şehir listesini statik olarak ayarlıyoruz
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await getCurrentUser();
-      if (currentUser) {
-        setUser({
-          ...currentUser,
-          createdAt: new Date(currentUser.createdAt),
-          updatedAt: new Date(currentUser.updatedAt),
-          emailVerified: currentUser.emailVerified ? new Date(currentUser.emailVerified) : null,
-        });
-      } else {
-        setUser(undefined); // Eğer null ise undefined olarak ayarla
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          setUser({
+            ...currentUser,
+            createdAt: new Date(currentUser.createdAt),
+            updatedAt: new Date(currentUser.updatedAt),
+            emailVerified: currentUser.emailVerified
+              ? new Date(currentUser.emailVerified)
+              : null,
+          });
+        }
+      } catch (err) {
+        console.error("Kullanıcı alınamadı:", err);
       }
     };
-
     fetchUser();
   }, []);
-
 
   useEffect(() => {
     if (user?.id) {
@@ -70,30 +72,99 @@ const Page = () => {
   const fetchAddresses = async (userId: string) => {
     try {
       const response = await fetch(`/api/addresses?userId=${userId}`);
-      const data = await response.json();
-      if (response.ok) {
-        setAddresses(data.addresses);
-      } else {
-        console.error("Adresler alınamadı:", data.error);
+      if (!response.ok) {
+        throw new Error("Adresler alınamadı");
       }
-    } catch (error) {
-      console.error("Adresleri alırken hata oluştu:", error);
+      const data = await response.json();
+      setAddresses(data.addresses || []);
+    } catch (err) {
+      console.error("Adresleri alırken hata oluştu:", err);
     }
   };
 
   useEffect(() => {
     setCities([
-      "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya",
-      "Ardahan", "Artvin", "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik",
-      "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum",
-      "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir",
-      "Gaziantep", "Giresun", "Gümüşhane", "Hakkâri", "Hatay", "Iğdır", "Isparta", "İstanbul",
-      "İzmir", "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri",
-      "Kırıkkale", "Kırklareli", "Kırşehir", "Kilis", "Kocaeli", "Konya", "Kütahya",
-      "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş", "Nevşehir", "Niğde",
-      "Ordu", "Osmaniye", "Rize", "Sakarya", "Samsun", "Şanlıurfa", "Siirt", "Sinop",
-      "Sivas", "Şırnak", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van",
-      "Yalova", "Yozgat", "Zonguldak",
+      "Adana",
+      "Adıyaman",
+      "Afyonkarahisar",
+      "Ağrı",
+      "Aksaray",
+      "Amasya",
+      "Ankara",
+      "Antalya",
+      "Ardahan",
+      "Artvin",
+      "Aydın",
+      "Balıkesir",
+      "Bartın",
+      "Batman",
+      "Bayburt",
+      "Bilecik",
+      "Bingöl",
+      "Bitlis",
+      "Bolu",
+      "Burdur",
+      "Bursa",
+      "Çanakkale",
+      "Çankırı",
+      "Çorum",
+      "Denizli",
+      "Diyarbakır",
+      "Düzce",
+      "Edirne",
+      "Elazığ",
+      "Erzincan",
+      "Erzurum",
+      "Eskişehir",
+      "Gaziantep",
+      "Giresun",
+      "Gümüşhane",
+      "Hakkâri",
+      "Hatay",
+      "Iğdır",
+      "Isparta",
+      "İstanbul",
+      "İzmir",
+      "Kahramanmaraş",
+      "Karabük",
+      "Karaman",
+      "Kars",
+      "Kastamonu",
+      "Kayseri",
+      "Kırıkkale",
+      "Kırklareli",
+      "Kırşehir",
+      "Kilis",
+      "Kocaeli",
+      "Konya",
+      "Kütahya",
+      "Malatya",
+      "Manisa",
+      "Mardin",
+      "Mersin",
+      "Muğla",
+      "Muş",
+      "Nevşehir",
+      "Niğde",
+      "Ordu",
+      "Osmaniye",
+      "Rize",
+      "Sakarya",
+      "Samsun",
+      "Şanlıurfa",
+      "Siirt",
+      "Sinop",
+      "Sivas",
+      "Şırnak",
+      "Tekirdağ",
+      "Tokat",
+      "Trabzon",
+      "Tunceli",
+      "Uşak",
+      "Van",
+      "Yalova",
+      "Yozgat",
+      "Zonguldak",
     ]);
   }, []);
 
@@ -117,7 +188,7 @@ const Page = () => {
       });
 
       const data = await response.json();
-      if (data.success) {
+      if (response.ok) {
         toast.success("Adres başarıyla eklendi!");
         setAddresses((prev) => [
           ...prev,
@@ -127,7 +198,7 @@ const Page = () => {
             title: addressTitle,
             city: selectedCity,
             address,
-            postalCode: postalCode.toString(), // Tür uyumu için string'e dönüştürüldü
+            postalCode: postalCode.toString(),
             createdAt: new Date(),
           },
         ]);
@@ -137,10 +208,10 @@ const Page = () => {
         setPostalCode("");
         setShowModal(false);
       } else {
-        toast.error("Adres eklenirken bir hata oluştu!");
+        toast.error(data.message || "Adres eklenirken bir hata oluştu!");
       }
-    } catch (error) {
-      console.error("Hata:", error);
+    } catch (err) {
+      console.error("Sunucu hatası:", err);
       toast.error("Sunucu hatası oluştu!");
     }
   };
@@ -187,21 +258,21 @@ const Page = () => {
           : addresses.map((addrss) => (
             <div className="md:w-1/3 mx-auto mb-5 mt-5" key={addrss.id}>
               <AddressesCard
+                {...addrss}
                 setAddresses={setAddresses}
-                selectedCity={selectedCity}
-                setSelectedCity={setSelectedCity}
-                setAddressTitle={setAddressTitle}
-                setPostalCode={setPostalCode}
-                setAddress={setAddress}
-                setShowModal={setShowModal}
-                showModal={showModal}
-                id={addrss.id}
-                address={addrss.address}
                 onDelete={handleDelete}
-                addressTitle={addrss.title}
+                selectedCity={selectedCity}
+                addressTitle={addressTitle}
                 postalCode={addrss.postalCode}
                 city={addrss.city}
+                showModal={showModal}
+                setShowModal={setShowModal}
+                setAddress={setAddress}
+                setAddressTitle={setAddressTitle}
+                setSelectedCity={setSelectedCity}
+                setPostalCode={setPostalCode}
               />
+
             </div>
           ))}
       </div>
@@ -224,7 +295,7 @@ const Page = () => {
             >
               <option value="">Şehir Seçin</option>
               {cities.map((city, index) => (
-                <option key={index} value={city.toString()}>
+                <option key={index} value={city}>
                   {city}
                 </option>
               ))}
