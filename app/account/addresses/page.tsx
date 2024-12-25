@@ -16,7 +16,7 @@ interface User {
   emailVerified: Date | null;
   addresses: string | null;
   email: string;
-  image: string | null;
+  image: string | number | null;
   gender: string | null;
   surname: string | null;
   phone: string | null;
@@ -55,7 +55,7 @@ const Page = () => {
               ? new Date(currentUser.emailVerified)
               : null,
             addresses: currentUser.addresses || null,
-            image: typeof currentUser.image === "number" ? currentUser.image : currentUser.image || null, // Dönüştürme
+            image: typeof currentUser.image === "number" ? currentUser.image.toString() : currentUser.image || null, // Dönüştürme
           });
         }
       } catch (err) {
