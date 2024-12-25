@@ -11,9 +11,9 @@ import { SkeletonCard } from "@/app/skeleton/skeletonCard";
 interface User {
   id: string;
   name: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  emailVerified: Date | null;
+  createdAt: string;
+  updatedAt: string;
+  emailVerified: string | null;
   addresses: string | null;
   email: string;
   image: string | number | null;
@@ -49,10 +49,10 @@ const Page = () => {
         if (currentUser) {
           setUser({
             ...currentUser,
-            createdAt: new Date(currentUser.createdAt),
-            updatedAt: new Date(currentUser.updatedAt),
+            createdAt: currentUser.createdAt,
+            updatedAt: currentUser.updatedAt,
             emailVerified: currentUser.emailVerified
-              ? new Date(currentUser.emailVerified)
+              ? currentUser.emailVerified
               : null,
             addresses: currentUser.addresses || null,
             image:null,
