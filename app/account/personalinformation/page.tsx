@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import React, { useState, useEffect } from "react";
 
 const Page = () => {
-  const [currentUser, setCurrentUser] = useState(null); // Varsayılan olarak null
+  const [currentUser, setCurrentUser] = useState<Record<string, any>>({}); // Varsayılan olarak null
   const [initialUser, setInitialUser] = useState(null); // Varsayılan olarak null
   const [change, setChange] = useState(false);
 
