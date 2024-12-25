@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/app/actions/getCurrentUser"
 import React, { useState, useEffect } from "react"
 
 const Page = () => {
-  const [currentUser, setCurrentUser] = useState();
+  const [currentUser, setCurrentUser] = useState({});
   const [initialUser, setInitialUser] = useState(null);
   const [change, setChange] = useState(false);
   const handleInputChange = (event) => {
