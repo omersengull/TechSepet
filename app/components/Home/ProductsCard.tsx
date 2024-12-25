@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import Button from "../General/Button";
-
+import React from "react"
 const ProductsCard = ({ product }: { product: any }) => {
     if (!product) {
         return <div>Ürün bilgisi yüklenemedi</div>

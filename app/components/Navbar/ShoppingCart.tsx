@@ -1,6 +1,6 @@
 import useCart from "@/app/hooks/useCart";
 import { MdOutlineShoppingCart } from "react-icons/md";
-
+import React from "react"
 
 const ShoppingCart = () => {
   const { cartPrdcts } = useCart();

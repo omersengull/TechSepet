@@ -1,4 +1,5 @@
 import { getCurrentUser } from '@/app/actions/getCurrentUser'
+import React from 'react'
 import getProducts from '@/app/actions/getProducts'
 import CreateForm from '@/app/components/admin/CreateForm'
 import ManageClient from '@/app/components/admin/ManageClient'

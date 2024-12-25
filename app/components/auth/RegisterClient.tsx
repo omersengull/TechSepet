@@ -14,6 +14,7 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { User } from "@prisma/client"
 import { useEffect } from "react"
+import React from "react"
 interface RegisterClientProps {
     currentUser: User | null | undefined
 

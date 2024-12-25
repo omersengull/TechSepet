@@ -14,6 +14,7 @@ import { GiGameConsole } from "react-icons/gi";
 import Button from "../General/Button";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import React from "react"
 import {
     getStorage,
     ref,

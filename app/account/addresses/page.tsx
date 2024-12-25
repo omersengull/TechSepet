@@ -26,7 +26,7 @@ interface User {
 
 const Page = () => {
   const [error, setError] = useState("");
-  const [cities, setCities] = useState<String[]>([]); // Şehirler
+  const [cities, setCities] = useState<string[]>([]); // Şehirler
   const [selectedCity, setSelectedCity] = useState(""); // Seçilen şehir
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [addresses, setAddresses] = useState<Address[]>([]);

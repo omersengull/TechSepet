@@ -4,6 +4,7 @@ import { CardProductProps } from "../components/detail/DetailClient";
 import { ProductsData } from "../utils/ProductsData";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import React from "react"
 interface CartContextProps {
     productCartQty: number;
     addToBasket: (product: CardProductProps) => void;

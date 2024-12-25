@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import useCart from '@/app/hooks/useCart';
-
+import React from "react"
 const Category = () => {
     const categoryList = [
         { name: 'Telefon', value: 'phone' },

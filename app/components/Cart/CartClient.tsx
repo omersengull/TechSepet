@@ -1,4 +1,5 @@
 "use client";
+import React from 'react'
 import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import PageContainer from "../containers/PageContainer";

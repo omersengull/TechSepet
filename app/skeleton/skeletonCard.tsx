@@ -1,4 +1,4 @@
-
+import React from "react"
 export const SkeletonCard = () => {
   return (
     <div className="animate-pulse flex flex-col items-start gap-2 p-4 bg-gray-200 rounded-lg shadow-md">

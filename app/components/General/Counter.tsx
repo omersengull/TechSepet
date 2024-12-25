@@ -1,4 +1,5 @@
 import { CardProductProps } from "../detail/DetailClient"
+import React from "react"
 interface CounterProps {
     cardProduct: CardProductProps,
     increaseFunc: () => void,

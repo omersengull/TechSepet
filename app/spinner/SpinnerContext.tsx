@@ -1,6 +1,6 @@
 "use client"
 import { createContext, useContext, useState, ReactNode } from "react";
-
+import React from "react"
 // Spinner context ve hook
 interface SpinnerContextType {
     isLoading: boolean;

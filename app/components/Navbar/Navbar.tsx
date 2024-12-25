@@ -1,17 +1,15 @@
 "use client";
 import Logo from "./Logo";
-import Categories from "./Categories";
 import User from "./User";
 import ShoppingCart from "./ShoppingCart";
 import Search from "./Search";
-import HamburgerMenu from "./HamburgerMenu";
 import { useRouter } from "next/navigation";
 import Category from "../Home/Category";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { useState, useEffect } from "react";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
 import Spinner from "@/app/spinner/Spinner";
-
+import React from "react"
 // User tipini tanımlayalım
 interface User {
     createdAt: Date;

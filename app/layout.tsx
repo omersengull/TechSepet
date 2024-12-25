@@ -6,7 +6,7 @@ import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import CartProvider from "./provider/CartProvider";
 import { Toaster } from "react-hot-toast";
-
+import React from "react"
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",

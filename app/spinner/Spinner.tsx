@@ -1,6 +1,6 @@
 import { useSpinner } from './SpinnerContext';
 import { HashLoader } from 'react-spinners';
-
+import React from "react"
 const Spinner = () => {
     const { isLoading } = useSpinner();
 

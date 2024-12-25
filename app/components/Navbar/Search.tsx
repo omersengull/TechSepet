@@ -1,5 +1,6 @@
 import { FaSearch } from "react-icons/fa";
 import useCart from "@/app/hooks/useCart";
+import React from "react"
 const Search = () => {
   const { searchProducts } = useCart();
   return (

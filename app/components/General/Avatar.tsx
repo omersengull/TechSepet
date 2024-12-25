@@ -1,4 +1,5 @@
 import { RxAvatar } from "react-icons/rx";
+import React from 'react'
 interface AvatarProps {
     img?: string,
 

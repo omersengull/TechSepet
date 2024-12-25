@@ -10,6 +10,7 @@ import Heading from "../General/Heading"
 import Comment from "../General/Comment"
 import useCart from "@/app/hooks/useCart"
 import { MdShoppingCart } from "react-icons/md"
+import React from "react"
 export type CardProductProps = {
   id: string,
   name: string,
