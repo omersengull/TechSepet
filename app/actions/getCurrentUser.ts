@@ -45,6 +45,7 @@ export async function getCurrentUser() {
 
         return {
             ...currentUser,
+            addresses:currentUser.addresses,
             createdAt: currentUser.createdAt.toISOString(),
             updatedAt: currentUser.updatedAt.toISOString(),
             emailVerified: currentUser.emailVerified?.toISOString() || null,
