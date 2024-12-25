@@ -71,20 +71,24 @@ const Page = () => {
       try {
         const user = await getCurrentUser();
 
-        // Kullanıcı verisini User arayüzüne dönüştür
-        const mappedUser: User = {
-          name: user.name ?? undefined,
-          surname: user.surname ?? undefined,
-          birthday: user.birthday ? new Date(user.birthday).toISOString() : undefined,
-          phone: user.phone ?? undefined,
-          email: user.email ?? undefined,
-          gender: user.gender ?? undefined,
-          role: user.role ?? undefined,
-          addresses: user.addresses ?? null,
-        };
+        if (user) {
+          // Kullanıcı verisini User arayüzüne dönüştür
+          const mappedUser: User = {
+            name: user.name ?? undefined,
+            surname: user.surname ?? undefined,
+            birthday: user.birthday ? new Date(user.birthday).toISOString() : undefined,
+            phone: user.phone ?? undefined,
+            email: user.email ?? undefined,
+            gender: user.gender ?? undefined,
+            role: user.role ?? undefined,
+            addresses: user.addresses ?? null,
+          };
 
-        setInitialUser(mappedUser);
-        setCurrentUser(mappedUser);
+          setInitialUser(mappedUser);
+          setCurrentUser(mappedUser);
+        } else {
+          console.error("Kullanıcı bilgisi null döndü.");
+        }
       } catch (error) {
         console.error("Kullanıcı bilgileri alınamadı:", error);
       }
