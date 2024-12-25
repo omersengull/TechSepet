@@ -1,5 +1,5 @@
 "use client";
-import React from 'react'
+import React from "react";
 import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import PageContainer from "../containers/PageContainer";
@@ -87,7 +87,7 @@ const CartClient = () => {
                     <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="bg-white border border-gray-300 p-4 shadow-lg rounded-lg w-[300px] md:w-[600px]">
                             <p className="font-bold mb-2">Kargo bilgileri hakkında</p>
-                            <p className="text-sm mb-2">Saat 14:00'e kadar verilen siparişleriniz aynı gün, saat 14:00 sonrası verilen siparişleriniz ertesi gün kargoya verilir.</p>
+                            <p className="text-sm mb-2">"Saat 14:00'e kadar verilen siparişleriniz aynı gün, saat 14:00 sonrası verilen siparişleriniz ertesi gün kargoya verilir."</p>
                             <p className="text-sm mb-2">1000 TL ve üzeri siparişlerinizde kargo ücreti alınmaz.</p>
                             <p className="text-sm">Tahmini teslimat tarihleri için ürün sayfamızdaki tarihleri inceleyebilir veya sepet adımında adres bilgilerinizi girerek kendi bölgenize dair tahmini teslimat tarihlerine de ulaşabilirsiniz.</p>
                             <button onClick={togglePopup} className="mt-4 px-4 py-2 bg-renk1 text-white rounded">Kapat</button>
