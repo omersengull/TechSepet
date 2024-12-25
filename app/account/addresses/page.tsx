@@ -54,14 +54,15 @@ const Page = () => {
             emailVerified: currentUser.emailVerified
               ? new Date(currentUser.emailVerified)
               : null,
-            addresses: currentUser.addresses || null, // Varsayılan değer atanıyor
-            image: currentUser.image || null,
+            addresses: currentUser.addresses || null,
+            image: typeof currentUser.image === "number" ? currentUser.image : currentUser.image || null, // Dönüştürme
           });
         }
       } catch (err) {
         console.error("Kullanıcı alınamadı:", err);
       }
     };
+
     fetchUser();
   }, []);
 
