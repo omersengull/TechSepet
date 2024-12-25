@@ -1,14 +1,7 @@
 import bcrypt from "bcryptjs"
 import prisma from "@/libs/prismadb"
 import { NextResponse } from "next/server";
-export async function testDBConnection() {
-    try {
-        await prisma.user.findFirst();  // Örnek bir sorgu
-        console.log("Bağlantı başarılı!");
-    } catch (error) {
-        console.error("Veritabanı bağlantı hatası:", error);
-    }
-}
+import { testDBConnection } from "@/libs/testDBConnection";
 
 testDBConnection();
 
