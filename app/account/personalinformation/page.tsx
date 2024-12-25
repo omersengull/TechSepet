@@ -2,23 +2,35 @@
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import React, { useState, useEffect } from "react";
 
+interface User {
+  name?: string;
+  surname?: string;
+  birthday?: string;
+  phone?: string;
+  email?: string;
+  gender?: string;
+}
+
 const Page = () => {
-  const [currentUser, setCurrentUser] = useState<Record<string, any>>({}); // Varsayılan olarak null
-  const [initialUser, setInitialUser] = useState(null); // Varsayılan olarak null
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
 
   // Giriş alanlarının değerini güncellemek için
-  const handleInputChange = (event) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = event.target;
 
-    setCurrentUser((prev) => ({
-      ...prev,
-      [id]: id === "birthday" ? new Date(value).toISOString() : value, // Tarihi ISO formatına çevir
-    }));
+    setCurrentUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [id]: id === "birthday" ? new Date(value).toISOString() : value, // Tarihi ISO formatına çevir
+      };
+    });
   };
 
   // Tarihi formatlamak için
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Aylar 0'dan başlar
@@ -43,7 +55,7 @@ const Page = () => {
       }
 
       alert("Bilgiler başarıyla güncellendi!");
-      setInitialUser(currentUser); // Başarıyla güncellendiğinde initialUser'ı değiştir
+      if (currentUser) setInitialUser(currentUser); // Başarıyla güncellendiğinde initialUser'ı değiştir
       setChange(false); // Değişiklik olmadığını belirt
     } catch (error) {
       console.error("Güncelleme hatası:", error);
@@ -87,7 +99,7 @@ const Page = () => {
 
         <div className="flex md:gap-8 gap-2">
           <div className="flex flex-col">
-            <label className="mb-1" htmlFor="input1">
+            <label className="mb-1" htmlFor="name">
               Ad
             </label>
             <input
@@ -100,7 +112,7 @@ const Page = () => {
           </div>
 
           <div className="flex flex-col mb-5">
-            <label className="mb-1" htmlFor="input2">
+            <label className="mb-1" htmlFor="surname">
               Soyad
             </label>
             <input
@@ -113,7 +125,7 @@ const Page = () => {
           </div>
         </div>
         <div className="">
-          <label className="mb-4" htmlFor="input3">
+          <label className="mb-4" htmlFor="birthday">
             Doğum Günü
           </label>
           <div className="flex border-2 p-2 items-center md:w-120 w-[455px] rounded-lg outline-renk1">
@@ -121,11 +133,7 @@ const Page = () => {
               id="birthday"
               type="date"
               onChange={handleInputChange}
-              value={
-                currentUser?.birthday
-                  ? currentUser.birthday.split("T")[0]
-                  : ""
-              }
+              value={currentUser?.birthday?.split("T")[0] || ""}
               className="w-full outline-none"
             />
           </div>
