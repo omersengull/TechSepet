@@ -43,7 +43,7 @@ model User {
   hashedPassword String?
   image          String?
   name           String? 
-  gender           String?
+  gender         String?
   surname        String?
   phone          String?
   birthday       DateTime?  @db.Date

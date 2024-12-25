@@ -10,7 +10,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         console.log("Body:", body);  // Gelen body'yi günlüğe kaydet
 
-        const { name,surname, email, password ,birthday,male,phone} = body;
+        const { name,surname, email, password ,birthday,gender,phone} = body;
 
         // Verilerin eksik olup olmadığını kontrol et
         if (!name || !surname || !email || !password) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
                 email,
                 hashedPassword,
                 birthday,
-                male,
+                gender,
                 phone,
 
             }
