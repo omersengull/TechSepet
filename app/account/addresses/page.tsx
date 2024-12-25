@@ -54,6 +54,8 @@ const Page = () => {
             emailVerified: currentUser.emailVerified
               ? new Date(currentUser.emailVerified)
               : null,
+            addresses: currentUser.addresses || null, // Varsayılan değer atanıyor
+            image: currentUser.image || null,
           });
         }
       } catch (err) {
