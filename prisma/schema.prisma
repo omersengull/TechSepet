@@ -10,7 +10,7 @@ datasource db {
 model Account {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   access_token      String
-  createdAt         DateTime @default(now()) @db.Date
+  createdAt         DateTime @db.Date
   expires_at        BigInt
   id_token          String
   provider          String
@@ -18,13 +18,22 @@ model Account {
   scope             String
   token_type        String
   type              String
-  updatedAt         DateTime @updatedAt @db.Date
+  updatedAt         DateTime @db.Date
   userId            String   @db.ObjectId
-  User              User     @relation(fields: [userId], references: [id])
+}
+
+model Address {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  address    String
+  city       String
+  createdAt  DateTime @db.Date
+  postalCode String
+  title      String
+  userId     String
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   brand       String
   category    String
   description String
@@ -32,46 +41,26 @@ model Product {
   inStock     Boolean
   name        String
   price       Float
-  reviews     Review[]
+}
+
+model Review {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 }
 
 model User {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt      DateTime  @default(now()) @db.Date
+  birthday       DateTime? @db.Date
+  createdAt      DateTime  @db.Date
   email          String    @unique
-  emailVerified  DateTime?
-  hashedPassword String?
-  image          String?
-  name           String? 
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  emailVerified  Json?
   gender         String?
-  surname        String?
+  hashedPassword String
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  image          Json?
+  name           String
   phone          String?
-  birthday       DateTime?  @db.Date
-  role           String    @default("USER")
-  updatedAt      DateTime  @updatedAt @db.Date
-  addresses      String?
-  accounts       Account[] 
-  reviews        Review[]
-}
-
-model Review {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  productId   String   @db.ObjectId
-  rating      Int
-  comment     String?
-  createdDate DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-}
-
-model Address {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String
-  title       String
-  city        String
-  address     String
-  postalCode  String
-  createdAt   DateTime @default(now())
+  role           String
+  surname        String
+  updatedAt      DateTime  @db.Date
 }
