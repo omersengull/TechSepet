@@ -9,6 +9,8 @@ interface User {
   phone?: string;
   email?: string;
   gender?: string;
+  role?: string;
+  addresses?: string | null;
 }
 
 const Page = () => {
@@ -68,8 +70,21 @@ const Page = () => {
     const fetchUser = async () => {
       try {
         const user = await getCurrentUser();
-        setInitialUser(user);
-        setCurrentUser(user);
+
+        // Kullanıcı verisini User arayüzüne dönüştür
+        const mappedUser: User = {
+          name: user.name ?? undefined,
+          surname: user.surname ?? undefined,
+          birthday: user.birthday ? new Date(user.birthday).toISOString() : undefined,
+          phone: user.phone ?? undefined,
+          email: user.email ?? undefined,
+          gender: user.gender ?? undefined,
+          role: user.role ?? undefined,
+          addresses: user.addresses ?? null,
+        };
+
+        setInitialUser(mappedUser);
+        setCurrentUser(mappedUser);
       } catch (error) {
         console.error("Kullanıcı bilgileri alınamadı:", error);
       }
