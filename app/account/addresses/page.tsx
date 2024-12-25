@@ -55,7 +55,7 @@ const Page = () => {
               ? new Date(currentUser.emailVerified)
               : null,
             addresses: currentUser.addresses || null,
-            image: typeof currentUser.image === "number" ? currentUser.image.toString() : currentUser.image || null, // Dönüştürme
+            image:currentUser.image
           });
         }
       } catch (err) {
