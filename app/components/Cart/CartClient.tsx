@@ -4,7 +4,6 @@ import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import PageContainer from "../containers/PageContainer";
 import { RiDeleteBinFill } from "react-icons/ri";
-import Heading from "../General/Heading";
 import Image from "next/image";
 import Counter from "../General/Counter";
 import { useState } from "react";
@@ -76,7 +75,7 @@ const CartClient = () => {
 
     let totalPrice = 0;
     cartPrdcts.forEach(prd => {
-        totalPrice += prd.price * prd.quantity;
+        totalPrice +=Number( prd.price )* prd.quantity;
     });
 
     return (
@@ -118,7 +117,7 @@ const CartClient = () => {
                                         <span className="font-bold">{prd.description}</span>
                                         <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-4xl ml-16" />
                                     </div>
-                                    <div className="text-2xl font-bold">₺ {priceClip(prd.price * prd.quantity)}</div>
+                                    <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price )* prd.quantity)}</div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
                                     {prd.inStock ? (
                                         <div className="flex items-center">

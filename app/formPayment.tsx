@@ -18,7 +18,7 @@ const FormPayment = () => {
     useEffect(() => {
         let total = 0;
         cartPrdcts?.forEach(prd => {
-            total += prd.price * prd.quantity;
+            total += Number(prd.price) * prd.quantity;
         });
         setTotalPrice(total);
     }, [cartPrdcts]); 

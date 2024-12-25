@@ -1,5 +1,5 @@
 "use client";
-import React from "react"
+import React from "react";
 import { FaRegUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -20,12 +20,34 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
   const menuRef = useRef<HTMLDivElement>(null); // Referans tanımlandı
   useEffect(() => {
     const updateUser = async () => {
-      const session = await getSession();
-      setUser(session?.user || null);
+        const session = await getSession();
+        if (session?.user) {
+            const transformedUser: User = {
+                id: "default-id",
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                emailVerified: null,
+                hashedPassword: null,
+                gender: null,
+                surname: null,
+                phone: null,
+                birthday: null,
+                addresses: null,
+                role: "USER",
+                name: session.user.name || null, // Varsayılan olarak null atanıyor
+                email: session.user.email || "example@gmail.com", // Varsayılan olarak null atanıyor
+                image: session.user.image || null, // Varsayılan olarak null atanıyor
+            };
+            setUser(transformedUser);
+        } else {
+            setUser(null);
+        }
     };
 
     updateUser();
-  }, [currentUser]);
+}, [currentUser]);
+
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

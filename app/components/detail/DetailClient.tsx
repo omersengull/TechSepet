@@ -15,7 +15,7 @@ export type CardProductProps = {
   id: string,
   name: string,
   description: string,
-  price: number,
+  price: string,
   quantity: number,
   image: string,
   inStock: boolean

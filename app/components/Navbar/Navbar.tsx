@@ -10,8 +10,7 @@ import { useState, useEffect } from "react";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
 import Spinner from "@/app/spinner/Spinner";
 import React from "react"
-// User tipini tanımlayalım
-interface User {
+interface AppUser {
     createdAt: Date;
     updatedAt: Date;
     emailVerified: Date | null;
@@ -19,36 +18,48 @@ interface User {
     id: string;
     email: string;
     hashedPassword: string | null;
-    name: string;
+    name: string | null;
     role: string;
+    gender: string | null;
+    surname: string | null;
+    phone: string | null;
+    birthday: Date | null;
+    addresses: string | null;
 }
+
+
+
 
 const Navbar = () => {
     const { setIsLoading, isLoading } = useSpinner();
     const router = useRouter();
-    const [currentUser, setCurrentUser] = useState<User | null>(null); // currentUser'ı User veya null olarak ayarladık
+    const [currentUser, setCurrentUser] = useState<AppUser | null>(null); // currentUser'ı User veya null olarak ayarladık
 
     useEffect(() => {
         const fetchUser = async () => {
             const user = await getCurrentUser();
             if (user) {
-                const transformedUser: User = {
+                const transformedUser: AppUser = {
                     ...user,
+                    hashedPassword:null, // Varsayılan değer null
                     createdAt: new Date(user.createdAt),
                     updatedAt: new Date(user.updatedAt),
                     emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
+                    gender: user.gender || null,
+                    surname: user.surname || null,
+                    phone: user.phone || null,
+                    birthday: user.birthday ? new Date(user.birthday) : null,
+                    addresses: user.addresses || null,
                 };
-                setCurrentUser(transformedUser)
-            }
-            else {
+                setCurrentUser(transformedUser);
+            } else {
                 setCurrentUser(null);
             }
-            // user objesini state'e set ediyoruz
         };
-
+    
         fetchUser();
-    }, []); // Component mount edildiğinde çalışacak
-
+    }, []);
+    
     const handleRouteCart = () => {
         setIsLoading(true);
         setTimeout(() => {

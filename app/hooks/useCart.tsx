@@ -31,7 +31,7 @@ export const CartContextProvider = (props: Props) => {
 
     useEffect(() => {
         const getItem = localStorage.getItem("Cart");
-        const getItemParse: CardProductProps[] | null = JSON.parse(getItem);
+        const getItemParse: CardProductProps[] | null = getItem ? JSON.parse(getItem) : null;
         setCartPrdcts(getItemParse);
     }, []);
 
@@ -61,9 +61,14 @@ export const CartContextProvider = (props: Props) => {
     }, []);
     const searchProducts = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const searchTerms = e.target.value.toLowerCase();
-        const searchedProducts = ProductsData.filter(prd => prd.name.toLowerCase().includes(searchTerms));
+        const searchedProducts = ProductsData.filter(prd => prd.name.toLowerCase().includes(searchTerms))
+            .map(product => ({
+                ...product,
+                quantity: 1, // Varsayılan quantity değeri ekleniyor
+            }));
         setFilteredProducts(searchedProducts);
-    }, [])
+    }, []);
+    
     const deleteThisPrdct = useCallback((product: CardProductProps) => {
         setCartPrdcts(prev => {
             if (!prev) return [];
