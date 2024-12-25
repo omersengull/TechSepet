@@ -55,6 +55,7 @@ export async function getCurrentUser() {
             ...currentUser,
             addresses: currentUser.addresses || null, // Adres null olabiliyorsa kontrol et
             createdAt: currentUser.createdAt.toISOString(),
+            image:currentUser.image?.toString() || null,
             updatedAt: currentUser.updatedAt.toISOString(),
             emailVerified: currentUser.emailVerified?.toISOString() || null,
         };

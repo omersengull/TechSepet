@@ -55,7 +55,7 @@ const Page = () => {
               ? new Date(currentUser.emailVerified)
               : null,
             addresses: currentUser.addresses || null,
-            image:currentUser.image
+            image:null,
           });
         }
       } catch (err) {
