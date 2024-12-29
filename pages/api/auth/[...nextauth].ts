@@ -47,7 +47,7 @@ export const authOptions: AuthOptions = {
           email: user.email,
           name: user.name,
           surname:user.surname,
-          image: user.image
+          image:typeof user.image === "string" ? user.image : null, 
         }
       }
     })
