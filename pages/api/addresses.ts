@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export default async function handler(req: any, res: any) {
   if (req.method === "POST") {
-    const { userId, title, city, address, postalCode } = req.body;
+    const { userId, title, city, address, postalCode ,createdAt,updatedAt,user} = req.body;
     if (!userId || !title || !city || !address || !postalCode) {
       return res.status(400).json({
         success: false,
@@ -20,6 +20,9 @@ export default async function handler(req: any, res: any) {
           city,
           address,
           postalCode,
+          createdAt,
+          updatedAt,
+          user,
         },
       });
 

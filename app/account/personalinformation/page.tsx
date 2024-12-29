@@ -81,7 +81,7 @@ const Page = () => {
             email: user.email ?? undefined,
             gender: user.gender ?? undefined,
             role: user.role ?? undefined,
-            addresses: user.addresses ?? null,
+            addresses: user.addresses?.toString() ?? null,
           };
 
           setInitialUser(mappedUser);

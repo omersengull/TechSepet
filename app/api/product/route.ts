@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         price: parseFloat(price),
         inStock,
         image,
+        createdAt:new Date(),
       },
     });
 

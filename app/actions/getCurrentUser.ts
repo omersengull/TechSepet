@@ -38,10 +38,11 @@ export async function getCurrentUser() {
                 role: true,
                 phone: true,
                 gender: true,
-                addresses: true, // Adres bilgisi dahil edildi
+                addresses: true, 
                 createdAt: true,
                 updatedAt: true,
                 emailVerified: true,
+                hashedPassword:true,
             },
         });
 
@@ -53,11 +54,12 @@ export async function getCurrentUser() {
         // Kullanıcı verisini dönüştür ve döndür
         return {
             ...currentUser,
-            addresses: currentUser.addresses || null, // Adres null olabiliyorsa kontrol et
-            createdAt: currentUser.createdAt.toISOString(),
+            hashedPassword:currentUser.hashedPassword,
+            addresses: currentUser.addresses || [], // Adres null olabiliyorsa kontrol et
+            createdAt: currentUser.createdAt?.toISOString(),
             image:currentUser.image?.toString() || null,
-            updatedAt: currentUser.updatedAt.toISOString(),
-            emailVerified: currentUser.emailVerified?.toISOString() || null,
+            updatedAt: currentUser.updatedAt?.toISOString(),
+            emailVerified: currentUser.emailVerified || null,
         };
     } catch (error) {
         console.error("Kullanıcı alınamadı:", error);

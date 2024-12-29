@@ -15,32 +15,19 @@ export default async function getProducts(params: IProductParams) {
             query.category = category;
         }
         const products = await prisma.product.findMany({
-            where: {
-                ...query,
-                OR: [
-                    {
-                        name: {
-                            contains: searchString,
-                            mode: 'insensitive'
-                        },
-                        description: {
-                            contains: searchString,
-                            mode: 'insensitive'
-                        }
-                    }
-                ]
-            },
             include: {
                 reviews: {
                     include: {
-                        user: true
+                        user: true // Review ile ilişkili kullanıcı bilgilerini getir
                     },
                     orderBy: {
-                        createdDate: "desc"
+                        createdAt: "desc" // Yorumları oluşturulma tarihine göre sırala
                     }
                 }
             }
-        })
+        });
+
+
         return products;
     } catch (error: any) {
         throw new Error(error)

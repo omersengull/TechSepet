@@ -18,11 +18,9 @@ const Page = () => {
       if (fetchedUser) {
         setUser({
           ...fetchedUser,
-          createdAt: new Date(fetchedUser.createdAt),
-          updatedAt: new Date(fetchedUser.updatedAt),
-          emailVerified: fetchedUser.emailVerified
-            ? new Date(fetchedUser.emailVerified)
-            : null,
+          createdAt:new Date(fetchedUser.createdAt),
+          updatedAt:new Date(fetchedUser.updatedAt),
+          emailVerified: fetchedUser.emailVerified,
           hashedPassword: "", // Hassas veriler boş bırakıldı
         });
       }

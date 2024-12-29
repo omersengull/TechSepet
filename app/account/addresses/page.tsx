@@ -11,17 +11,17 @@ import { SkeletonCard } from "@/app/skeleton/skeletonCard";
 interface User {
   id: string;
   name: string | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   emailVerified: string | null;
-  addresses: string | null;
+  addresses: Address[];
   email: string;
   image: string | number | null;
   gender: string | null;
   surname: string | null;
   phone: string | null;
   birthday: Date | null;
-  role: string;
+  role: string | null;
 }
 
 const Page = () => {
@@ -52,10 +52,10 @@ const Page = () => {
             createdAt: currentUser.createdAt,
             updatedAt: currentUser.updatedAt,
             emailVerified: currentUser.emailVerified
-              ? currentUser.emailVerified
+              ? currentUser.emailVerified.toString()
               : null,
-            addresses: currentUser.addresses || null,
-            image:null,
+            addresses: currentUser.addresses || [],
+            image: null,
           });
         }
       } catch (err) {
@@ -79,11 +79,12 @@ const Page = () => {
         throw new Error("Adresler alınamadı");
       }
       const data = await response.json();
-      setAddresses(data.addresses || []);
+      setAddresses(data.addresses || []); // Boş bir dizi atama
     } catch (err) {
       console.error("Adresleri alırken hata oluştu:", err);
     }
   };
+
 
   useEffect(() => {
     setCities([
@@ -182,11 +183,11 @@ const Page = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id,
+          userId: user?.id || "", // Varsayılan değer ekle
           title: addressTitle,
           city: selectedCity,
-          address,
-          postalCode,
+          address: address,
+          postalCode: postalCode,
         }),
       });
 
@@ -196,15 +197,17 @@ const Page = () => {
         setAddresses((prev) => [
           ...prev,
           {
-            id: data.id,
-            userId: user?.id || "",
-            title: addressTitle,
-            city: selectedCity,
-            address,
+            id: data.id ?? "",
+            userId: user?.id ?? "",
+            title: addressTitle || "Başlık Yok",
+            city: selectedCity || "Şehir Yok",
+            address: address || "Adres Yok",
             postalCode: postalCode.toString(),
             createdAt: new Date(),
+            updatedAt:new Date(),
           },
         ]);
+
         setAddressTitle("");
         setSelectedCity("");
         setAddress("");
@@ -262,12 +265,13 @@ const Page = () => {
             <div className="md:w-1/3 mx-auto mb-5 mt-5" key={addrss.id}>
               <AddressesCard
                 {...addrss}
+                address={addrss.address || ""}
                 setAddresses={setAddresses}
                 onDelete={handleDelete}
                 selectedCity={selectedCity}
                 addressTitle={addressTitle}
-                postalCode={addrss.postalCode}
-                city={addrss.city}
+                postalCode={addrss.postalCode || ""}
+                city={addrss.city || ""}
                 showModal={showModal}
                 setShowModal={setShowModal}
                 setAddress={setAddress}

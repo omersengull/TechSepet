@@ -164,6 +164,7 @@ const AddressesCard = ({
                             postalCode,
                             userId: id, 
                             createdAt: new Date(),
+                            updatedAt:new Date,
                         })}
                         className="cursor-pointer text-yellow-500"
                     />

@@ -12,42 +12,58 @@ interface UserProps {
   currentUser: User | null | undefined;
 }
 
+// Prisma User tipini extend eden yeni bir tip tanımlayalım
+type SafeUser = Omit<User, 'hashedPassword' | 'name' | 'surname'> & {
+  hashedPassword: string;
+  name: string;
+  surname: string;
+  addresses: {
+    address: string;
+    title: string;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    city: string;
+    postalCode: string;
+    userId: string;
+  }[];
+};
+
 const User: React.FC<UserProps> = ({ currentUser }) => {
   const { setIsLoading } = useSpinner();
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(false);
-  const [user, setUser] = useState<User | null | undefined>(currentUser);
-  const menuRef = useRef<HTMLDivElement>(null); // Referans tanımlandı
+  const [user, setUser] = useState<SafeUser | null | undefined>(currentUser as SafeUser);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const updateUser = async () => {
-        const session = await getSession();
-        if (session?.user) {
-            const transformedUser: User = {
-                id: "default-id",
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                emailVerified: null,
-                hashedPassword: null,
-                gender: null,
-                surname: null,
-                phone: null,
-                birthday: null,
-                addresses: null,
-                role: "USER",
-                name: session.user.name || null, // Varsayılan olarak null atanıyor
-                email: session.user.email || "example@gmail.com", // Varsayılan olarak null atanıyor
-                image: session.user.image || null, // Varsayılan olarak null atanıyor
-            };
-            setUser(transformedUser);
-        } else {
-            setUser(null);
-        }
+      const session = await getSession();
+      if (session?.user) {
+        const transformedUser: SafeUser = {
+          id: "default-id",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          emailVerified: null,
+          hashedPassword: "default-hash",
+          gender: null,
+          surname: session.user.name?.split(' ')[1] || "Surname",
+          phone: null,
+          birthday: null,
+          addresses: [],
+          role: "USER",
+          name: session.user.name?.split(' ')[0] || "Name",
+          email: session.user.email || "example@gmail.com",
+          image: session.user.image || null,
+        };
+        setUser(transformedUser);
+      } else {
+        setUser(null);
+      }
     };
 
     updateUser();
-}, [currentUser]);
-
-
+  }, [currentUser]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -68,19 +84,19 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
   }, [openMenu]);
 
   const menuFunc = (type: string) => {
-    setOpenMenu(false); // Menü kapat
-    setIsLoading(true); // Spinner başlat
+    setOpenMenu(false);
+    setIsLoading(true);
     setTimeout(async () => {
-      setIsLoading(false); // Spinner durdur
+      setIsLoading(false);
       if (type === "logout") {
         try {
           await signOut({ redirect: true });
-          setUser(null); // Kullanıcı bilgisini sıfırla
+          setUser(null);
           router.push('/');
         } catch (error) {
           console.error("Çıkış sırasında bir hata oluştu:", error);
         } finally {
-          setIsLoading(false); // Spinner durdur
+          setIsLoading(false);
         }
       } else if (type === "register") {
         router.push("/register");
@@ -88,14 +104,13 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         router.push("/login");
       }
     }, 2000);
-
   };
 
   const handleRouteAdminOrAccount = (page: string) => {
-    setOpenMenu(false); // Menü kapat
-    setIsLoading(true); // Spinner başlat
+    setOpenMenu(false);
+    setIsLoading(true);
     setTimeout(() => {
-      setIsLoading(false); // Spinner durdur
+      setIsLoading(false);
       if (page === 'Admin') {
         router.push("/admin");
       } else if (page === 'Hesabım') {
@@ -103,6 +118,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       }
     }, 2000);
   };
+
   useEffect(() => {
     const checkSession = async () => {
       const session = await getSession();
@@ -113,11 +129,13 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
 
     checkSession();
   }, [currentUser]);
+
   useEffect(() => {
     if (!user) {
       setOpenMenu(false);
     }
   }, [user]);
+
   return (
     <div className="md:flex relative z-40" ref={menuRef}>
       <div
@@ -145,10 +163,11 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         <div className="absolute w-[200px] top-12 bg-white shadow-lg right-0 p-2 rounded-md">
           {user ? (
             <div className="space-y-1">
-              <div
-                className="text-slate-600 cursor-pointer"
-              >
-                {currentUser?.role == 'USER' ? <div onClick={() => handleRouteAdminOrAccount('Hesabım')}>Hesabım</div> : <div onClick={() => handleRouteAdminOrAccount('Admin')}>Admin</div>}
+              <div className="text-slate-600 cursor-pointer">
+                {currentUser?.role == 'USER' ?
+                  <div onClick={() => handleRouteAdminOrAccount('Hesabım')}>Hesabım</div> :
+                  <div onClick={() => handleRouteAdminOrAccount('Admin')}>Admin</div>
+                }
               </div>
               <div
                 onClick={() => menuFunc("logout")}
