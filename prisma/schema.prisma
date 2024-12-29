@@ -29,49 +29,39 @@ model Address {
   createdAt  DateTime @db.Date
   postalCode String
   title      String
-  updatedAt  DateTime @db.Date
-  userId     String   @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
+  userId     String
 }
 
 model Product {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   brand       String
   category    String
+  createdAt   DateTime @db.Date
   description String
   image       String
   inStock     Boolean
   name        String
   price       Float
-  createdAt   DateTime @db.Date
-  reviews     Review[] // Review ilişkisi
 }
 
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   String
-  rating    Int
-  createdAt DateTime @db.Date
-  productId String   @db.ObjectId
-  userId    String   @db.ObjectId
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 }
 
 model User {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
   birthday       DateTime? @db.Date
-  createdAt      DateTime @db.Date
+  createdAt      DateTime  @db.Date
   email          String    @unique
-  emailVerified  DateTime? @db.Date
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  emailVerified  Json?
   gender         String?
   hashedPassword String
-  addresses      Address[]
-  image          String?
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  image          Json?
   name           String
   phone          String?
-  role           String?   @default("USER")
+  role           String
   surname        String
-  updatedAt      DateTime @db.Date
-  reviews        Review[] // Kullanıcı incelemeleri
+  updatedAt      DateTime  @db.Date
 }
