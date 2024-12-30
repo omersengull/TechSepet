@@ -100,7 +100,7 @@ const Page = () => {
   }, [currentUser, initialUser]);
 
   if (!currentUser) {
-    return null;
+    return <div className="min-h-screen"></div>;
   }
 
   return (
