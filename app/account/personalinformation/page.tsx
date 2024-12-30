@@ -126,7 +126,7 @@ const Page = () => {
               type="text"
               value={currentUser?.name || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 w-56 outline-renk1 rounded-lg"
+              className="border-2 p-2 md:w-56 w-40 outline-renk1 rounded-lg"
             />
           </div>
 
