@@ -112,11 +112,11 @@ const Page = () => {
     <div className="container lg:h-screen text-sm md:text-lg ">
       <div className="flex flex-col items-center">
         <h1 className="text-2xl mb-4 mt-4">Kullanıcı Bilgilerim</h1>
-        <h2 className="text-lg text-slate-500 mb-4 mt-4">
+        <h2 className="text-lg text-center text-slate-500 mb-4 mt-4">
           Bilgilerinizi burada düzenleyebilir ve güncelleyebilirsiniz.
         </h2>
 
-        <div className="flex md:gap-8 gap-2">
+        <div className="flex md:gap-8 w-1/2 gap-2">
           <div className="flex flex-col">
             <label className="mb-1" htmlFor="name">
               Ad
@@ -126,7 +126,7 @@ const Page = () => {
               type="text"
               value={currentUser?.name || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 md:w-56 w-40 outline-renk1 rounded-lg"
+              className="border-2 p-2 md:w-56 outline-renk1 rounded-lg"
             />
           </div>
 
