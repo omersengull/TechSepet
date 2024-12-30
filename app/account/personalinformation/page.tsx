@@ -1,5 +1,6 @@
 "use client";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
+import { useSpinner } from "@/app/spinner/SpinnerContext";
 import React, { useState, useEffect } from "react";
 
 interface User {
@@ -14,11 +15,11 @@ interface User {
 }
 
 const Page = () => {
+  const {setIsLoading}=useSpinner();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
 
-  // Giriş alanlarının değerini güncellemek için
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = event.target;
 
@@ -26,21 +27,19 @@ const Page = () => {
       if (!prev) return null;
       return {
         ...prev,
-        [id]: id === "birthday" ? new Date(value).toISOString() : value, // Tarihi ISO formatına çevir
+        [id]: id === "birthday" ? new Date(value).toISOString() : value,
       };
     });
   };
 
-  // Tarihi formatlamak için
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Aylar 0'dan başlar
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${month}/${day}/${year}`;
   };
 
-  // Kullanıcı bilgilerini güncellemek için
   const updatePersonalInformation = async () => {
     try {
       const response = await fetch("/api/updateUser", {
@@ -57,22 +56,20 @@ const Page = () => {
       }
 
       alert("Bilgiler başarıyla güncellendi!");
-      if (currentUser) setInitialUser(currentUser); // Başarıyla güncellendiğinde initialUser'ı değiştir
-      setChange(false); // Değişiklik olmadığını belirt
+      if (currentUser) setInitialUser(currentUser);
+      setChange(false);
     } catch (error) {
       console.error("Güncelleme hatası:", error);
       alert("Bir hata oluştu.");
     }
   };
 
-  // İlk kullanıcı bilgilerini almak için
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const user = await getCurrentUser();
 
         if (user) {
-          // Kullanıcı verisini User arayüzüne dönüştür
           const mappedUser: User = {
             name: user.name ?? undefined,
             surname: user.surname ?? undefined,
@@ -96,7 +93,6 @@ const Page = () => {
     fetchUser();
   }, []);
 
-  // Değişiklik durumunu kontrol etmek için
   useEffect(() => {
     if (currentUser && initialUser) {
       const isChanged = JSON.stringify(currentUser) !== JSON.stringify(initialUser);
@@ -105,7 +101,8 @@ const Page = () => {
   }, [currentUser, initialUser]);
 
   if (!currentUser) {
-    return <div>Yükleniyor...</div>;
+    setIsLoading(true);
+    return <div className="min-h-screen"></div>;
   }
 
   return (
@@ -116,8 +113,8 @@ const Page = () => {
           Bilgilerinizi burada düzenleyebilir ve güncelleyebilirsiniz.
         </h2>
 
-        <div className="flex md:gap-8 w-1/2 gap-2">
-          <div className="flex flex-col">
+        <div className="flex flex-wrap md:gap-8 gap-4 w-full">
+          <div className="flex flex-col w-full md:w-[48%]">
             <label className="mb-1" htmlFor="name">
               Ad
             </label>
@@ -126,11 +123,11 @@ const Page = () => {
               type="text"
               value={currentUser?.name || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 md:w-56 outline-renk1 rounded-lg"
+              className="border-2 p-2 w-full outline-renk1 rounded-lg"
             />
           </div>
 
-          <div className="flex flex-col mb-5">
+          <div className="flex flex-col w-full md:w-[48%]">
             <label className="mb-1" htmlFor="surname">
               Soyad
             </label>
@@ -139,15 +136,15 @@ const Page = () => {
               type="text"
               value={currentUser?.surname || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 w-56 outline-renk1 rounded-lg"
+              className="border-2 p-2 w-full outline-renk1 rounded-lg"
             />
           </div>
         </div>
-        <div className="">
+        <div className="w-full">
           <label className="mb-4" htmlFor="birthday">
             Doğum Günü
           </label>
-          <div className="flex border-2 p-2 items-center md:w-120 w-[455px] rounded-lg outline-renk1">
+          <div className="flex border-2 p-2 items-center w-full rounded-lg outline-renk1">
             <input
               id="birthday"
               type="date"
@@ -158,45 +155,47 @@ const Page = () => {
           </div>
           <div className="mt-5">
             <label className="mb-2 mt-4">Cinsiyet</label>
-            <div className="items-center block">
-              <input
-                type="radio"
-                name="gender"
-                id="male"
-                value="male"
-                className="mr-2"
-                checked={currentUser?.gender === "male"}
-                onChange={(e) =>
-                  setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
-                }
-              />
-              <label htmlFor="male">Erkek</label>
-            </div>
-            <div className="inline items-center">
-              <input
-                type="radio"
-                name="gender"
-                id="female"
-                value="female"
-                className="mr-2"
-                checked={currentUser?.gender === "female"}
-                onChange={(e) =>
-                  setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
-                }
-              />
-              <label htmlFor="female">Kadın</label>
+            <div className="flex gap-4">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  name="gender"
+                  id="male"
+                  value="male"
+                  className="mr-2"
+                  checked={currentUser?.gender === "male"}
+                  onChange={(e) =>
+                    setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
+                  }
+                />
+                <label htmlFor="male">Erkek</label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  name="gender"
+                  id="female"
+                  value="female"
+                  className="mr-2"
+                  checked={currentUser?.gender === "female"}
+                  onChange={(e) =>
+                    setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
+                  }
+                />
+                <label htmlFor="female">Kadın</label>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div className="flex flex-col items-center">
-        <div className="gap-2">
+        <div className="gap-2 w-full">
           <h1 className="text-2xl text-center mb-5">İletişim Bilgileri</h1>
-          <div className="ml-2">
+          <div className="w-full">
             <label htmlFor="phone">Telefon Numarası</label>
             <input
               value={currentUser?.phone || ""}
-              className="flex md:w-120 w-[458px] px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
+              className="flex w-full px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
               type="text"
               id="phone"
               onChange={handleInputChange}
@@ -204,13 +203,13 @@ const Page = () => {
             <label htmlFor="email">E-Mail Adresiniz</label>
             <input
               value={currentUser?.email || ""}
-              className="flex md:w-120 w-[458px] px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
+              className="flex w-full px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
               type="email"
               id="email"
               onChange={handleInputChange}
             />
             <button
-              className={`md:w-120 w-[458px] py-2 rounded-xl text-white mt-2 mb-20 ${
+              className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${
                 change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
               }`}
               onClick={updatePersonalInformation}
