@@ -4,7 +4,6 @@ import User from "./User";
 import ShoppingCart from "./ShoppingCart";
 import Search from "./Search";
 import { useRouter } from "next/navigation";
-import Category from "../Home/Category";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { useState, useEffect } from "react";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
@@ -118,9 +117,7 @@ const Navbar = () => {
                     <Search />
                 </div>
             </div>
-            <div>
-                <Category />
-            </div>
+           
         </>
     );
 };
