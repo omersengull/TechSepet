@@ -112,7 +112,7 @@ const Page = () => {
         </h2>
 
         <div className="flex flex-wrap md:gap-8 gap-4 w-1/2 justify-center">
-          <div className="flex flex-col w-64">
+          <div className="flex flex-col md:w-64">
             <label className="mb-1" htmlFor="name">
               Ad
             </label>
@@ -121,11 +121,11 @@ const Page = () => {
               type="text"
               value={currentUser?.name || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 w-full outline-renk1 rounded-lg"
+              className="border-2  p-2 w-60 md:w-full outline-renk1 rounded-lg"
             />
           </div>
 
-          <div className="flex flex-col w-64">
+          <div className="flex flex-col md:w-64">
             <label className="mb-1" htmlFor="surname">
               Soyad
             </label>
@@ -134,7 +134,7 @@ const Page = () => {
               type="text"
               value={currentUser?.surname || ""}
               onChange={handleInputChange}
-              className="border-2 p-2 w-full outline-renk1 rounded-lg"
+              className="border-2 p-2 w-60 md:w-full outline-renk1 rounded-lg"
             />
           </div>
         </div>
