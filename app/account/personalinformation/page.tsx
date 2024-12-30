@@ -15,7 +15,7 @@ interface User {
 }
 
 const Page = () => {
-  const {setIsLoading}=useSpinner();
+  const { setIsLoading } = useSpinner();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
@@ -32,15 +32,8 @@ const Page = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
-  };
-
   const updatePersonalInformation = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch("/api/updateUser", {
         method: "POST",
@@ -61,11 +54,14 @@ const Page = () => {
     } catch (error) {
       console.error("Güncelleme hatası:", error);
       alert("Bir hata oluştu.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchUser = async () => {
+      setIsLoading(true);
       try {
         const user = await getCurrentUser();
 
@@ -88,8 +84,11 @@ const Page = () => {
         }
       } catch (error) {
         console.error("Kullanıcı bilgileri alınamadı:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchUser();
   }, []);
 
@@ -101,8 +100,7 @@ const Page = () => {
   }, [currentUser, initialUser]);
 
   if (!currentUser) {
-    setIsLoading(true);
-    return <div className="min-h-screen"></div>;
+    return null;
   }
 
   return (
@@ -113,8 +111,8 @@ const Page = () => {
           Bilgilerinizi burada düzenleyebilir ve güncelleyebilirsiniz.
         </h2>
 
-        <div className="flex flex-wrap md:gap-8 gap-4 w-full">
-          <div className="flex flex-col w-full md:w-[48%]">
+        <div className="flex flex-wrap md:gap-8 gap-4 w-1/2 justify-center">
+          <div className="flex flex-col w-64">
             <label className="mb-1" htmlFor="name">
               Ad
             </label>
@@ -127,7 +125,7 @@ const Page = () => {
             />
           </div>
 
-          <div className="flex flex-col w-full md:w-[48%]">
+          <div className="flex flex-col w-64">
             <label className="mb-1" htmlFor="surname">
               Soyad
             </label>
@@ -140,11 +138,11 @@ const Page = () => {
             />
           </div>
         </div>
-        <div className="w-full">
+        <div className="md:w-[542px] w-60 mt-2">
           <label className="mb-4" htmlFor="birthday">
             Doğum Günü
           </label>
-          <div className="flex border-2 p-2 items-center w-full rounded-lg outline-renk1">
+          <div className="flex border-2 p-2 mt-1 items-center w-full rounded-lg outline-renk1">
             <input
               id="birthday"
               type="date"
@@ -189,13 +187,13 @@ const Page = () => {
         </div>
       </div>
       <div className="flex flex-col items-center">
-        <div className="gap-2 w-full">
+        <div className="gap-2">
           <h1 className="text-2xl text-center mb-5">İletişim Bilgileri</h1>
-          <div className="w-full">
+          <div className="">
             <label htmlFor="phone">Telefon Numarası</label>
             <input
               value={currentUser?.phone || ""}
-              className="flex w-full px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
+              className="flex w-60 md:w-[542px] px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
               type="text"
               id="phone"
               onChange={handleInputChange}
@@ -203,7 +201,7 @@ const Page = () => {
             <label htmlFor="email">E-Mail Adresiniz</label>
             <input
               value={currentUser?.email || ""}
-              className="flex w-full px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
+              className="flex w-60 md:w-[542px] px-2 mb-2 mt-2 text-start items-start border-2 outline-renk1 rounded-lg h-10"
               type="email"
               id="email"
               onChange={handleInputChange}
