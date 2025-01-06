@@ -26,7 +26,7 @@ const Category = () => {
     }, []);
 
     return (
-        <div className="min-h-[65vh] mb-20">
+        <div className="min-h-screen mb-20">
             <Heading text="Tüm Ürünler" />
             <div className="flex flex-wrap mx-28 items-center gap-3 md:gap-10">
                 {
