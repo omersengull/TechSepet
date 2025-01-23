@@ -100,7 +100,7 @@ const Footer = () => {
                             </div>
                             <div className='flex items-center px-3  py-1 rounded-xl hover:bg-gray-200'>
                                 <IoMail className="mr-2" />
-                                <a href='mailto:omersengul061@hotmail.com' className=''>omersengul061@hotmail.com</a>
+                                <a href='mailto:omersengul061@hotmail.com' className=''>techsepet@gmail.com</a>
                             </div>
                         </div>
                     </div>

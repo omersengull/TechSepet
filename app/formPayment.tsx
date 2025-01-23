@@ -5,15 +5,45 @@ import axios from 'axios';
 import { FaCreditCard } from "react-icons/fa6";
 import useCart from './hooks/useCart';
 import priceClip from './utils/priceClip';
+type PaymentData = {
+    userId: string;
+    items: string; // Ürünlerin JSON string olarak geldiği düşünülüyor
+    totalPrice: number;
+  };
 const FormPayment = () => {
-    const { cartPrdcts } = useCart(); 
+    const handlePaymentSuccess = async (paymentData: PaymentData) => {
+        try {
+            const response = await fetch('/api/addOrder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: paymentData.userId,
+                    items: paymentData.items,
+                    totalPrice: paymentData.totalPrice,
+                }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                console.log('Order added successfully:', result.order);
+            } else {
+                console.error('Failed to add order:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const { cartPrdcts } = useCart();
     const [cardNumber, setCardNumber] = useState('');
     const [expireMonth, setExpireMonth] = useState('');
     const [expireYear, setExpireYear] = useState('');
     const [cvc, setCvc] = useState('');
     const [holderName, setHolderName] = useState('');
     const [response, setResponse] = useState(null);
-    const [totalPrice, setTotalPrice] = useState(0); 
+    const [totalPrice, setTotalPrice] = useState(0);
 
     useEffect(() => {
         let total = 0;
@@ -21,10 +51,10 @@ const FormPayment = () => {
             total += Number(prd.price) * prd.quantity;
         });
         setTotalPrice(total);
-    }, [cartPrdcts]); 
+    }, [cartPrdcts]);
 
     const handlePayment = async () => {
-        
+
         const paymentCard = {
             cardHolderName: holderName,
             cardNumber: cardNumber,
@@ -35,7 +65,7 @@ const FormPayment = () => {
         };
 
         const buyer = {
-            id: 'BY789',
+            id: '63e4d6f88b6f3c231c49f9de',
             name: 'Ömer',
             surname: 'Şengül',
             gsmNumber: '+905350000000',
@@ -78,7 +108,7 @@ const FormPayment = () => {
         ];
 
         const paymentData = {
-            price: totalPrice.toFixed(2), 
+            price: totalPrice.toFixed(2),
             paidPrice: totalPrice.toFixed(2),
             currency: 'TRY',
             basketId: 'B67832',
@@ -96,14 +126,20 @@ const FormPayment = () => {
                 }
             });
 
-             setResponse(response.data);
-            if (response.data?.status=='success') {
-               
+            setResponse(response.data);
+            if (response.data?.status == 'success') {
+
                 alert(`Ödeme işlemi başarılı!, ${response.data.status || 'Teşekkürler!'}`);
+                const orderData = {
+                    userId: buyer.id,
+                    items: JSON.stringify(cartPrdcts),
+                    totalPrice,
+                };
+                await handlePaymentSuccess(orderData);
             } else {
                 alert(`Ödeme işlemi başarısız. ${response.data.status || 'Eksik veya hatalı bilgiler.'}`);
             }
-        
+
         } catch (error) {
             console.error('Error:', error);
             alert(error);
@@ -156,7 +192,7 @@ const FormPayment = () => {
                         onChange={(e) => setCvc(e.target.value)}
                     />
                     <button className='bg-renk1 mt-2 text-white py-3 rounded-xl' onClick={handlePayment}>
-                        ₺ {totalPrice>1000 ? `${priceClip(totalPrice)}` : `${priceClip(totalPrice)} + 39`} Öde
+                        ₺ {totalPrice > 1000 ? `${priceClip(totalPrice)}` : `${priceClip(totalPrice)} + 39`} Öde
                     </button>
                 </div>
             </div>

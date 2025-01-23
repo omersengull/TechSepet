@@ -74,4 +74,13 @@ model User {
   surname        String
   updatedAt      DateTime @db.Date
   reviews        Review[] // Kullanıcı incelemeleri
+  orders         Order []
+}
+model Order {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  items      String   // JSON string olarak saklanıyor
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
 }
