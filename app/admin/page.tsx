@@ -1,8 +1,10 @@
 import React from 'react'
-
+import Summaries from './summaries/page'
 const Admin = () => {
     return (
-        <div className='flex justify-center'>Hoş Geldiniz Admin!</div>
+        <>
+        <Summaries/>
+        </>
     )
 }
 

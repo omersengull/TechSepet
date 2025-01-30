@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import React from "react"
 interface CartContextProps {
+    removeItemsFromCart:() => void;
     productCartQty: number;
     addToBasket: (product: CardProductProps) => void;
     cartPrdcts: CardProductProps[] | null;
@@ -68,7 +69,10 @@ export const CartContextProvider = (props: Props) => {
             }));
         setFilteredProducts(searchedProducts);
     }, []);
-    
+    const removeItemsFromCart=()=>{
+        setCartPrdcts([]);
+        localStorage.removeItem('Cart');
+    }
     const deleteThisPrdct = useCallback((product: CardProductProps) => {
         setCartPrdcts(prev => {
             if (!prev) return [];
@@ -82,6 +86,7 @@ export const CartContextProvider = (props: Props) => {
     const value = {
         productCartQty,
         addToBasket,
+        removeItemsFromCart,
         cartPrdcts,
         setCartPrdcts,
         deleteThisPrdct,

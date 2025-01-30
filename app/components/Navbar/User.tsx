@@ -90,7 +90,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       setIsLoading(false);
       if (type === "logout") {
         try {
-          await signOut({ redirect: true });
+          await signOut({ redirect: false });
           setUser(null);
           router.push('/');
         } catch (error) {

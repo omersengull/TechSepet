@@ -14,14 +14,6 @@ import { GiGameConsole } from "react-icons/gi";
 import Button from "../General/Button";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import React from "react"
-import {
-    getStorage,
-    ref,
-    uploadBytesResumable,
-    getDownloadURL,
-} from "firebase/storage";
-import firebaseApp from "@/libs/firebase";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -60,65 +52,34 @@ const CreateForm = () => {
     });
 
     const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-        console.log(data);
-
-        // Görsel yükleme kontrolü
         if (!img) {
             toast.error("Lütfen bir görsel seçin");
             return;
         }
 
-        const handleChange = async () => {
-            toast.success("Yükleme işlemi başladı...");
+        const reader = new FileReader();
+        reader.onload = async () => {
             try {
-                const storage = getStorage(firebaseApp);
-                const storageRef = ref(storage, `images/${img.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, img);
-                await new Promise<void>((resolve, reject) => {
-                    uploadTask.on(
-                        "state_changed",
-                        (snapshot) => {
-                            const progress =
-                                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            console.log(`Upload is ${progress}% done`);
-                        },
-                        (error) => reject(error),
-                        async () => {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            console.log("File available at", downloadURL);
-                            setUploadedImg(downloadURL);
-                            resolve();
-                        }
-                    );
+                const base64 = reader.result as string;
+                const fileContent = base64.split(",")[1]; // Base64 verisini ayıkla
+                const response = await axios.post("/api/upload", {
+                    fileName: img.name,
+                    fileContent,
+                    contentType: img.type,
                 });
+
+                const imageUrl = response.data.url;
+                const newData = { ...data, image: imageUrl };
+
+                await axios.post("/api/product", newData);
+                toast.success("Ürün başarıyla oluşturuldu");
+                router.refresh();
             } catch (error) {
-                console.error("Yükleme sırasında hata oluştu:", error);
-                toast.error("Yükleme başarısız oldu.");
+                console.error("Hata:", error);
+                toast.error("Ürün eklenirken bir hata oluştu.");
             }
         };
-
-        await handleChange();
-
-        // uploadedImg kontrolü
-        if (!uploadedImg) {
-            toast.error("Görsel yüklenirken hata oluştu. Lütfen tekrar deneyin.");
-            return;
-        }
-
-        const newData = { ...data, image: uploadedImg };
-
-        axios
-            .post("/api/product", newData)
-            .then(() => {
-                toast.success("Ürün ekleme işlemi başarılı");
-                router.refresh();
-            })
-            .catch((error) => {
-                console.error(error);
-                toast.error("Ürün eklenirken bir hata oluştu.");
-            });
-
-        console.log(newData);
+        reader.readAsDataURL(img);
     };
 
     const category = watch("category");
@@ -140,59 +101,58 @@ const CreateForm = () => {
     return (
         <div className="mb-20">
             <div className="w-[200px] md:w-auto">
-            <Heading text="ÜRÜN OLUŞTUR" center />
-            <Input
-                placeholder="Ad"
-                type="text"
-                id="name"
-                register={register}
-                errors={errors}
-                required
-            />
-            <Input
-                placeholder="Açıklama"
-                type="text"
-                id="description"
-                register={register}
-                errors={errors}
-                required
-            />
-            <Input
-                placeholder="Marka"
-                type="text"
-                id="brand"
-                register={register}
-                errors={errors}
-                required
-            />
-            <Input
-                placeholder="Fiyat"
-                type="number"
-                id="price"
-                register={register}
-                errors={errors}
-                required
-            />
-            <CheckBox
-                register={register}
-                id="inStock"
-                label="Ürün stokta mevcut mu?"
-            />
-            <div className="flex flex-wrap gap-3 my-3">
-                {categoryList.map((cat, i) => (
-                    <ChoiceInput
-                        key={i}
-                        icon={cat.icon}
-                        text={cat.name}
-                        onClick={() => setCustomValue("category", cat.value)}
-                        selected={category === cat.value}
-                    />
-                ))}
+                <Heading text="ÜRÜN OLUŞTUR" center />
+                <Input
+                    placeholder="Ad"
+                    type="text"
+                    id="name"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+                <Input
+                    placeholder="Açıklama"
+                    type="text"
+                    id="description"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+                <Input
+                    placeholder="Marka"
+                    type="text"
+                    id="brand"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+                <Input
+                    placeholder="Fiyat"
+                    type="number"
+                    id="price"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+                <CheckBox
+                    register={register}
+                    id="inStock"
+                    label="Ürün stokta mevcut mu?"
+                />
+                <div className="flex flex-wrap gap-3 my-3">
+                    {categoryList.map((cat, i) => (
+                        <ChoiceInput
+                            key={i}
+                            icon={cat.icon}
+                            text={cat.name}
+                            onClick={() => setCustomValue("category", cat.value)}
+                            selected={category === cat.value}
+                        />
+                    ))}
+                </div>
+                <input className="mt-3 mb-5" type="file" onChange={onChangeFunc} />
+                <Button text="Ürün Oluştur" onClick={handleSubmit(onSubmit)} />
             </div>
-            <input className="mt-3 mb-5" type="file" onChange={onChangeFunc} />
-            <Button text="Ürün Oluştur" onClick={handleSubmit(onSubmit)} />
-            </div>
-            
         </div>
     );
 };

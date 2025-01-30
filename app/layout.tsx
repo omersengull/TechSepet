@@ -7,6 +7,7 @@ import Footer from './components/Footer/Footer';
 import CartProvider from "./provider/CartProvider";
 import { Toaster } from "react-hot-toast";
 import React from "react"
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -39,17 +40,22 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Toaster position="top-right" reverseOrder={false} />
 
-        {/* SpinnerProvider ve CartProvider'ı doğru şekilde sarmalıyız */}
+
         <SpinnerProvider>
+
           <CartProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
-            </div>
+ 
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-grow">
+                  
+                  {children}
+                </main>
+                <Footer />
+              </div>
+          
           </CartProvider>
+
         </SpinnerProvider>
 
       </body>
