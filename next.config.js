@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
 const nextConfig = {
   
   reactStrictMode: true,
