@@ -55,7 +55,7 @@ const DetailClient = ({ product }: { product: any }) => {
               <span className="mx-2 text-slate-500">|</span>
               <div>{product.brand}</div>
             </div>
-            <div className="mt-3 text-xl font-bold">{product.description}</div>
+            <div className="mt-3 text-xl font-bold w-[450px]">{product.description}</div>
             <div className="mt-10">
               <Image src={product.image} alt={product.name || "Ürün Görseli"} width={430} height={400} />
             </div>
