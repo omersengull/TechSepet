@@ -22,7 +22,6 @@ const ManageClient: React.FC<ManageClientProps> = ({ products }) => {
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                category: product.category,
                 brand: product.brand,
                 inStock: product.inStock,
                 image: product.image,
