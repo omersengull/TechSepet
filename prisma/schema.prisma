@@ -23,29 +23,55 @@ model Account {
 }
 
 model Address {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   address    String
   city       String
   createdAt  DateTime @db.Date
   postalCode String
   title      String
   updatedAt  DateTime @db.Date
-  userId     String    @db.ObjectId
-  user       User      @relation(fields: [userId], references: [id])
-  orders     Order[]   // Address ile Order arasında ters ilişki tanımı
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  orders     Order[] // Address ile Order arasında ters ilişki tanımı
 }
 
 model Product {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  brand       String
-  category    String
-  description String
-  image       String
-  inStock     Boolean
-  name        String
-  price       Float
-  createdAt   DateTime @default(now())
-  reviews     Review[] // Review ilişkisi
+  id             String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  description    String?
+  inStock        Boolean
+  image          String
+  price          Float
+  brand          String
+  createdAt      DateTime               @default(now())
+  category       Category?              @relation(fields: [categoryId], references: [id])
+  categoryId     String?                @db.ObjectId
+  specifications ProductSpecification[]
+  reviews        Review[] // EKLENDİ: Ürünün yorumları
+}
+
+model Category {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  products       Product[]
+  specifications Specification[]
+}
+
+model Specification {
+  id                    String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String // Örnek: "RAM", "Depolama Alanı", "Renk"
+  category              Category               @relation(fields: [categoryId], references: [id])
+  categoryId            String                 @db.ObjectId
+  productSpecifications ProductSpecification[]
+}
+
+model ProductSpecification {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  product         Product       @relation(fields: [productId], references: [id])
+  productId       String        @db.ObjectId
+  specification   Specification @relation(fields: [specificationId], references: [id])
+  specificationId String        @db.ObjectId
+  value           String // Örnek: "128 GB", "Kırmızı", "6.1 inç"
 }
 
 model Review {
@@ -71,9 +97,9 @@ model User {
   image          String?
   name           String
   phone          String?
-  role           String   @default("USER")
+  role           String    @default("USER")
   surname        String
-  updatedAt      DateTime @db.Date
+  updatedAt      DateTime  @db.Date
   reviews        Review[] // Kullanıcı incelemeleri
   orders         Order[]
 }
@@ -81,7 +107,7 @@ model User {
 model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
-  items      String   // JSON string olarak saklanıyor
+  items      String // JSON string olarak saklanıyor
   totalPrice Float
   createdAt  DateTime @default(now())
   addressId  String   @db.ObjectId

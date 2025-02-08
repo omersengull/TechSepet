@@ -16,7 +16,7 @@ const categories = [
 
 const Page = () => {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([89, 91499]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [products, setProducts] = useState([]);
 
@@ -51,7 +51,7 @@ const Page = () => {
       products
         .filter((product: any) =>
           selectedCategory
-            ? product.category.toLowerCase() === selectedCategory.toLowerCase()
+            ? product.category?.toLowerCase() === selectedCategory?.toLowerCase()
             : false
         )
         .map((product: any) => product.brand.toUpperCase())
@@ -60,18 +60,19 @@ const Page = () => {
 
   const filteredProducts = products.filter((product: any) => {
     const matchesCategory = selectedCategory
-      ? product.category.toLowerCase() === selectedCategory.toLowerCase()
+      ? product.category?.toLowerCase() === selectedCategory.toLowerCase()
       : true;
-
+  
     const matchesBrand = selectedBrands.length
       ? selectedBrands.includes(product.brand.toUpperCase())
       : true;
-
+  
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
-
+  
     return matchesCategory && matchesBrand && matchesPrice;
   });
+  
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-14 py-6 min-h-screen">

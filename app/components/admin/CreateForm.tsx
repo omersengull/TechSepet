@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 const CreateForm = () => {
     const router = useRouter();
     const [img, setImg] = useState<File | null>(null);
-    const [uploadedImg, setUploadedImg] = useState<string | null>(null);
+    const [specifications, setSpecifications] = useState([{ key: "", value: "" }]);
 
     const categoryList = [
         { name: "Telefon", value: "phone", icon: GiSmartphone },
@@ -61,7 +61,7 @@ const CreateForm = () => {
         reader.onload = async () => {
             try {
                 const base64 = reader.result as string;
-                const fileContent = base64.split(",")[1]; // Base64 verisini ayıkla
+                const fileContent = base64.split(",")[1];
                 const response = await axios.post("/api/upload", {
                     fileName: img.name,
                     fileContent,
@@ -69,7 +69,11 @@ const CreateForm = () => {
                 });
 
                 const imageUrl = response.data.url;
-                const newData = { ...data, image: imageUrl };
+                const newData = {
+                    ...data,
+                    image: imageUrl,
+                    specifications: specifications.filter((spec) => spec.key && spec.value),
+                };
 
                 await axios.post("/api/product", newData);
                 toast.success("Ürün başarıyla oluşturuldu");
@@ -96,6 +100,16 @@ const CreateForm = () => {
         if (e.target.files && e.target.files.length > 0) {
             setImg(e.target.files[0]);
         }
+    };
+
+    const addSpecificationField = () => {
+        setSpecifications([...specifications, { key: "", value: "" }]);
+    };
+
+    const handleSpecChange = (index: number, field: string, value: string) => {
+        const newSpecifications = [...specifications];
+        newSpecifications[index][field as "key" | "value"] = value;
+        setSpecifications(newSpecifications);
     };
 
     return (
@@ -139,6 +153,7 @@ const CreateForm = () => {
                     id="inStock"
                     label="Ürün stokta mevcut mu?"
                 />
+
                 <div className="flex flex-wrap gap-3 my-3">
                     {categoryList.map((cat, i) => (
                         <ChoiceInput
@@ -150,7 +165,37 @@ const CreateForm = () => {
                         />
                     ))}
                 </div>
+
                 <input className="mt-3 mb-5" type="file" onChange={onChangeFunc} />
+
+                <h3 className="font-semibold mb-2">Ürün Özellikleri</h3>
+                {specifications.map((spec, index) => (
+                    <div key={index} className="flex space-x-2 mb-2">
+                        <input
+                            type="text"
+                            placeholder="Özellik Adı (örn. RAM)"
+                            value={spec.key}
+                            onChange={(e) => handleSpecChange(index, "key", e.target.value)}
+                            className="border p-2 w-1/2"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Değer (örn. 8 GB)"
+                            value={spec.value}
+                            onChange={(e) => handleSpecChange(index, "value", e.target.value)}
+                            className="border p-2 w-1/2"
+                        />
+                    </div>
+                ))}
+
+                <button
+                    type="button"
+                    onClick={addSpecificationField}
+                    className="bg-gray-200 px-4 py-2 rounded-md mb-4"
+                >
+                    + Özellik Ekle
+                </button>
+
                 <Button text="Ürün Oluştur" onClick={handleSubmit(onSubmit)} />
             </div>
         </div>
