@@ -6,7 +6,6 @@ import { useState } from "react";
 import Counter from "../General/Counter";
 import Button from "../General/Button";
 import priceClip from "@/app/utils/priceClip";
-import Heading from "../General/Heading";
 import Comment from "../General/Comment";
 import useCart from "@/app/hooks/useCart";
 import { MdShoppingCart } from "react-icons/md";
