@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import PageContainer from "../containers/PageContainer";
@@ -14,16 +14,48 @@ import { useRouter } from "next/navigation";
 import { MdInfoOutline } from "react-icons/md";
 import toast from "react-hot-toast";
 import Head from "next/head";
-
+import axios from "axios";
+import { getCurrentUser } from "@/app/actions/getCurrentUser";
 const CartClient = () => {
+    const [addresses, setAddresses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        const fetchAddresses = async () => {
+            try {
+                const currentUser = await getCurrentUser();
+                if (currentUser) {
+                    const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
+                    console.log("API'den dönen adresler:", response.data.addresses);
+                    setAddresses(response.data.addresses);
+                }
+            } catch (error) {
+                console.error("Adresler yüklenirken hata oluştu:", error);
+            }
+        };
+
+        fetchAddresses();
+
+        const timeout = setTimeout(() => {
+            setLoading(false);
+        }, 16000); // 10 saniye sonra loading false olacak
+
+        return () => clearTimeout(timeout); // Component unmount olduğunda temizleme işlemi
+    }, []);
+    useEffect(() => {
+        console.log("setAddresses sonrası güncel değer:", addresses);
+        console.log("addresses bir dizi mi?:", Array.isArray(addresses));
+    }, [addresses]);
     const router = useRouter();
     const handlePayment = () => {
-        router.push('/payment');
+        if (selectedAddress && isFormChecked) {  // ✅ Ek kontrol
+            router.push('/payment');
+        }
     }
     const [isOpen, setIsOpen] = useState(false);
     const togglePopup = () => { setIsOpen(!isOpen); };
-
-
+    const [chc, SwapChc] = useState(false)
+    const [selectedAddress, setSelectedAddress] = useState(null); // ✅ Seçili adres için state
+    const [isFormChecked, setIsFormChecked] = useState(false);
     const { cartPrdcts, setCartPrdcts, deleteCart, deleteThisPrdct } = useCart();
 
     const increaseFunc = (productId: string) => {
@@ -75,7 +107,7 @@ const CartClient = () => {
 
     let totalPrice = 0;
     cartPrdcts.forEach(prd => {
-        totalPrice +=Number( prd.price )* prd.quantity;
+        totalPrice += Number(prd.price) * prd.quantity;
     });
 
     return (
@@ -117,7 +149,7 @@ const CartClient = () => {
                                         <span className="font-bold">{prd.description}</span>
                                         <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-4xl ml-16" />
                                     </div>
-                                    <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price )* prd.quantity)}</div>
+                                    <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
                                     {prd.inStock ? (
                                         <div className="flex items-center">
@@ -139,9 +171,40 @@ const CartClient = () => {
                             </div>
                         ))}
                     </div>
+
                     <div className="flex-col md:w-2/3">
+                        <div className="rounded-xl border outline-none bg-gray-100 flex flex-col py-4 px-5 mb-6 text-lg">
+                            <h1 className="font-bold">Adres seçimi</h1>
+                            <div>
+                                {loading ? (
+                                    // Skeleton Loader
+                                    <>
+                                        <div className="animate-pulse h-6 bg-gray-300 rounded mb-2 w-3/4"></div>
+                                        <div className="animate-pulse h-6 bg-gray-300 rounded mb-2 w-2/3"></div>
+                                        <div className="animate-pulse h-6 bg-gray-300 rounded mb-2 w-1/2"></div>
+                                    </>
+                                ) : addresses.length > 0 ? (
+                                    addresses.map((address: any) => (
+                                        <div key={address.id} className="flex">
+                                            <input
+                                                className="mr-2"
+                                                type="radio"
+                                                name="selectedAddress"
+                                                value={address.id}
+                                                onChange={() => setSelectedAddress(address.id)}
+                                            />
+                                            <span className="font-bold mr-1">{address.title} </span>
+                                            <div>({address.address})</div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div>Adres bulunamadı</div>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="rounded-xl border outline-none bg-gray-100 flex flex-col py-4 px-5 text-lg">
-                            <div>Özet</div>
+                            <div className="font-bold">Özet</div>
                             <div className="text-xs mt-1 mb-4">İndirim kodları ödeme adımında eklenebilir.</div>
                             <hr />
                             <div className="mt-5 flex justify-between">
@@ -158,21 +221,40 @@ const CartClient = () => {
                                 </span>
                             </div>
                             <hr />
-                            <div className="flex flex-col mt-5">
+                            <div className="flex flex-col mt-5 mb-2">
                                 <div className="flex flex-row justify-between">
                                     <div className="font-bold">Toplam</div>
-                                    <div className="font-bold"> 
+                                    <div className="font-bold">
                                         {totalPrice > 1000 ? `₺ ${priceClip(totalPrice)}` : `₺ ${(totalPrice) + 39}`}
                                     </div>
                                 </div>
                                 <div className="text-sm">KDV Dahildir</div>
+
                             </div>
+                            <hr />
+                            <div className="mt-2"><input onChange={(e) => setIsFormChecked(e.target.checked)} className="mr-1 size-4" type="checkbox" name="" id="" />Ön bilgilendirme formu'nu ve Mesafeli satış sözleşmesi 'ni onaylıyorum.</div>
+
                             <div className="mt-5 flex justify-center">
-                                <button onClick={handlePayment} className="w-[300px] md:w-[500px] bg-renk1 px-5 py-3 rounded-xl text-white">
-                                    Ödeme işlemine geçin
-                                </button>
+                                {selectedAddress && isFormChecked ? (  // ✅ Doğru kontrol burada
+                                    <button
+                                        onClick={handlePayment}
+                                        className="w-[300px] md:w-[500px] bg-renk1 px-5 py-3 rounded-xl text-white"
+                                    >
+                                        Ödeme işlemine geçin
+                                    </button>
+                                ) : (
+                                    <button
+                                        disabled
+                                        className="w-[300px] md:w-[500px] cursor-not-allowed bg-slate-500 px-5 py-3 rounded-xl text-white"
+                                    >
+                                        Ödeme işlemine geçin
+                                    </button>
+                                )}
                             </div>
+
+
                         </div>
+
                     </div>
                 </div>
             </PageContainer>

@@ -98,13 +98,16 @@ const DetailClient = ({ product }: { product: any }) => {
       <PageContainer>
         <div className="flex md:flex-row flex-col">
           <div className="relative flex flex-col w-full md:w-1/2">
-            <div className="flex flex-row justify-start">
-              <Rating name="read-only" value={productRating} readOnly />
-              <span className="mx-2 text-slate-500">|</span>
-              <div>Ürün no: {product.id}</div>
-              <span className="mx-2 text-slate-500">|</span>
-              <div>{product.brand}</div>
+            <div className="flex flex-wrap md:flex-row flex-col justify-start text-sm md:text-base">
+              <div className="flex items-center">
+                <Rating name="read-only" value={productRating} readOnly />
+              </div>
+              <span className="mx-2 text-slate-500 hidden md:inline">|</span>
+              <div className="flex items-center mt-1 md:mt-0">Ürün no: {product.id}</div>
+              <span className="mx-2 text-slate-500 hidden md:inline">|</span>
+              <div className="flex items-center mt-1 md:mt-0">{product.brand}</div>
             </div>
+
             <div className="mt-3 text-xl font-bold w-[450px]">
               {product.description}
             </div>

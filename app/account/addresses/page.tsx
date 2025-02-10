@@ -79,11 +79,13 @@ const Page = () => {
         throw new Error("Adresler alınamadı");
       }
       const data = await response.json();
-      setAddresses(data.addresses || []); // Boş bir dizi atama
+      console.log("API'den dönen adresler:", data.addresses);  // ✅ Burada kontrol et
+      setAddresses(data.addresses || []);
     } catch (err) {
       console.error("Adresleri alırken hata oluştu:", err);
     }
   };
+  
 
 
   useEffect(() => {
@@ -197,16 +199,17 @@ const Page = () => {
         setAddresses((prev) => [
           ...prev,
           {
-            id: data.id ?? "",
+            id: data.id ?? "", 
             userId: user?.id ?? "",
             title: addressTitle || "Başlık Yok",
             city: selectedCity || "Şehir Yok",
             address: address || "Adres Yok",
             postalCode: postalCode.toString(),
             createdAt: new Date(),
-            updatedAt:new Date(),
+            updatedAt: new Date(),
           },
         ]);
+        
 
         setAddressTitle("");
         setSelectedCity("");
@@ -264,12 +267,12 @@ const Page = () => {
           : addresses.map((addrss) => (
             <div className="md:w-1/3 mx-auto mb-5 mt-5" key={addrss.id}>
               <AddressesCard
-                {...addrss}
+                 id={addrss.id}
                 address={addrss.address || ""}
                 setAddresses={setAddresses}
                 onDelete={handleDelete}
                 selectedCity={selectedCity}
-                addressTitle={addressTitle}
+                addressTitle={addrss.title}
                 postalCode={addrss.postalCode || ""}
                 city={addrss.city || ""}
                 showModal={showModal}

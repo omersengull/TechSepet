@@ -38,6 +38,8 @@ const AddressesCard = ({
     setAddresses: React.Dispatch<React.SetStateAction<Address[]>>
 
 }) => {
+    console.log("Adres Kartı ID:", id);
+
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -55,25 +57,31 @@ const AddressesCard = ({
         };
     }, [showModal, setShowModal]);
 
-    const deleteAddress = async () => {
+    const deleteAddress = async (addressId: string) => {
+        console.log("Silinecek ID:", addressId);  // ID'yi kontrol etmek için eklendi
         try {
-            const response = await fetch(`/api/addresses/${id}`, {
+            const response = await fetch(`/api/addresses/${addressId}`, {
                 method: 'DELETE',
             });
+    
             if (typeof onDelete !== "function") {
                 console.error("onDelete fonksiyonu geçilmedi.");
                 return;
             }
-
+    
             if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API Hatası:", errorData);  // Daha fazla hata bilgisi için eklendi
                 throw new Error('Adres silinemedi.');
             }
-
-            onDelete(id);
+    
+            onDelete(addressId);
         } catch (error) {
             console.error('Silme işlemi sırasında hata oluştu:', error);
         }
     };
+    
+    
     const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
 
     const editAddress = (address: Address) => {
@@ -92,7 +100,7 @@ const AddressesCard = ({
         }
 
         try {
-            const response = await fetch("/api/addresses", {
+            const response = await fetch(`/api/addresses/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -164,12 +172,12 @@ const AddressesCard = ({
                             postalCode,
                             userId: id, 
                             createdAt: new Date(),
-                            updatedAt:new Date,
+                            updatedAt:new Date(),
                         })}
                         className="cursor-pointer text-yellow-500"
                     />
                     <AiFillDelete
-                        onClick={deleteAddress}
+                        onClick={()=>{deleteAddress(id)}}
                         className="cursor-pointer mt-4 text-red-500"
                     />
                 </div>

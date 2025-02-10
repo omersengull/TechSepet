@@ -48,7 +48,7 @@ const Category = () => {
             <div onClick={togglePopup} className="ml-1 cursor-pointer">
                 <MdInfoOutline />
             </div></div>
-            <div className="flex flex-wrap mx-28 items-center gap-3 md:gap-10">
+            <div className="flex flex-wrap sm:mx-28 mx-7 items-center gap-3 md:gap-10">
                 {
                     products.length === 0 ? Array.from({ length: 20 }).map((_, index) => (
                         <div className="" key={index}>

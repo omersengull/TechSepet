@@ -58,6 +58,7 @@ export async function GET() {
   try {
     const products = await prisma.product.findMany({
       include: {
+        category:true,
         specifications: {
           include: {
             specification: true, // Özellik isimlerini de döndür

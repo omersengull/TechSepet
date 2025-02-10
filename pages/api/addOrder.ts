@@ -15,34 +15,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, message: "Eksik alanlar var." });
     }
 
-    // Siparişi oluştur
+    // Adres bilgilerini veritabanından çekiyoruz
+    const address = await prisma.address.findUnique({
+      where: { id: addressId },
+    });
+
+    if (!address) {
+      return res.status(404).json({ success: false, message: "Adres bulunamadı." });
+    }
+
+    // Siparişi oluşturuyoruz
     const newOrder = await prisma.order.create({
       data: {
         userId,
         addressId,
         items: JSON.stringify(items),
         totalPrice: parseFloat(totalPrice),
-      } as any, // **TypeScript tipi bypass etmek için**
+        addressInfo: { // ✅ Adres bilgilerini JSON olarak kaydediyoruz
+          title: address.title,
+          address: address.address,
+          city: address.city,
+          postalCode: address.postalCode,
+          
+        },
+      } as any, // TypeScript tipi bypass etmek için
     });
 
     // Kullanıcı ve adres bilgilerini ayrıca çekiyoruz
     const orderWithDetails = await prisma.order.findUnique({
       where: { id: newOrder.id },
       include: {
-        user: true, // Kullanıcı bilgilerini getir
+        user: true,   // Kullanıcı bilgilerini getir
       },
-    });
-
-    // Adres bilgilerini ayrıca çekiyoruz (Çünkü Prisma `address` için doğrudan include desteklemiyor)
-    const address = await prisma.address.findUnique({
-      where: { id: addressId },
     });
 
     return res.status(201).json({
       success: true,
       order: {
         ...orderWithDetails,
-        address, // Adres bilgisi manuel olarak ekleniyor
+        address, // ✅ Adres bilgisi manuel olarak ekleniyor
       },
     });
 

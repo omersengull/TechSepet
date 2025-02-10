@@ -61,6 +61,9 @@ const ProductsCard = ({ product }: { product: any }) => {
             <div className="font-bold text-center mt-3 flex-grow flex flex-col justify-between">
                 <div>
                     <div className="my-2 text-sm sm:text-base">{TextClip(product.name)}</div>
+                </div>
+
+                <div className="flex flex-col justify-between items-center mt-auto">
                     <div className="flex flex-row justify-center items-center my-2">
                         <Rating name="read-only" value={productRating} readOnly size="small" />
                         <span className="ml-1 text-xs sm:text-sm">({product?.reviews?.length})</span>

@@ -99,7 +99,7 @@
                             </div>
                         </div>
 
-                        <div onClick={()=>{router.push('/dsearch')}} className="rounded-xl flex flex-row items-center cursor-pointer border-white border-2 px-6 md:py-3 sm:py-2 xs:py-1">
+                        <div onClick={()=>{router.push('/dsearch')}} className="rounded-xl flex flex-row items-center cursor-pointer border-white border-2 md:px-6 px-4 md:py-3 sm:py-2 xs:py-1">
                             <MdManageSearch className="text-2xl mr-1"/> <span className="font-bold">Detaylı Arama</span>
                         </div>
 

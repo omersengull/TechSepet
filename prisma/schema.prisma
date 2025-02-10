@@ -26,10 +26,10 @@ model Address {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   address    String
   city       String
-  createdAt  DateTime @db.Date
-  postalCode String
+  createdAt  DateTime @db.Date @default(now())
+  postalCode String 
   title      String
-  updatedAt  DateTime @db.Date
+  updatedAt  DateTime @db.Date @updatedAt
   userId     String   @db.ObjectId
   user       User     @relation(fields: [userId], references: [id])
   orders     Order[] // Address ile Order arasında ters ilişki tanımı
@@ -111,6 +111,7 @@ model Order {
   totalPrice Float
   createdAt  DateTime @default(now())
   addressId  String   @db.ObjectId
+  addressInfo Json?
   address    Address  @relation(fields: [addressId], references: [id]) // Adres ilişkisi
   user       User     @relation(fields: [userId], references: [id])
 }
