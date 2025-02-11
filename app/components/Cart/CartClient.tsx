@@ -46,9 +46,15 @@ const CartClient = () => {
         console.log("addresses bir dizi mi?:", Array.isArray(addresses));
     }, [addresses]);
     const router = useRouter();
+    // Spinner için ek state
+    const [isRedirecting, setIsRedirecting] = useState(false);
     const handlePayment = () => {
         if (selectedAddress && isFormChecked) {  // ✅ Ek kontrol
-            router.push('/payment');
+            setIsRedirecting(true);
+            // 3 saniyelik gecikmeden sonra yönlendirme
+            setTimeout(() => {
+                router.push('/payment');
+            }, 3000);
         }
     }
     const [isOpen, setIsOpen] = useState(false);
@@ -112,6 +118,13 @@ const CartClient = () => {
 
     return (
         <div className="min-h-screen">
+            {/* Yönlendirme sırasında gösterilecek spinner ve mesaj */}
+            {isRedirecting && (
+                <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+                    <div className="animate-spin border-4 border-t-4 border-gray-200 rounded-full w-16 h-16"></div>
+                    <p className="mt-4 text-lg font-bold">Ödemeye yönlendiriliyor...</p>
+                </div>
+            )}
             {isOpen && (
                 <>
                     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"></div>
@@ -131,8 +144,8 @@ const CartClient = () => {
                 <title>Sepet</title>
             </Head>
             <PageContainer>
-                <div>
-                    <button onClick={deleteCart} className="bg-renk1 py-1 px-2 text-white rounded-xl flex flex-row items-center">
+                <div className="flex justify-center mb-2 sm:mb-1 md:mb-0 sm:justify-normal">
+                    <button onClick={deleteCart} className="bg-renk1 py-2 px-3 mb-2 md:mb-0 text-white rounded-xl flex flex-row items-center">
                         <RiDeleteBinFill />
                         <span className="ml-1">Sepeti Boşalt</span>
                     </button>
@@ -147,9 +160,12 @@ const CartClient = () => {
                                 <div className="flex flex-col space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold">{prd.description}</span>
-                                        <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-4xl ml-16" />
                                     </div>
-                                    <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
+                                        <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-2xl ml-16" />
+                                    </div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
                                     {prd.inStock ? (
                                         <div className="flex items-center">
@@ -191,8 +207,12 @@ const CartClient = () => {
                                                 type="radio"
                                                 name="selectedAddress"
                                                 value={address.id}
-                                                onChange={() => setSelectedAddress(address.id)}
+                                                onChange={() => {
+                                                    setSelectedAddress(address.id);
+                                                    localStorage.setItem('selectedAddressId', address.id); // 📌 Seçilen adres ID'si localStorage'a kaydediliyor
+                                                }}
                                             />
+
                                             <span className="font-bold mr-1">{address.title} </span>
                                             <div>({address.address})</div>
                                         </div>
@@ -229,10 +249,12 @@ const CartClient = () => {
                                     </div>
                                 </div>
                                 <div className="text-sm">KDV Dahildir</div>
-
                             </div>
                             <hr />
-                            <div className="mt-2"><input onChange={(e) => setIsFormChecked(e.target.checked)} className="mr-1 size-4" type="checkbox" name="" id="" />Ön bilgilendirme formu'nu ve Mesafeli satış sözleşmesi 'ni onaylıyorum.</div>
+                            <div className="mt-2">
+                                <input onChange={(e) => setIsFormChecked(e.target.checked)} className="mr-1 size-4" type="checkbox" name="" id="" />
+                                Ön bilgilendirme formu'nu ve Mesafeli satış sözleşmesi 'ni onaylıyorum.
+                            </div>
 
                             <div className="mt-5 flex justify-center">
                                 {selectedAddress && isFormChecked ? (  // ✅ Doğru kontrol burada
@@ -251,10 +273,7 @@ const CartClient = () => {
                                     </button>
                                 )}
                             </div>
-
-
                         </div>
-
                     </div>
                 </div>
             </PageContainer>

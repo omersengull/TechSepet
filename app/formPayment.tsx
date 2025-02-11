@@ -16,18 +16,21 @@ const FormPayment = () => {
   const {removeItemsFromCart}=useCart();
   const handlePaymentSuccess = async (paymentData: PaymentData) => {
     try {
+      const addressId = localStorage.getItem('selectedAddressId'); // 📌 localStorage'dan adres ID'si alınır
+  
       const response = await fetch('/api/addOrder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          addressId: addressId, // ✅ API isteğine adres ID'si eklenir
           userId: paymentData.userId,
           items: paymentData.items,
           totalPrice: paymentData.totalPrice,
         }),
       });
-
+  
       const result = await response.json();
       if (result.success) {
         console.log('Order added successfully:', result.order);
@@ -38,7 +41,7 @@ const FormPayment = () => {
       console.error('Error:', error);
     }
   };
-
+  
   const { cartPrdcts } = useCart();
   const [cardNumber, setCardNumber] = useState('');
   const [expireMonth, setExpireMonth] = useState('');
