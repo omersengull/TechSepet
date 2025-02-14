@@ -15,20 +15,19 @@ const SHOPIER_BASE_URL = process.env.SHOPIER_BASE_URL || "https://www.shopier.co
 // CORS Konfigürasyonu
 const allowedOrigins = ["http://localhost:3000", "https://www.techsepet.shop"];
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("CORS Policy Error: Not allowed by CORS"));
-        }
-    },
+    origin: allowedOrigins,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
 }));
 
 // CORS Preflight Requests İçin OPTIONS Middleware
-app.options("*", cors());
+app.options("*", cors({
+    origin:allowedOrigins,
+    methods:["GET","POST","OPTIONS"],
+    allowedHeaders:["Content-Type","Authorization"],
+    credentials:true
+}));
 
 app.post("/api/payment", (req, res) => {
     try {
@@ -38,30 +37,16 @@ app.post("/api/payment", (req, res) => {
             return res.status(400).json({ message: "Eksik ödeme bilgileri!" });
         }
 
-        // SHA256 ile güvenli imza oluşturma
-        const hashStr = `${SHOPIER_API_USER}|${orderId}|${amount}|${currency}`;
-        const signature = crypto.createHmac("sha256", SHOPIER_API_KEY).update(hashStr).digest("hex");
+        const paymentUrl = `https://www.shopier.com/pgw/?orderId=${orderId}&amount=${amount}`;
 
-        // Shopier Ödeme URL'si oluşturma
-        const paymentUrl = `${SHOPIER_BASE_URL}/pgw/?apiUser=${SHOPIER_API_USER}&signature=${signature}`;
-
-        // Ödeme verilerini JSON formatında POST isteği ile göndermek
-        const paymentData = {
-            orderId,
-            amount,
-            currency,
-            buyerEmail,
-            buyerName,
-            successUrl,
-            failUrl
-        };
-
-        res.status(200).json({ paymentUrl, paymentData });
+        // ✅ API Yanıtı Her Zaman JSON Dönmeli
+        res.status(200).json({ success: true, paymentUrl: paymentUrl });
     } catch (error) {
         console.error("Ödeme oluşturma hatası:", error);
         res.status(500).json({ message: "Ödeme oluşturulamadı!", error: error.message });
     }
 });
+
 
 // Sunucuyu başlat
 const PORT = process.env.PORT || 3001;

@@ -63,22 +63,28 @@ const FormPayment = () => {
     try {
         const response = await fetch("https://www.techsepet.shop/api/payment", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 orderId: "123456",
-                amount: "1.00",
+                amount: "100.00",
                 currency: "TRY",
                 buyerEmail: "test@example.com",
-                buyerName: "Ömer Şengül",
+                buyerName: "Ahmet Yılmaz",
                 successUrl: "https://www.techsepet.shop/payment-success",
                 failUrl: "https://www.techsepet.shop/payment-fail"
             }),
             credentials: "include"
         });
 
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.status} - ${response.statusText}`);
+        }
+
         const data = await response.json();
-        if (data.paymentUrl) {
-            window.location.href = data.paymentUrl; // Kullanıcıyı Shopier ödeme sayfasına yönlendir
+        if (data.success && data.paymentUrl) {
+            window.location.href = data.paymentUrl; // Kullanıcıyı ödeme sayfasına yönlendir
         } else {
             console.error("Ödeme bağlantısı alınamadı:", data);
         }
@@ -86,6 +92,7 @@ const FormPayment = () => {
         console.error("Ödeme başlatılamadı:", error);
     }
 };
+
 
 
   return (
