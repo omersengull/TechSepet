@@ -1,51 +1,70 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const Iyzipay = require('iyzipay');
-require('dotenv').config();
+const express = require("express");
+const crypto = require("crypto");
 const cors = require('cors');
+const bodyParser = require('body-parser');
+require("dotenv").config();
 
 const app = express();
 app.use(bodyParser.json());
-
-app.use(cors());
 app.use(express.json());
 
-const iyzipay = new Iyzipay({
-    apiKey: process.env.IYZICO_API_KEY,
-    secretKey: process.env.IYZICO_SECRET_KEY,
-    uri: 'https://sandbox-api.iyzipay.com'
-});
-app.post('/api/payment', (req, res) => {
-    const { price, paidPrice, currency, basketId, paymentCard, buyer, shippingAddress, billingAddress, basketItems } = req.body;
+const SHOPIER_API_USER = process.env.SHOPIER_API_USER;
+const SHOPIER_API_KEY = process.env.SHOPIER_API_KEY;
+const SHOPIER_BASE_URL = process.env.SHOPIER_BASE_URL || "https://www.shopier.com";
 
-    const request = {
-        locale: Iyzipay.LOCALE.TR,
-        conversationId: '123456789',
-        price: price,
-        paidPrice: paidPrice,
-        currency: currency,
-        installment: '1',
-        basketId: basketId,
-        paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
-        paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-        paymentCard: paymentCard,
-        buyer: buyer,
-        shippingAddress: shippingAddress,
-        billingAddress: billingAddress,
-        basketItems: basketItems
-    };
-
-    iyzipay.payment.create(request, (err, result) => {
-        if (err) {
-            console.error('Payment error:', JSON.stringify(err, null, 2));
-            return res.status(500).json({ message: 'Payment failed', error: err });
+// CORS Konfigürasyonu
+const allowedOrigins = ["http://localhost:3000", "https://www.techsepet.shop"];
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("CORS Policy Error: Not allowed by CORS"));
         }
-        res.status(200).json(result);
-    });
-    
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
+
+// CORS Preflight Requests İçin OPTIONS Middleware
+app.options("*", cors());
+
+app.post("/api/payment", (req, res) => {
+    try {
+        const { orderId, amount, currency, buyerEmail, buyerName, successUrl, failUrl } = req.body;
+
+        if (!orderId || !amount || !buyerEmail || !buyerName || !successUrl || !failUrl) {
+            return res.status(400).json({ message: "Eksik ödeme bilgileri!" });
+        }
+
+        // SHA256 ile güvenli imza oluşturma
+        const hashStr = `${SHOPIER_API_USER}|${orderId}|${amount}|${currency}`;
+        const signature = crypto.createHmac("sha256", SHOPIER_API_KEY).update(hashStr).digest("hex");
+
+        // Shopier Ödeme URL'si oluşturma
+        const paymentUrl = `${SHOPIER_BASE_URL}/pgw/?apiUser=${SHOPIER_API_USER}&signature=${signature}`;
+
+        // Ödeme verilerini JSON formatında POST isteği ile göndermek
+        const paymentData = {
+            orderId,
+            amount,
+            currency,
+            buyerEmail,
+            buyerName,
+            successUrl,
+            failUrl
+        };
+
+        res.status(200).json({ paymentUrl, paymentData });
+    } catch (error) {
+        console.error("Ödeme oluşturma hatası:", error);
+        res.status(500).json({ message: "Ödeme oluşturulamadı!", error: error.message });
+    }
 });
 
+// Sunucuyu başlat
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`✅ Server is running on port ${PORT}`);
 });

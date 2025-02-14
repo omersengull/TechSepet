@@ -1,10 +1,11 @@
-
-import React from 'react';
+"use client"
+import React, { useState } from 'react';
 import { FaLocationDot } from "react-icons/fa6";
 import { FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";
 
 const Footer = () => {
+    const [policyType, setPolicyType] = useState(""); 
     return (
         <div className="bg-slate-300 p-6 md:p-10 text-black">
             <div className="flex flex-col md:flex-row  max-width">
@@ -33,20 +34,31 @@ const Footer = () => {
                     </ul>
                     <ul className="md:ml-28 md:mr-28 text-center">
                         <li className="mb-4">
-                            <h1 className='text-2xl text-blue-600'>Politikalar</h1>
+                            <h1 className="text-2xl text-blue-600">Politikalar</h1>
                         </li>
-
-                        <li className="mb-3 mt-2  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Gizlilik Politikası</a>
+                        <li 
+                            className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200 cursor-pointer" 
+                            onClick={() => setPolicyType("gizlilik")}
+                        >
+                            Gizlilik Politikası
                         </li>
-                        <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Kullanım Şartları</a>
+                        <li 
+                            className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
+                            onClick={() => setPolicyType("kullanim")}
+                        >
+                            Kullanım Şartları
                         </li>
-                        <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Çerez Politikası</a>
+                        <li 
+                            className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
+                            onClick={() => setPolicyType("cerez")}
+                        >
+                            Çerez Politikası
                         </li>
-                        <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">İade Politikası</a>
+                        <li 
+                            className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
+                            onClick={() => setPolicyType("iade")}
+                        >
+                            İade Politikası
                         </li>
                     </ul>
                     <ul className="text-center">
@@ -142,6 +154,85 @@ const Footer = () => {
                 <br />
                 TechSepet, en iyi hizmeti sunmak için sürekli olarak altyapısını ve hizmetlerini geliştirmeye devam eder. Müşteri memnuniyeti ve güvenli alışveriş deneyimi en büyük önceliğimizdir.
             </div>
+            {policyType && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-3xl w-full relative shadow-lg">
+                        <button 
+                            className="absolute top-2 right-4 text-xl font-bold text-red-600"
+                            onClick={() => setPolicyType("")}
+                        >
+                            ✖
+                        </button>
+                        <h2 className="text-2xl font-bold mb-4">
+                            {policyType === "gizlilik" && "Gizlilik Politikası"}
+                            {policyType === "kullanim" && "Kullanım Şartları"}
+                            {policyType === "cerez" && "Çerez Politikası"}
+                            {policyType === "iade" && "İade Politikası"}
+                        </h2>
+                        <p className="text-gray-700 text-sm max-h-[400px] overflow-auto p-4 border rounded-md">
+                            {policyType === "gizlilik" && (
+                                <>
+                                    TechSepet olarak kullanıcı verilerini koruma konusunda hassasiyet göstermekteyiz. 
+                                    Kullanıcılarımızın kişisel verilerinin korunması, işlenmesi ve paylaşımıyla ilgili 
+                                    tüm süreçler 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) ve diğer ilgili 
+                                    mevzuat hükümlerine uygun olarak yürütülmektedir.
+                                    <br /><br />
+                                    **Toplanan Veriler:**  
+                                    Ad, soyad, e-posta adresi, telefon numarası, adres bilgileri, ödeme bilgileri ve çerezler.  
+                                    <br /><br />
+                                    **Gizlilik ve Güvenlik:**  
+                                    Kullanıcı bilgileriniz asla üçüncü taraflarla ticari amaçlarla paylaşılmaz.  
+                                    Güvenliğiniz için en güncel teknik önlemler uygulanmaktadır.  
+                                </>
+                            )}
+                            {policyType === "kullanim" && (
+                                <>
+                                    TechSepet hizmetlerini kullanırken aşağıdaki kurallara uymanız gerekmektedir:
+                                    <br /><br />
+                                    **Hizmet Kullanımı:**  
+                                    TechSepet.shop üzerinden yapılan tüm alışverişler, geçerli yasalara uygun olmalıdır.  
+                                    <br /><br />
+                                    **Hesap Güvenliği:**  
+                                    Kullanıcı hesaplarınızın güvenliği sizin sorumluluğunuzdadır.  
+                                    <br /><br />
+                                    **İçerik Hakları:**  
+                                    Sitede yer alan tüm içerikler TechSepet'e aittir ve izinsiz kullanılamaz.  
+                                </>
+                            )}
+                            {policyType === "cerez" && (
+                                <>
+                                    TechSepet olarak web sitemizde çerezleri (cookies) kullanmaktayız.
+                                    <br /><br />
+                                    **Çerezlerin Kullanımı:**  
+                                    Çerezler, kullanıcı deneyimini iyileştirmek ve site trafiğini analiz etmek için kullanılır.  
+                                    <br /><br />
+                                    **Çerez Türleri:**  
+                                    - Zorunlu Çerezler  
+                                    - Analitik Çerezler  
+                                    - Reklam ve Pazarlama Çerezleri  
+                                    <br /><br />
+                                    **Çerezleri Yönetme:**  
+                                    Tarayıcınızın ayarlarından çerezleri devre dışı bırakabilirsiniz.  
+                                </>
+                            )}
+                            {policyType === "iade" && (
+                                <>
+                                    Müşteri memnuniyeti bizim için önemlidir. TechSepet olarak aşağıdaki iade politikası uygulanmaktadır:
+                                    <br /><br />
+                                    **İade Koşulları:**  
+                                    - Ürün kullanılmamış ve ambalajı açılmamış olmalıdır.  
+                                    - İade süresi, teslimat tarihinden itibaren 14 gündür.  
+                                    <br /><br />
+                                    **İade Süreci:**  
+                                    1. İade talebinizi müşteri hizmetlerine iletin.  
+                                    2. Ürünü, faturasıyla birlikte bize gönderin.  
+                                    3. Ürün kontrol edildikten sonra iade süreci başlatılır.  
+                                </>
+                            )}
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -60,99 +60,33 @@ const FormPayment = () => {
   }, [cartPrdcts]);
 
   const handlePayment = async () => {
-
-    const paymentCard = {
-      cardHolderName: holderName,
-      cardNumber: cardNumber,
-      expireMonth: expireMonth,
-      expireYear: expireYear,
-      cvc: cvc,
-      registerCard: '0'
-    };
-
-    const buyer = {
-      id: '63e4d6f88b6f3c231c49f9de',
-      name: 'Ömer',
-      surname: 'Şengül',
-      gsmNumber: '+905350000000',
-      email: 'john.doe@example.com',
-      identityNumber: '74300864791',
-      lastLoginDate: '2015-10-05 12:43:35',
-      registrationDate: '2013-04-21 15:12:09',
-      registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
-      ip: '85.34.78.112',
-      city: 'Istanbul',
-      country: 'Turkey',
-      zipCode: '34732'
-    };
-
-    const shippingAddress = {
-      contactName: 'Jane Doe',
-      city: 'Istanbul',
-      country: 'Turkey',
-      address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
-      zipCode: '34742'
-    };
-
-    const billingAddress = {
-      contactName: 'Jane Doe',
-      city: 'Istanbul',
-      country: 'Turkey',
-      address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
-      zipCode: '34742'
-    };
-
-    const basketItems = [
-      {
-        id: 'BI101',
-        name: 'Binocular',
-        category1: 'Collectibles',
-        category2: 'Accessories',
-        itemType: 'PHYSICAL',
-        price: `${totalPrice}`
-      }
-    ];
-
-    const paymentData = {
-      price: totalPrice.toFixed(2),
-      paidPrice: totalPrice.toFixed(2),
-      currency: 'TRY',
-      basketId: 'B67832',
-      paymentCard: paymentCard,
-      buyer: buyer,
-      shippingAddress: shippingAddress,
-      billingAddress: billingAddress,
-      basketItems: basketItems
-    };
-
     try {
-      const response = await axios.post('http://localhost:3001/api/payment', paymentData, {
-        headers: {
-          'Content-Type': 'application/json'
+        const response = await fetch("https://www.techsepet.shop/api/payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                orderId: "123456",
+                amount: "1.00",
+                currency: "TRY",
+                buyerEmail: "test@example.com",
+                buyerName: "Ömer Şengül",
+                successUrl: "https://www.techsepet.shop/payment-success",
+                failUrl: "https://www.techsepet.shop/payment-fail"
+            }),
+            credentials: "include"
+        });
+
+        const data = await response.json();
+        if (data.paymentUrl) {
+            window.location.href = data.paymentUrl; // Kullanıcıyı Shopier ödeme sayfasına yönlendir
+        } else {
+            console.error("Ödeme bağlantısı alınamadı:", data);
         }
-      });
-
-      setResponse(response.data);
-      if (response.data?.status == 'success') {
-
-        alert(`Ödeme işlemi başarılı!, ${response.data.status || 'Teşekkürler!'}`);
-        const orderData = {
-          userId: buyer.id,
-          items: JSON.stringify(cartPrdcts),
-          totalPrice,
-        };
-        await handlePaymentSuccess(orderData);
-        removeItemsFromCart();
-        router.push("/");
-      } else {
-        alert(`Ödeme işlemi başarısız. ${response.data.status || 'Eksik veya hatalı bilgiler.'}`);
-      }
-
     } catch (error) {
-      console.error('Error:', error);
-      alert(error);
+        console.error("Ödeme başlatılamadı:", error);
     }
-  };
+};
+
 
   return (
     <div className='h-screen flex flex-col gap-4 items-center justify-center'>
