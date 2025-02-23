@@ -14,3 +14,21 @@
   background-repeat: no-repeat;
   background-size: cover;
 }
+.mySwiper {
+  width: 100%;
+  padding: 10px 0;
+  height: 400px;
+}
+
+.swiper-button-prev, .swiper-button-next {
+  color: black; /* Navigasyon oklarının rengi */
+}
+
+.swiper-pagination {
+  position: relative;
+  bottom: 10px;
+}
+html.dark {
+  background-color: #121212; /* Karanlık arka plan */
+  color: white; /* Tüm yazıları beyaz yap */
+}

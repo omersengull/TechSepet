@@ -1,7 +1,8 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { SpinnerProvider } from './spinner/SpinnerContext';  // SpinnerContext'i import et
+import { SpinnerProvider } from './spinner/SpinnerContext';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import CartProvider from "./provider/CartProvider";
@@ -37,23 +38,21 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300`}>
         <Toaster position="top-right" reverseOrder={false} />
-
 
         <SpinnerProvider>
 
           <CartProvider>
- 
+
               <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <main className="flex-grow">
-                  
                   {children}
                 </main>
                 <Footer />
               </div>
-          
+
           </CartProvider>
 
         </SpinnerProvider>

@@ -1,10 +1,12 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import priceClip from "@/app/utils/priceClip";
 import { IoIosArrowDown } from "react-icons/io";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 
+import { useRouter } from "next/navigation";
+import Rating from "@/app/utils/rating";
 interface Item {
   description: string;
   quantity: number;
@@ -29,14 +31,42 @@ interface Order {
 }
 
 const OrderCard = ({ order }: { order: Order }) => {
-  const [expanded, setExpanded] = useState(false); 
-  const [user, setUser] = useState<{ name: string ,surname:string} | null>(null); 
-
+  const [expanded, setExpanded] = useState(false);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<{ name: string; surname: string } | null>(null);
   let items: Item[] = [];
+  const router = useRouter();
+
+  const handleRate = async (item:any, stars:any) => {
+    console.log(`Kullanıcı ${stars} yıldız verdi.`);
+
+    try {
+      if (!item.id) {
+        console.error("Ürün ID'si bulunamadı!");
+        return;
+      }
+
+      console.log("Yönlendirme yapılıyor:", `/product/${item.id}`);
+
+      await router.push(`/product/${item.id}`); // ✅ `await` ile yönlendirmeyi bekletiyoruz
+
+      setTimeout(() => {
+        if (detailsRef.current) {
+          console.log("Sayfa aşağı kaydırılıyor...");
+          detailsRef.current.scrollIntoView({ behavior: "smooth" });
+        } else {
+          console.error("detailsRef bulunamadı!");
+        }
+      }, 500); // 500ms gecikme ekleyerek sayfanın yüklenmesini bekliyoruz.
+    } catch (error) {
+      console.error("Yönlendirme hatası:", error);
+    }
+  };
+
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await getCurrentUser(); // Kullanıcı bilgilerini getir
+      const currentUser = await getCurrentUser();
       setUser(currentUser);
     };
 
@@ -44,13 +74,10 @@ const OrderCard = ({ order }: { order: Order }) => {
   }, []);
 
   try {
-    let parsedItems =
-      typeof order.items === "string" ? JSON.parse(order.items) : order.items;
-
+    let parsedItems = typeof order.items === "string" ? JSON.parse(order.items) : order.items;
     if (typeof parsedItems === "string") {
       parsedItems = JSON.parse(parsedItems);
     }
-
     items = Array.isArray(parsedItems) ? parsedItems : [];
   } catch (error) {
     console.error("Ürünleri işlerken hata oluştu:", error);
@@ -59,84 +86,96 @@ const OrderCard = ({ order }: { order: Order }) => {
 
   return (
     <div
-      className={`border rounded-2xl border-gray-300 p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full sm:w-2/3 lg:w-3/5 mx-auto cursor-pointer ${
-        expanded ? "pb-4" : ""
-      }`}
+      className={`border rounded-2xl border-gray-300 p-4 md:p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full max-w-4xl mx-auto cursor-pointer ${expanded ? "pb-4" : ""
+        }`}
       onClick={() => setExpanded(!expanded)}
     >
-      {/* Üst Satır: Resimler, Sipariş No, Tarih ve Fiyat */}
-      <div className="flex items-center justify-between">
+      {/* Üst Satır */}
+      <div className="flex flex-wrap md:flex-nowrap items-center justify-between">
         {/* Ürün resimleri */}
-        <div className="flex items-center space-x-0 mr-1 text-right w-[260px]">
+        <div className="grid grid-cols-5 gap-2 md:gap-4 w-full md:w-auto">
           {items.map((item, index) => (
             <img
               key={index}
               src={item.image}
               alt={item.description}
-              className="w-[50px] h-[50px] object-cover border-2 rounded-xl px-1 py-1"
+              className="w-12 h-12 md:w-16 md:h-16 object-cover border-2 rounded-xl p-1"
             />
           ))}
         </div>
 
         {/* Sipariş Bilgileri */}
-        <div className="flex flex-col text-center w-[140px]">
-          <span className="font-bold">Sipariş Numarası</span>
-          <span className="text-gray-700">{order.id}</span>
+        <div className="text-center w-1/3 md:w-auto">
+          <span className="font-bold text-sm md:text-base">Sipariş Numarası</span>
+          <p className="text-gray-700 text-sm md:text-base">{order.id}</p>
         </div>
 
         {/* Sipariş Tarihi */}
-        <span className="text-gray-500 text-sm w-[120px] text-center">
+        <span className="text-gray-500 text-xs md:text-sm w-1/3 md:w-auto text-center">
           {new Date(order.createdAt).toLocaleDateString()}
         </span>
 
-        {/* Fiyat Bilgisi ve Aşağı Ok */}
-        <span className="text-green-600 font-bold text-lg w-[100px] text-center flex items-center justify-center">
+        {/* Fiyat ve Aç/Kapat */}
+        <span className="text-green-600 font-bold text-base md:text-lg w-1/3 md:w-auto flex items-center justify-center">
           {priceClip(order.totalPrice)}₺
-          <span className={`ml-2 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`}>
-            <IoIosArrowDown className="text-black" />
-          </span>
+          <IoIosArrowDown className={`ml-2 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`} />
         </span>
       </div>
 
-      {/* Genişleyebilir İçerik */}
+      {/* Genişletilmiş İçerik */}
       {expanded && (
         <div className="mt-4 border-t border-gray-300 pt-4">
-          <h2 className="text-lg font-semibold mb-2">Ürünler</h2>
+          <h2 className="text-lg font-semibold mb-2 text-center md:text-left">Ürünler</h2>
           <ul className="space-y-2">
             {items.map((item, index) => (
               <li
                 key={index}
-                className="flex items-center space-x-4 border-b border-gray-200 pb-2"
+                className="flex flex-col md:flex-row items-center md:justify-between space-x-0 md:space-x-4 border-b border-gray-200 pb-2"
               >
+                {/* Ürün Görseli */}
                 <img
                   src={item.image}
                   alt={item.description}
-                  className="w-[120px] h-[120px] object-contain border rounded-lg"
+                  className="w-24 h-24 object-contain border rounded-lg mx-auto md:mx-0"
                 />
-                <div>
-                  <p className="font-medium">{item.description}</p>
-                  <p className="text-gray-600">Miktar: {item.quantity}</p>
-                  <p>
-                    Fiyat: <span className="text-green-600">{priceClip(item.price)}₺</span>
-                  </p>
+
+                {/* Ürün Bilgileri */}
+                <div className="flex flex-col md:flex-row justify-between w-full items-center">
+                  <div className="text-center md:text-left w-1/2">
+                    <p className="font-medium">{item.description}</p>
+                    <p className="text-gray-600">Miktar: {item.quantity}</p>
+                    <p>
+                      Fiyat: <span className="text-green-600">{priceClip(item.price)}₺</span>
+                    </p>
+                  </div>
+
+                  {/* ⭐ Rating Bileşeni (Sağa Yaslanıyor) */}
+                  <div className="ml-auto md:ml-4 flex items-center">
+                    <span className="mr-1">Ürünü Değerlendir</span><Rating
+                      name={`rating-${index}`} // Her ürün için unique rating 
+                      value={null} // Varsayılan değer (seçim sıfırdan başlasın)
+                      onChange={(_, stars) => handleRate(item, stars)} // ⭐ `stars` değerini `handleRate` fonksiyonuna gönder
+                    />
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
-          
-          {/* Teslimat Adresi */}
-          <div className="flex">
-          <div className="border rounded-xl px-2 py-2 mt-2 bg-gray-100 mr-2 w-1/2">
-            <h2 className="font-semibold text-lg">Teslimat Adresi</h2>
-            <p>
-              ({order.addressInfo.title}) {order.addressInfo.address} / {order.addressInfo.city} {order.addressInfo.postalCode}
-            </p>
-            <p>{user?.name} {user?.surname}</p>
-          </div>
-          <div className="order rounded-xl px-2 py-2 mt-2 bg-gray-100 w-1/2">
+
+
+          {/* Teslimat ve Ödeme Bilgileri */}
+          <div className="flex flex-col md:flex-row md:space-x-4 mt-4">
+            <div className="border rounded-xl p-4 bg-gray-100 flex-1">
+              <h2 className="font-semibold text-lg">Teslimat Adresi</h2>
+              <p>
+                ({order.addressInfo.title}) {order.addressInfo.address} / {order.addressInfo.city} {order.addressInfo.postalCode}
+              </p>
+              <p>{user?.name} {user?.surname}</p>
+            </div>
+            <div className="border rounded-xl p-4 bg-gray-100 flex-1 mt-4 md:mt-0">
               <h2 className="font-semibold text-lg">Ödeme Bilgileri</h2>
-              {priceClip(order.totalPrice)}₺
-          </div>
+              <p>{priceClip(order.totalPrice)}₺</p>
+            </div>
           </div>
         </div>
       )}
@@ -151,8 +190,8 @@ const OrdersPage = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("/api/orders"); // API endpointi
-        console.log("API'den gelen siparişler:", response.data); // VERİYİ KONTROL ET
+        const response = await axios.get("/api/orders");
+        console.log("API'den gelen siparişler:", response.data);
         setOrders(response.data);
       } catch (error) {
         console.error("Siparişler yüklenirken hata oluştu:", error);
@@ -166,7 +205,7 @@ const OrdersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-12">
-      <h1 className="text-3xl font-bold text-center mb-8">Siparişlerim</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">Siparişlerim</h1>
       {loading ? (
         <div className="text-center text-lg">Yükleniyor...</div>
       ) : orders.length > 0 ? (
@@ -176,9 +215,7 @@ const OrdersPage = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center text-gray-500 text-lg">
-          Henüz siparişiniz bulunmamaktadır.
-        </div>
+        <div className="text-center text-gray-500 text-lg">Henüz siparişiniz bulunmamaktadır.</div>
       )}
     </div>
   );

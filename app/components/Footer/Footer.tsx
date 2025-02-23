@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { FaLocationDot } from "react-icons/fa6";
 import { FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";
+import { useRouter } from 'next/navigation';
 
 const Footer = () => {
+    const router=useRouter();
     const [policyType, setPolicyType] = useState(""); 
     return (
         <div className="bg-slate-300 p-6 md:p-10 text-black">
@@ -18,8 +20,8 @@ const Footer = () => {
                         <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
                             <a href="#">Hakkımızda</a>
                         </li>
-                        <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Hesap Ayarları</a>
+                        <li onClick={()=>{router.push("/account/personalinformation")}} className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                            <a href="#">Profil Ayarları</a>
                         </li>
                         <li className="mb-3   py-1 rounded-xl hover:bg-gray-200" >
                             <a href="#">Sipariş Takibi</a>

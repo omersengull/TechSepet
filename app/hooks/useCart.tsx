@@ -4,9 +4,10 @@ import { CardProductProps } from "../components/detail/DetailClient";
 import { ProductsData } from "../utils/ProductsData";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import React from "react"
+import React from "react";
+
 interface CartContextProps {
-    removeItemsFromCart:() => void;
+    removeItemsFromCart: () => void;
     productCartQty: number;
     addToBasket: (product: CardProductProps) => void;
     cartPrdcts: CardProductProps[] | null;
@@ -16,6 +17,8 @@ interface CartContextProps {
     filterCategory: (category: any) => void;
     filteredProducts: CardProductProps[] | null;
     searchProducts: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    selectedAddressId: string | null;
+    setSelectedAddressId: (addressId: string | null) => void;
 }
 
 const CartContext = createContext<CartContextProps | null>(null);
@@ -25,41 +28,51 @@ interface Props {
 }
 
 export const CartContextProvider = (props: Props) => {
-    const router = useRouter()
+    const router = useRouter();
     const [filteredProducts, setFilteredProducts] = useState<CardProductProps[]>([]);
     const [productCartQty, setProductCartQty] = useState(0);
     const [cartPrdcts, setCartPrdcts] = useState<CardProductProps[] | null>(null);
+    const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
     useEffect(() => {
-        const getItem = localStorage.getItem("Cart");
-        const getItemParse: CardProductProps[] | null = getItem ? JSON.parse(getItem) : null;
-        setCartPrdcts(getItemParse);
+        // 📌 Sepeti ve seçili adresi localStorage'dan al
+        const storedCart = localStorage.getItem("Cart");
+        const parsedCart: CardProductProps[] | null = storedCart ? JSON.parse(storedCart) : null;
+        setCartPrdcts(parsedCart);
+
+        const storedAddress = localStorage.getItem("selectedAddressId");
+        setSelectedAddressId(storedAddress || null);
     }, []);
+
+    useEffect(() => {
+        // 📌 Sepet değiştiğinde localStorage'a kaydet
+        if (cartPrdcts !== null) {
+            localStorage.setItem("Cart", JSON.stringify(cartPrdcts));
+        }
+    }, [cartPrdcts]);
 
     const deleteCart = useCallback(() => {
         setCartPrdcts([]);
-        localStorage.clear();
-    }
-
-        , []);
+        localStorage.removeItem("Cart");
+    }, []);
 
     const filterCategory = useCallback((category: any) => {
         router.push(`/categories/${category}`);
     }, []);
 
     const addToBasket = useCallback((product: CardProductProps) => {
-        if (product.inStock == true) {
+        if (product.inStock) {
             setCartPrdcts(prev => {
                 const updatedCart = prev ? [...prev, product] : [product];
-                localStorage.setItem('Cart', JSON.stringify(updatedCart));
+                localStorage.setItem("Cart", JSON.stringify(updatedCart));
                 return updatedCart;
             });
             toast.success("Ürün Sepete Eklendi");
-        }
-        else {
+        } else {
             toast.error("Bu Ürün Stokta Yok");
         }
     }, []);
+
     const searchProducts = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const searchTerms = e.target.value.toLowerCase();
         const searchedProducts = ProductsData.filter(prd => prd.name.toLowerCase().includes(searchTerms))
@@ -69,19 +82,31 @@ export const CartContextProvider = (props: Props) => {
             }));
         setFilteredProducts(searchedProducts);
     }, []);
-    const removeItemsFromCart=()=>{
+
+    const removeItemsFromCart = () => {
         setCartPrdcts([]);
-        localStorage.removeItem('Cart');
-    }
+        localStorage.removeItem("Cart");
+    };
+
     const deleteThisPrdct = useCallback((product: CardProductProps) => {
         setCartPrdcts(prev => {
             if (!prev) return [];
             const updatedCart = prev.filter(prd => prd.id !== product.id);
-            localStorage.setItem('Cart', JSON.stringify(updatedCart));
+            localStorage.setItem("Cart", JSON.stringify(updatedCart));
             return updatedCart;
         });
         toast.success("Ürün Sepetten Silindi");
     }, []);
+
+    // 📌 Seçili adresi güncelleme fonksiyonu
+    const updateSelectedAddress = (addressId: string | null) => {
+        setSelectedAddressId(addressId);
+        if (addressId) {
+            localStorage.setItem("selectedAddressId", addressId);
+        } else {
+            localStorage.removeItem("selectedAddressId");
+        }
+    };
 
     const value = {
         productCartQty,
@@ -93,18 +118,18 @@ export const CartContextProvider = (props: Props) => {
         deleteCart,
         filterCategory,
         filteredProducts,
-        searchProducts
+        searchProducts,
+        selectedAddressId,
+        setSelectedAddressId: updateSelectedAddress,
     };
 
-    return (
-        <CartContext.Provider value={value} {...props} />
-    );
+    return <CartContext.Provider value={value} {...props} />;
 };
 
 const useCart = () => {
     const context = useContext(CartContext);
-    if (context == null) throw new Error('Bir hata oluştu');
+    if (context == null) throw new Error("Bir hata oluştu");
     return context;
-}
+};
 
 export default useCart;

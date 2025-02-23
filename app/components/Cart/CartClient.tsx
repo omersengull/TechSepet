@@ -17,6 +17,9 @@ import Head from "next/head";
 import axios from "axios";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 const CartClient = () => {
+    const handleCardClick = (id) => {
+        router.push(`/product/${id}`);
+    };
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
@@ -153,7 +156,7 @@ const CartClient = () => {
                 <div className="flex flex-col md:flex-row justify-center mx-8 md:mx-32">
                     <div className="flex-col md:w-2/3 md:mr-16">
                         {cartPrdcts.map(prd => (
-                            <div key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none rounded-xl">
+                            <div onClick={()=>{handleCardClick(prd.id)}} key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none cursor-pointer rounded-xl">
                                 <div className="flex-col">
                                     <Image alt="" src={prd.image} width={150} height={150} />
                                 </div>

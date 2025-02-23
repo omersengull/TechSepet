@@ -2,26 +2,49 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import ProductsCard from "../components/Home/ProductsCard";
+import { Product } from "@prisma/client";
+import { ObjectId } from 'bson';
+interface Category{
+  id:ObjectId;
+  name:string;
+}
 
-// ✅ Sabit Kategoriler
-const categories = [
-  { id: "1", name: "Telefon" },
-  { id: "2", name: "Laptop" },
-  { id: "3", name: "Akıllı Saat" },
-  { id: "4", name: "Kulaklık" },
-  { id: "5", name: "Monitör" },
-  { id: "6", name: "Klavye" },
-  { id: "7", name: "Mouse" },
-  { id: "8", name: "Televizyon" },
-  { id: "9", name: "Oyun Konsolu" },
-  { id: "10", name: "Kamera" }
-];
 
 const Page = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brand, setBrand] = useState<string[]>([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Kategoriler yüklenirken hata oluştu:", error);
+      }
+    }
+
+    fetchCategories();
+  }, [])
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch("/api/brands");
+        const data = await response.json();
+        setBrand(data);
+      } catch (error) {
+        console.error("Markalar yüklenirken hata oluştu:", error);
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedSpecifications, setSelectedSpecifications] = useState<{ [key: string]: string[] }>({});
   const [expandedSpec, setExpandedSpec] = useState<string | null>(null);
 
@@ -44,7 +67,7 @@ const Page = () => {
     setSelectedSpecifications({});
   };
 
-  const handleBrandSelect = (brand: string) => {
+  const handleBrandChange = (brand: string) => {
     if (selectedBrands.includes(brand)) {
       setSelectedBrands(selectedBrands.filter((b) => b !== brand));
     } else {
@@ -73,17 +96,7 @@ const Page = () => {
     setExpandedSpec(expandedSpec === specName ? null : specName);
   };
 
-  const availableBrands = Array.from(
-    new Set(
-      products
-        .filter((product: any) =>
-          selectedCategory
-            ? product.category?.name.toLowerCase() === selectedCategory.toLowerCase()
-            : false
-        )
-        .map((product: any) => product.brand.toUpperCase())
-    )
-  );
+
 
   const availableSpecifications = (() => {
     const specsMap: { [key: string]: Set<string> } = {};
@@ -104,11 +117,50 @@ const Page = () => {
     return specsMap;
   })();
 
+  const selectedCategoryObjectId = products.find(product =>
+    product.categoryId && // Null veya undefined olanları kontrol et
+    product.categoryId.toString() === categories.find(cat => cat.name === selectedCategory)?.id.toString()
+  )?.categoryId?.toString();
+
+
+  console.log("Selected Category:", selectedCategory);
+  console.log("Seçili Kategorinin ObjectId'si:", selectedCategoryObjectId);
+  console.log("Ürünlerin Category ID Değerleri:", products.map(p => p.categoryId?.toString()));
+
+  // Eğer `selectedCategoryObjectId` boşsa, kategoriye göre filtreleme yapma
+  const availableBrands = Array.from(
+    new Set(
+      products
+        .filter((product: Product) =>
+          product.categoryId && // `null` veya `undefined` olanları filtrele
+          selectedCategoryObjectId && // Eğer kategori seçili değilse tüm markaları göster
+          product.categoryId.toString() === selectedCategoryObjectId // ObjectId ile eşleştirme yap
+        )
+        .map((product: Product) => product.brand.toUpperCase())
+    )
+  );
+
+  console.log("Filtered Available Brands:", availableBrands);
+
+
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get<Product[]>("/api/product"); // Tip belirtiyoruz
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Ürünler yüklenirken hata oluştu:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
   const filteredProducts = products.filter((product: any) => {
     const categoryName =
       product.category &&
-      typeof product.category === "object" &&
-      typeof product.category.name === "string"
+        typeof product.category === "object" &&
+        typeof product.category.name === "string"
         ? product.category.name.toLowerCase().trim()
         : "";
 
@@ -144,22 +196,26 @@ const Page = () => {
 
           <h2 className="text-lg font-bold mb-4">Kategori</h2>
           <ul className="mb-6 text-base text-slate-800 space-y-2">
-            {categories.map((category) => (
-              <li key={category.id} className="hover:text-blue-500 text-lg transition">
-                <a
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleCategoryClick(category.name);
-                  }}
-                  href="#"
-                  className={`cursor-pointer ${
-                    selectedCategory === category.name ? "text-blue-600 font-bold" : ""
-                  }`}
-                >
-                  {category.name}
-                </a>
-              </li>
-            ))}
+          {Array.from(new Set(categories.map(category => category.name)))
+  .map((uniqueCategoryName) => {
+    const category = categories.find(cat => cat.name === uniqueCategoryName); // Orijinal kategori objesini al
+
+    return (
+      <li key={category?.id.toString()} className="hover:text-blue-500 text-lg transition">
+        <a
+          onClick={(e) => {
+            e.preventDefault();
+            handleCategoryClick(category?.name || "");
+          }}
+          href="#"
+          className={`cursor-pointer ${selectedCategory === category?.name ? "text-blue-600 font-bold" : ""}`}
+        >
+          {category?.name}
+        </a>
+      </li>
+    );
+  })}
+
           </ul>
 
           {/* Fiyat Filtreleme */}
@@ -179,9 +235,27 @@ const Page = () => {
               className="border rounded px-2 py-1 w-full"
             />
           </div>
+          <div className="mt-3">
+          <h2 className="text-lg font-bold mt-6 mb-4">Marka</h2>
+            {availableBrands.length > 0 ? (
+              availableBrands.map((brnd, index) => (
+                <label key={index} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedBrands.includes(brnd)}
+                    onChange={() => handleBrandChange(brnd)}
+                    className="mr-2"
+                  />
+                  {brnd}
+                </label>
+              ))
+            ) : (
+              <p className="text-gray-500">Bu kategoride marka bulunamadı.</p>
+            )}
+          </div>
 
           {/* Özellik Filtreleme */}
-          {selectedCategory && Object.entries(availableSpecifications).map(([specName, values]) => (
+          {selectedCategory && Object.entries(availableSpecifications).slice(1).map(([specName, values]) => (
             <div key={specName}>
               <h2
                 className="text-lg font-bold mt-4 mb-2 cursor-pointer"
