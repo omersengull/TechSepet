@@ -4,9 +4,8 @@ import axios from "axios";
 import priceClip from "@/app/utils/priceClip";
 import { IoIosArrowDown } from "react-icons/io";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
-
+import { Rating } from "@mui/material";
 import { useRouter } from "next/navigation";
-import Rating from "@/app/utils/rating";
 interface Item {
   description: string;
   quantity: number;
@@ -37,19 +36,21 @@ const OrderCard = ({ order }: { order: Order }) => {
   let items: Item[] = [];
   const router = useRouter();
 
-  const handleRate = async (item:any, stars:any) => {
+  const handleRate = async (item: any, stars: number | null) => {
+    if (stars === null) return; // Kullanıcı yıldız seçmezse işlemi durdur
+  
     console.log(`Kullanıcı ${stars} yıldız verdi.`);
-
+  
     try {
       if (!item.id) {
         console.error("Ürün ID'si bulunamadı!");
         return;
       }
-
+  
       console.log("Yönlendirme yapılıyor:", `/product/${item.id}`);
-
-      await router.push(`/product/${item.id}`); // ✅ `await` ile yönlendirmeyi bekletiyoruz
-
+  
+      await router.push(`/product/${item.id}`);
+  
       setTimeout(() => {
         if (detailsRef.current) {
           console.log("Sayfa aşağı kaydırılıyor...");
@@ -57,12 +58,12 @@ const OrderCard = ({ order }: { order: Order }) => {
         } else {
           console.error("detailsRef bulunamadı!");
         }
-      }, 500); // 500ms gecikme ekleyerek sayfanın yüklenmesini bekliyoruz.
+      }, 500);
     } catch (error) {
       console.error("Yönlendirme hatası:", error);
     }
   };
-
+  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -152,9 +153,8 @@ const OrderCard = ({ order }: { order: Order }) => {
                   {/* ⭐ Rating Bileşeni (Sağa Yaslanıyor) */}
                   <div className="ml-auto md:ml-4 flex items-center">
                     <span className="mr-1">Ürünü Değerlendir</span><Rating
-                      name={`rating-${index}`} // Her ürün için unique rating 
-                      value={null} // Varsayılan değer (seçim sıfırdan başlasın)
-                      onChange={(_, stars) => handleRate(item, stars)} // ⭐ `stars` değerini `handleRate` fonksiyonuna gönder
+                      value={null} // ✅ Varsayılan değer, kullanıcı seçene kadar null olacak
+                      onChange={(_, stars) => handleRate(item, stars)} // ✅ `stars` değerini `handleRate` fonksiyonuna gönder
                     />
                   </div>
                 </div>
