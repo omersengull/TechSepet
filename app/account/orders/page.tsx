@@ -6,6 +6,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { Rating } from "@mui/material";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 interface Item {
   description: string;
   quantity: number;
@@ -36,8 +37,10 @@ const OrderCard = ({ order }: { order: Order }) => {
   let items: Item[] = [];
   const router = useRouter();
 
+
+
   const handleRate = async (item: any, stars: number | null) => {
-    if (stars === null) return; // Kullanıcı yıldız seçmezse işlemi durdur
+    if (stars === null) return;
   
     console.log(`Kullanıcı ${stars} yıldız verdi.`);
   
@@ -49,7 +52,25 @@ const OrderCard = ({ order }: { order: Order }) => {
   
       console.log("Yönlendirme yapılıyor:", `/product/${item.id}`);
   
-      await router.push(`/product/${item.id}`);
+      // ✅ Değerlendirilmek istenen ürünü localStorage'a kaydet
+      localStorage.setItem("reviewingProduct", item.id);
+  
+      toast.success("Ürün sayfasına yönlendiriliyorsunuz!", { duration: 1500 });
+  
+      setTimeout(() => {
+        router.push(`/product/${item.id}`);
+      }, 1500);
+    } catch (error) {
+      console.error("Yönlendirme hatası:", error);
+    }
+  };
+  
+  
+
+  // ✅ Yönlendirme sonrası sayfa açıldığında yorumlara kaydırma işlemini gerçekleştirmek için
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("scrollToReview") === "true") {
+      localStorage.removeItem("scrollToReview"); // ✅ Scroll işlemi tamamlandıktan sonra flag'i temizle
   
       setTimeout(() => {
         if (detailsRef.current) {
@@ -58,11 +79,10 @@ const OrderCard = ({ order }: { order: Order }) => {
         } else {
           console.error("detailsRef bulunamadı!");
         }
-      }, 500);
-    } catch (error) {
-      console.error("Yönlendirme hatası:", error);
+      }, 1000); // 1 saniye sonra kaydırma yap
     }
-  };
+  }, []);
+  
   
 
   useEffect(() => {
@@ -154,7 +174,8 @@ const OrderCard = ({ order }: { order: Order }) => {
                   <div className="ml-auto md:ml-4 flex items-center">
                     <span className="mr-1">Ürünü Değerlendir</span><Rating
                       value={null} // ✅ Varsayılan değer, kullanıcı seçene kadar null olacak
-                      onChange={(_, stars) => handleRate(item, stars)} // ✅ `stars` değerini `handleRate` fonksiyonuna gönder
+                      onChange={(_, stars) => handleRate(item, stars)}
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </div>
                 </div>

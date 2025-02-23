@@ -24,6 +24,9 @@ import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import toast from "react-hot-toast";
+import { getCurrentUser } from "@/app/actions/getCurrentUser";
+import { ObjectId } from "mongodb";
 export type CardProductProps = {
   id: string;
   name: string;
@@ -33,14 +36,45 @@ export type CardProductProps = {
   image: string;
   inStock: boolean;
 };
+interface User {
+  id: ObjectId;
+  name: string;
+  image: string | null;
+  surname: string;
+  createdAt: Date;
+}
 
 const DetailClient = ({ product }: { product: any }) => {
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviews, setReviews] = useState(product.reviews || []);
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const detailsRef = useRef<HTMLDivElement>(null); 
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<User>();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      console.log("Giriş yapan kullanıcı:", currentUser);
+
+      if (currentUser) {
+        setUser({
+          ...currentUser,
+          createdAt: new Date(currentUser.createdAt), // ✅ `string` olan tarihi `Date`'e çeviriyoruz
+          image: currentUser.image || null, // ✅ Eğer `null` olabilirse varsayılan değer atıyoruz
+        });
+      } else {
+        setUser(undefined);
+      }
+    };
 
 
+
+    fetchUser();
+  }, []);
   useEffect(() => {
     setTimeout(() => {
       if (detailsRef.current) {
@@ -58,6 +92,57 @@ const DetailClient = ({ product }: { product: any }) => {
       })
       .catch(() => setIsLoading(false));
   }, [product.id]);
+  useEffect(() => {
+    // ✅ Eğer bu ürün siparişlerden değerlendirildiyse, formu göster
+    const reviewingProductId = localStorage.getItem("reviewingProduct");
+
+    if (reviewingProductId && reviewingProductId === product.id) {
+      setIsReviewing(true);
+      localStorage.removeItem("reviewingProduct"); // Değerlendirme yapıldıktan sonra temizle
+    }
+  }, [product.id]);
+
+  const submitReview = async () => {
+    if (!rating || !comment.trim()) {
+      toast.error("Lütfen yorum ve yıldız puanı girin!");
+      return;
+    }
+
+    const requestBody = {
+      productId: product.id,
+      userId: user?.id,  // Eğer userId yoksa, burayı kontrol etmeliyiz
+      rating,
+      comment,
+    };
+
+    console.log("Gönderilen JSON:", requestBody); // ✅ API'ye ne gönderildiğini görmek için
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log("API Yanıtı:", data); // ✅ API'nin verdiği hatayı görmek için
+
+      if (!response.ok) {
+        throw new Error(data.error || "Yorum kaydedilirken hata oluştu!");
+      }
+
+      toast.success("Yorumunuz başarıyla kaydedildi!");
+      setReviews((prevReviews) => [...prevReviews, data]);
+      setRating(null);
+      setComment("");
+      setIsReviewing(false);
+    } catch (error) {
+      console.error("Yorum eklenirken hata:", error);
+      toast.error(error.message);
+    }
+  };
+
+
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
@@ -80,6 +165,20 @@ const DetailClient = ({ product }: { product: any }) => {
     }
   }, [product.id]);
   console.log("Recommendeds", recommendedProducts);
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`/api/reviews?productId=${product.id}`);
+        const data = await response.json();
+        console.log("Yorumlar API'den çekildi:", data);
+        setReviews(data); // ✅ API'den gelen yorumları güncelle
+      } catch (error) {
+        console.error("Yorumlar yüklenirken hata oluştu:", error);
+      }
+    };
+
+    fetchReviews(); // Sayfa açıldığında API'den yorumları çek
+  }, [product.id]);
 
   const router = useRouter();
   const { addToBasket } = useCart();
@@ -164,7 +263,17 @@ const DetailClient = ({ product }: { product: any }) => {
           <div className="relative flex flex-col w-full md:w-1/2">
             <div className="flex flex-wrap md:flex-row flex-col justify-start text-sm md:text-base">
               <div className="flex items-center">
-                <Rating name="read-only" className="dark:text-white" value={productRating} readOnly />
+                <Rating
+                  name="read-only"
+                  className="dark:text-white"
+                  value={
+                    reviews.length > 0
+                      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+                      : 0 // Eğer hiç yorum yoksa 0 göster
+                  }
+                  readOnly
+                />
+
               </div>
               <span className="mx-2 text-slate-500 hidden md:inline">|</span>
               <div className="flex items-center mt-1 md:mt-0">Ürün no: {product.id}</div>
@@ -221,62 +330,93 @@ const DetailClient = ({ product }: { product: any }) => {
 
 
         <div className="mt-10 w-[94%] mx-auto flex flex-col items-center">
-  {isLoading ? (
-    // 🟢 Veri yüklenirken Skeleton göstermek için
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {[...Array(5)].map((_, index) => (
-        <div key={index} className="w-[180px] h-[280px] bg-gray-200 rounded-md p-3">
-          <Skeleton height={120} />
-          <Skeleton count={1} className="mt-2" />
-          <Skeleton height={20} width={80} className="mt-2 mx-auto" />
-          <Skeleton height={20} className="mt-2" />
-        </div>
-      ))}
-    </div>
-  ) : recommendedProducts.length > 0 ? (
-    // 🟢 Eğer önerilen ürün varsa, bunları Swiper.js ile göster
-    <>
-      <h3 className="text-lg mb-4 font-bold text-center">Bu ürünü alanlar şunları da aldı:</h3>
+          {isLoading ? (
+            // 🟢 Veri yüklenirken Skeleton göstermek için
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="w-[180px] h-[280px] bg-gray-200 rounded-md p-3">
+                  <Skeleton height={120} />
+                  <Skeleton count={1} className="mt-2" />
+                  <Skeleton height={20} width={80} className="mt-2 mx-auto" />
+                  <Skeleton height={20} className="mt-2" />
+                </div>
+              ))}
+            </div>
+          ) : recommendedProducts.length > 0 ? (
+            // 🟢 Eğer önerilen ürün varsa, bunları Swiper.js ile göster
+            <>
+              <h3 className="text-lg mb-4 font-bold text-center">Bu ürünü alanlar şunları da aldı:</h3>
 
-      {/* Swiper.js Bileşeni */}
-      <div className="w-full flex justify-center">
-        <Swiper
-          modules={[Navigation, Pagination]}
-          spaceBetween={15}
-          slidesPerView={2} // Küçük ekranlarda 2 ürün
-          breakpoints={{
-            640: { slidesPerView: 2 }, // Orta ekranlarda 2 ürün
-            768: { slidesPerView: 3 }, // Büyük ekranlarda 3 ürün
-            1024: { slidesPerView: 5 }, // Büyük ekranlarda 5 ürün
-          }}
-          navigation
-          pagination={{ clickable: true }}
-          className="mySwiper mb-5"
-        >
-          {recommendedProducts.map((rp, index) => (
-            <SwiperSlide key={index}>
-              <ProductRecommendationCard productId={product.id} product={rp} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    </>
-  ) : null}
-</div>
+              {/* Swiper.js Bileşeni */}
+              <div className="w-full flex justify-center">
+                <Swiper
+                  modules={[Navigation, Pagination]}
+                  spaceBetween={15}
+                  slidesPerView={2} // Küçük ekranlarda 2 ürün
+                  breakpoints={{
+                    640: { slidesPerView: 2 }, // Orta ekranlarda 2 ürün
+                    768: { slidesPerView: 3 }, // Büyük ekranlarda 3 ürün
+                    1024: { slidesPerView: 5 }, // Büyük ekranlarda 5 ürün
+                  }}
+                  navigation
+                  pagination={{ clickable: true }}
+                  className="mySwiper mb-5"
+                >
+                  {recommendedProducts.map((rp, index) => (
+                    <SwiperSlide key={index}>
+                      <ProductRecommendationCard productId={product.id} product={rp} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </>
+          ) : null}
+        </div>
 
 
 
         <h1 className="font-bold text-2xl flex justify-center mt-2">Yorumlar</h1>
-        <div  ref={detailsRef}>
-          {product?.reviews?.map((prd: any) => (
-            <Comment key={prd.id} prd={prd} />
-          ))}
-          {product?.reviews?.length === 0 ? (
-            <div>Bu ürüne yorum yapılmamış</div>
-          ) : (
-            <div></div>
-          )}
-        </div>
+        {isReviewing && (
+          <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-gray-100">
+            <h2 className="text-lg font-semibold">Ürünü Değerlendir</h2>
+
+            {/* ⭐ Rating Bileşeni */}
+            <Rating value={rating} onChange={(_, newValue) => setRating(newValue)} />
+
+            {/* 💬 Yorum Alanı */}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Ürün hakkında yorumunuzu yazın..."
+              className="w-full mt-2 p-2 border rounded-md"
+            ></textarea>
+
+            {/* Gönder Butonu */}
+            <button
+              onClick={submitReview}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+            >
+              Yorum Gönder
+            </button>
+          </div>
+        )}
+        <h2 className="mt-6 text-xl font-semibold">Diğer Kullanıcı Yorumları</h2>
+        {reviews.length > 0 ? (
+          reviews.map((review: any) => (
+            <div key={review.id} className="border p-2 rounded-md mt-2">
+              <div className="flex items-center"><div><img
+                src={user?.image || "/default-avatar.png"} // ✅ Eğer `null` veya `undefined` ise, varsayılan resim göster
+                alt="User Avatar"
+                className="w-10 h-10 rounded-full"
+              /></div> <div>{user?.name}</div></div>
+
+              <Rating value={review.rating} readOnly />
+              <p>{review.content}</p>
+            </div>
+          ))
+        ) : (
+          <p>Bu ürüne henüz yorum yapılmamış.</p>
+        )}
       </PageContainer>
     </div>
   );
