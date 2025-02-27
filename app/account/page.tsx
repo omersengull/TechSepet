@@ -18,6 +18,8 @@ const Page = () => {
       if (fetchedUser) {
         setUser({
           ...fetchedUser,
+          resetToken: fetchedUser.resetToken || null,  // Varsayılan değer ekle
+          resetTokenExpiry: fetchedUser.resetTokenExpiry || null,
           createdAt: new Date(fetchedUser.createdAt),
           updatedAt: new Date(fetchedUser.updatedAt),
           emailVerified: fetchedUser.emailVerified,

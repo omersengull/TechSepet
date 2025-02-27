@@ -43,6 +43,8 @@ export async function getCurrentUser() {
                 updatedAt: true,
                 emailVerified: true,
                 hashedPassword:true,
+                resetToken:true,
+                resetTokenExpiry:true
             },
         });
 
