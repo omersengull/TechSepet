@@ -27,8 +27,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "firebase": "^11.0.2",
-    "framer": "^2.4.1",
-    "framer-motion": "^12.4.7",
     "iyzipay": "^2.0.63",
     "jose": "^5.9.6",
     "jsonwebtoken": "^9.0.2",
