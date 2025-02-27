@@ -20,6 +20,8 @@ type SafeUser = Omit<User, 'hashedPassword' | 'name' | 'surname'> & {
   hashedPassword: string;
   name: string;
   surname: string;
+  resetToken: string | null; // ✅ undefined kaldırıldı
+  resetTokenExpiry: Date | null;
   addresses: {
     address: string;
     title: string;
@@ -43,7 +45,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     // Sayfa yüklendiğinde ve her boyut değişiminde kontrol et
     handleResize();
     window.addEventListener("resize", handleResize);
-    
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   const { setIsLoading } = useSpinner();
@@ -71,6 +73,10 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
           name: session.user.name?.split(' ')[0] || "Name",
           email: session.user.email || "example@gmail.com",
           image: session.user.image || null,
+          resetToken: user?.resetToken ?? null,  // ✅ undefined yerine null atandı
+          resetTokenExpiry: user?.resetTokenExpiry ?? null,  // ✅ undefined yerine null atandı
+
+
         };
         setUser(transformedUser);
       } else {
@@ -122,7 +128,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     }, 2000);
   };
 
-  
+
 
   useEffect(() => {
     const checkSession = async () => {
@@ -166,15 +172,13 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
 
       {isMobile && (
         <div
-          className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${
-            openMenu ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${openMenu ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
           onClick={() => setOpenMenu(false)}
         >
           <div
-            className={`fixed top-0 right-0 w-3/4 max-w-[320px] h-full bg-white dark:bg-gray-900 p-5 shadow-lg transform transition-transform ${
-              openMenu ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`fixed top-0 right-0 w-3/4 max-w-[320px] h-full bg-white dark:bg-gray-900 p-5 shadow-lg transform transition-transform ${openMenu ? "translate-x-0" : "translate-x-full"
+              }`}
             onClick={(e) => e.stopPropagation()}
           >
             <button
