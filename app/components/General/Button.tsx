@@ -21,7 +21,7 @@ const Button: React.FC<ButtonProps> = ({ text, disabled, onClick, outline, small
                 onClick={onClick}
 
                 style={{ width: `${width}px` }}
-                className={`flex ${bold ? 'font-bold' : ''} items-center justify-center flex-row rounded-lg p-3 ${small ? "w-[250px]" : "w-full"} ${outline ? "border text-black" : "bg-renk1 text-white"}`}
+                className={`flex mt-1 ${bold ? 'font-bold' : ''} items-center justify-center flex-row rounded-lg p-3 ${small ? "w-[250px]" : "w-full"} ${outline ? "border text-black" : "bg-renk1 text-white"}`}
             >
                 {Icon && <Icon />}
                 <span className='ml-2'>{text}</span>

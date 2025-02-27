@@ -1,5 +1,5 @@
 import React from 'react';
-import RegisterClient from '../components/auth/RegisterClient';
+import RegisterClient from '../components/auth/LoginClient';
 import { getCurrentUser } from '../actions/getCurrentUser';
 
 export const dynamic = "force-dynamic";

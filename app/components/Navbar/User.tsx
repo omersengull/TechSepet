@@ -7,7 +7,10 @@ import { signOut, getSession } from "next-auth/react";
 import type { User } from "@prisma/client";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
-
+import { IoLogOut } from "react-icons/io5";
+import { MdAccountBox, MdFavorite, MdOutlineContactPage } from "react-icons/md";
+import { PiNotePencilBold } from "react-icons/pi";
+import { FaBox, FaLocationDot } from "react-icons/fa6";
 interface UserProps {
   currentUser: User | null | undefined;
 }
@@ -30,6 +33,19 @@ type SafeUser = Omit<User, 'hashedPassword' | 'name' | 'surname'> & {
 };
 
 const User: React.FC<UserProps> = ({ currentUser }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Sayfa yüklendiğinde ve her boyut değişiminde kontrol et
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const { setIsLoading } = useSpinner();
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(false);
@@ -106,18 +122,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     }, 2000);
   };
 
-  const handleRouteAdminOrAccount = (page: string) => {
-    setOpenMenu(false);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (page === 'Admin') {
-        router.push("/admin");
-      } else if (page === 'Hesabım') {
-        router.push("/account");
-      }
-    }, 2000);
-  };
+  
 
   useEffect(() => {
     const checkSession = async () => {
@@ -159,41 +164,103 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         }
       </div>
 
-      {openMenu && (
-        <div className="absolute w-[200px] top-12 bg-white shadow-lg right-0 p-2 rounded-md">
-          {user ? (
-            <div className="space-y-1">
-              <div className="text-slate-600 cursor-pointer">
-                {currentUser?.role == 'USER' ?
-                  <div onClick={() => handleRouteAdminOrAccount('Hesabım')}>Hesabım</div> :
-                  <div onClick={() => handleRouteAdminOrAccount('Admin')}>Admin</div>
-                }
-              </div>
-              <div
-                onClick={() => menuFunc("logout")}
-                className="text-slate-600 cursor-pointer"
-              >
-                Çıkış
-              </div>
+      {isMobile && (
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${
+            openMenu ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
+          onClick={() => setOpenMenu(false)}
+        >
+          <div
+            className={`fixed top-0 right-0 w-3/4 max-w-[320px] h-full bg-white dark:bg-gray-900 p-5 shadow-lg transform transition-transform ${
+              openMenu ? "translate-x-0" : "translate-x-full"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-4 right-4 text-2xl text-gray-600 dark:text-gray-200"
+              onClick={() => setOpenMenu(false)}
+            >
+              ✖️
+            </button>
+            <div className="mt-10 space-y-4 text-lg text-slate-700 dark:text-white">
+              {user ? (
+                <>
+                  <a href="/account" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                    <MdAccountBox className="mr-2" /> Hesabım
+                  </a>
+                  <a href="/account/personalinformation" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                    <MdOutlineContactPage className="mr-2" /> Kişisel Bilgiler
+                  </a>
+                  <a href="/account/orders" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                    <FaBox className="mr-2" /> Siparişlerim
+                  </a>
+                  <a href="/account/addresses" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                    <FaLocationDot className="mr-2" /> Adreslerim
+                  </a>
+                  <a href="/account/favorites" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                    <MdFavorite className="mr-2 text-red-500" /> Favori Ürünlerim
+                  </a>
+                  <hr className="my-2 border-gray-300 dark:border-gray-700" />
+                  <div onClick={() => menuFunc("logout")} className="flex items-center text-red-600 hover:bg-red-100 dark:hover:bg-red-800 px-3 py-2 rounded-md cursor-pointer">
+                    <IoLogOut className="mr-2" /> Çıkış Yap
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
+                    <PiNotePencilBold className="mr-2" /> Kayıt Ol
+                  </div>
+                  <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
+                    <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
+                  </div>
+                </>
+              )}
             </div>
-          ) : (
-            <div>
-              <div
-                onClick={() => menuFunc("register")}
-                className="text-slate-600 cursor-pointer"
-              >
-                Kayıt Ol
-              </div>
-              <div
-                onClick={() => menuFunc("login")}
-                className="text-slate-600 cursor-pointer"
-              >
-                Giriş Yap
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
+
+      {/* Büyük ekranlarda dropdown menü */}
+      {!isMobile && openMenu && (
+        <div className="absolute w-[250px] top-14 bg-white dark:bg-gray-900 shadow-lg right-0 p-4 rounded-md border">
+          <div className="space-y-2 text-slate-700 dark:text-white">
+            {user ? (
+              <>
+                <a href="/account" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                  <MdAccountBox className="mr-2" /> Hesabım
+                </a>
+                <a href="/account/personalinformation" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                  <MdOutlineContactPage className="mr-2" /> Kişisel Bilgiler
+                </a>
+                <a href="/account/orders" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                  <FaBox className="mr-2" /> Siparişlerim
+                </a>
+                <a href="/account/addresses" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                  <FaLocationDot className="mr-2" /> Adreslerim
+                </a>
+                <a href="/account/favorites" className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md">
+                  <MdFavorite className="mr-2 text-red-500" /> Favori Ürünlerim
+                </a>
+                <hr className="my-2 border-gray-300 dark:border-gray-700" />
+                <div onClick={() => menuFunc("logout")} className="flex items-center text-red-600 hover:bg-red-100 dark:hover:bg-red-800 px-3 py-2 rounded-md cursor-pointer">
+                  <IoLogOut className="mr-2" /> Çıkış Yap
+                </div>
+              </>
+            ) : (
+              <>
+                <div onClick={() => menuFunc("register")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
+                  <PiNotePencilBold className="mr-2" /> Kayıt Ol
+                </div>
+                <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
+                  <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

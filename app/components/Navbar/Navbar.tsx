@@ -128,14 +128,12 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div
-                        onClick={() => {
-                            router.push("/dsearch");
-                        }}
+                    <a
+                        href="/dsearch"
                         className="rounded-xl flex flex-row items-center cursor-pointer border-white border-2 md:px-6 px-3 md:py-3 sm:py-2 xs:py-1"
                     >
                         <MdManageSearch className="mr-1" /> <span className="font-bold">Detaylı Arama</span>
-                    </div>
+                    </a>
 
                     <div className="hidden sm:block">
                         <Search />

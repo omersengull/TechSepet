@@ -1,12 +1,15 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { SpinnerProvider } from './spinner/SpinnerContext';
+
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
-import CartProvider from "./provider/CartProvider";
+
 import { Toaster } from "react-hot-toast";
-import { ThemeProvider } from "./provider/ThemeProvider"; // ✅ Yeni eklenen ThemeProvider
+import Providers from "./providers";
+
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -37,22 +40,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900&family=Raleway:ital,wght@0,100..900&display=swap" rel="stylesheet" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}>
-        <Toaster position="top-right" reverseOrder={false} />
         
-        <ThemeProvider>  {/* ✅ Tema sağlayıcı eklendi */}
-          <SpinnerProvider>
-            <CartProvider>
-                <div className="flex flex-col min-h-screen">
-                  <Navbar />
-                  <main className="flex-grow">
-                    {children}
-                  </main>
-                  <Footer />
-                </div>
-            </CartProvider>
-          </SpinnerProvider>
-        </ThemeProvider>
-
+        
+        <Providers>
+            {children}          
+        </Providers>
       </body>
     </html>
   );

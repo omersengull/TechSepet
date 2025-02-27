@@ -5,29 +5,45 @@ export async function POST(req: Request) {
   try {
     const { productId, rating, comment, userId } = await req.json();
 
-    // ✅ Eksik veya yanlış veri kontrolü
+    // Eksik veri kontrolü
     if (!productId || !userId || !rating || !comment.trim()) {
       return NextResponse.json({ error: "Eksik veya geçersiz veri!" }, { status: 400 });
     }
 
-    // ✅ Yorum veritabanına ekleniyor (Prisma ile ilişkileri bağladık)
+    // Kullanıcının varlığını kontrol et
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!userExists) {
+      return NextResponse.json({ error: "Kullanıcı bulunamadı!" }, { status: 404 });
+    }
+
+    // Ürünün varlığını kontrol et (opsiyonel ama önerilir)
+    const productExists = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!productExists) {
+      return NextResponse.json({ error: "Ürün bulunamadı!" }, { status: 404 });
+    }
+
+    // Yorum veritabanına ekleniyor
     const newReview = await prisma.review.create({
       data: {
         rating,
-        content: comment,
-        createdAt: new Date(), // ✅ Hata burada düzeltildi
-        product: { connect: { id: productId } }, // ✅ Ürünü ilişkilendir
-        user: { connect: { id: userId } }, // ✅ Kullanıcıyı ilişkilendir
+        content: comment.trim(),
+        createdAt: new Date(),
+        product: { connect: { id: productId } },
+        user: { connect: { id: userId } },
       },
     });
 
     return NextResponse.json(newReview, { status: 201 });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error("⚠️ Yorum eklenirken hata oluştu:", error);
     return NextResponse.json({ error: "Sunucu hatası!" }, { status: 500 });
   }
 }
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -37,18 +53,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Ürün ID eksik!" }, { status: 400 });
     }
 
-    // ✅ Veritabanından ürüne ait yorumları çek
+    // Ürüne ait yorumları çek
     const reviews = await prisma.review.findMany({
       where: { productId },
       include: {
         user: {
-          select: {
-            name: true,
-            image: true, // Kullanıcının profil resmini çekmek için
-          },
+          select: { name: true, image: true },
         },
       },
-      orderBy: { createdAt: "desc" }, // En yeni yorumlar önce gösterilsin
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(reviews);

@@ -18,8 +18,8 @@ const Page = () => {
       if (fetchedUser) {
         setUser({
           ...fetchedUser,
-          createdAt:new Date(fetchedUser.createdAt),
-          updatedAt:new Date(fetchedUser.updatedAt),
+          createdAt: new Date(fetchedUser.createdAt),
+          updatedAt: new Date(fetchedUser.updatedAt),
           emailVerified: fetchedUser.emailVerified,
           hashedPassword: "", // Hassas veriler boş bırakıldı
         });
@@ -64,6 +64,11 @@ const Page = () => {
           className="mb-5 flex items-center justify-between border-2 px-5 py-2 rounded-xl cursor-pointer"
         >
           <span>Adreslerim</span>
+          <MdArrowForwardIos />
+        </div>
+        <div onClick={() => router.push("/account/favorites")}
+          className="mb-5 flex items-center justify-between border-2 px-5 py-2 rounded-xl cursor-pointer">
+          <span>Favori Ürünlerim</span>
           <MdArrowForwardIos />
         </div>
         <div
