@@ -1,12 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const NewPasswordForm: React.FC = () => {
   const searchParams = useSearchParams();
-  const token = searchParams?.get("token");
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+
+  // `useEffect` içinde searchParams kullanarak SSR hatasını önlüyoruz.
+  useEffect(() => {
+    setToken(searchParams?.get("token") ?? null); // ✅ Eğer undefined ise, null yap
+  }, [searchParams]);
+  
 
   const handleReset = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,7 +48,7 @@ const NewPasswordForm: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="bg-renk1 hover:bg-renk1 text-white font-bold py-2 px-4 rounded w-full mt-4">
+        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full mt-4">
           Şifreyi Güncelle
         </button>
       </form>
