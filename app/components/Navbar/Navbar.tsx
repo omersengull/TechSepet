@@ -57,6 +57,8 @@ type SafeUser = {
     surname: string;
     phone: string | null;
     birthday: Date | null;
+    resetToken: string | null;  // Opsiyonel hale getir
+    resetTokenExpiry: Date | null;
 };
 
 const Navbar = () => {
@@ -83,6 +85,8 @@ const Navbar = () => {
                         surname: user.surname || "Default Surname",
                         phone: user.phone,
                         birthday: user.birthday ? new Date(user.birthday) : null,
+                        resetToken:user.resetToken,
+                        resetTokenExpiry:user.resetTokenExpiry,
                     };
                     setCurrentUser(transformedUser);
                 } else {
