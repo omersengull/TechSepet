@@ -138,28 +138,54 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
   return (
     <AuthContainer>
-      <div className="h-screen flex justify-center items-center">
+      {/**
+       * Dış container
+       * - min-h-screen ve overflow-y-auto ile dikey scroll mümkün
+       * - py-8 üst-alt boşluk
+       */}
+      <div className="min-h-screen w-full flex justify-center items-center px-4 py-8 overflow-y-auto">
         {/**
          * Ana Kutu
          * - Arka plan 800ms içinde kırmızıya döner (expandRed = true)
          * - transition-all ile yumuşak geçiş
          */}
         <div
-          className={`relative w-[1050px] min-h-[550px] flex shadow-lg rounded-md 
+          className={`
+            relative w-full max-w-[1050px] min-h-[550px] flex flex-col md:flex-row
+            shadow-2xl rounded-md overflow-hidden
+            transform-gpu ring-2 ring-red-300/50
             transition-all duration-[800ms] ease-in-out 
-            ${expandRed ? "bg-renk1" : "bg-white"}`}
+            ${
+              expandRed
+                ? "bg-renk1 scale-102"
+                : "bg-white scale-100"
+            }
+          `}
         >
           {/**
            * 1) isSignUp = true ve içerik görünürken "Tekrar Hoş Geldiniz" alanı
            */}
           {isSignUp && isVisible && (
-            <div className="w-1/2 bg-renk1 text-white flex flex-col justify-center items-center p-6 relative z-10 rounded-r-[2000px]">
-              <h1 className="text-3xl font-bold">Tekrar Hoş Geldiniz!</h1>
-              <p className="mt-2 text-sm">Zaten Bir Hesabınız Var Mı?</p>
+            <div
+              className={`
+                w-full md:w-1/2 bg-renk1 text-white 
+                flex flex-col justify-center items-center p-6 
+                relative z-10 md:rounded-r-[2000px]
+                transition-all duration-700 ease-in-out
+              `}
+            >
+              <h1 className="text-3xl sm:text-4xl font-bold drop-shadow-lg text-center">
+                Tekrar Hoş Geldiniz!
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-white/90 text-center">
+                Zaten Bir Hesabınız Var Mı?
+              </p>
               <button
                 onClick={toggle}
                 disabled={isLoading}
-                className="mt-4 px-4 py-2 border-2 border-white text-white rounded-md hover:bg-white hover:text-red-500 transition disabled:opacity-70 disabled:cursor-not-allowed"
+                className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
+                  hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
+                  transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 Giriş Yapın
               </button>
@@ -172,14 +198,24 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
            * - Sadece isVisible = true iken görünür
            */}
           {isVisible && (
-            <div className="w-1/2 py-8 px-6">
-              <Heading text={isSignUp ? "Kayıt Ol" : "Giriş Yap"} center={true} />
+            <div
+              className={`
+                w-full md:w-1/2 py-8 px-6 
+                transition-opacity duration-500 ease-in-out
+                ${!expandRed ? "opacity-100" : "opacity-90"}
+              `}
+            >
+              <Heading
+                text={isSignUp ? "Kayıt Ol" : "Giriş Yap"}
+                center={true}
+              />
               <form
                 onSubmit={
                   isSignUp
                     ? handleSubmit(handleRegister)
                     : handleSubmit(handleLogin)
                 }
+                className="space-y-4 mt-6"
               >
                 {/* Kayıt Ol Elemanları */}
                 {isSignUp && (
@@ -223,7 +259,12 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
                 {/* Giriş Yap'a özel elemanlar */}
                 {!isSignUp && (
-                  <div onClick={()=>{router.push('/forgotPassword')}} className="text-right text-xs text-gray-600 mb-2">
+                  <div
+                    onClick={() => {
+                      router.push("/forgotPassword");
+                    }}
+                    className="text-right text-xs text-gray-500 mb-2 cursor-pointer"
+                  >
                     <button
                       type="button"
                       className="hover:underline focus:outline-none"
@@ -245,7 +286,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
               </form>
 
               {/* Google ile Giriş/Kayıt */}
-              <div className="text-center my-2 text-gray-500">Ya da</div>
+              <div className="text-center my-4 text-gray-400">Ya da</div>
               <Button
                 text={isSignUp ? "Google ile Kayıt Ol" : "Google ile Giriş Yap"}
                 icon={FcGoogle}
@@ -260,13 +301,26 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
            * 3) isSignUp = false ve içerik görünürken "Hoş Geldiniz" alanı
            */}
           {!isSignUp && isVisible && (
-            <div className="w-1/2 bg-renk1 text-white flex flex-col justify-center items-center p-6 relative z-10 rounded-l-[2000px]">
-              <h1 className="text-3xl font-bold">Hoş Geldiniz!</h1>
-              <p className="mt-2 text-sm">Hesabınız yok mu?</p>
+            <div
+              className={`
+                w-full md:w-1/2 bg-renk1 text-white 
+                flex flex-col justify-center items-center p-6 
+                relative z-10 md:rounded-l-[2000px]
+                transition-all duration-700 ease-in-out 
+              `}
+            >
+              <h1 className="text-3xl sm:text-4xl font-bold drop-shadow-lg text-center">
+                Hoş Geldiniz!
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-white/90 text-center">
+                Hesabınız yok mu?
+              </p>
               <button
                 onClick={toggle}
                 disabled={isLoading}
-                className="mt-4 px-4 py-2 border-2 border-white text-white rounded-md hover:bg-white hover:text-red-500 transition disabled:opacity-70 disabled:cursor-not-allowed"
+                className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
+                  hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
+                  transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 Kayıt Olun
               </button>

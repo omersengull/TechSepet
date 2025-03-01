@@ -106,6 +106,8 @@ model User {
   favourites     Favorite[]
   resetToken     String?   // Şifre sıfırlama token'ı
   resetTokenExpiry DateTime?
+  verificationToken       String?  // Doğrulama token'ı, isteğe bağlı
+  verificationTokenExpiry DateTime? // Token geçerlilik süresi, isteğe bağlı
 }
 
 model Favorite {

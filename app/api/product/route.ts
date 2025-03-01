@@ -58,15 +58,17 @@ export async function GET() {
   try {
     const products = await prisma.product.findMany({
       include: {
+        reviews: true,
         category:true,
         specifications: {
           include: {
             specification: true, // Özellik isimlerini de döndür
+            
           },
         },
       },
     });
-
+   
     return NextResponse.json(products, {
       headers: {
         "Content-Type": "application/json",

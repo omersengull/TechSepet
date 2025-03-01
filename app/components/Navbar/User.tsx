@@ -213,9 +213,6 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
               ) : (
                 <>
                   <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
-                    <PiNotePencilBold className="mr-2" /> Kayıt Ol
-                  </div>
-                  <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
                     <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
                   </div>
                 </>
@@ -253,9 +250,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
               </>
             ) : (
               <>
-                <div onClick={() => menuFunc("register")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
-                  <PiNotePencilBold className="mr-2" /> Kayıt Ol
-                </div>
+                
                 <div onClick={() => menuFunc("login")} className="flex items-center hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md cursor-pointer">
                   <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
                 </div>

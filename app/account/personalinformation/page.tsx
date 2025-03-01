@@ -16,10 +16,35 @@ interface User {
 
 const Page = () => {
   const { setIsLoading } = useSpinner();
+  const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
+  const handleEmailVerification = async () => {
+    try {
+      // API'ye POST isteği gönderiliyor. Burada '/api/sendVerificationLink' örnek endpoint'tir.
+      const response = await fetch('/api/sendVerificationLink', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Gerçek kullanımda, email bilgisini dinamik olarak (örneğin kullanıcıdan alınan değer) gönderebilirsiniz.
+        body: JSON.stringify({
+          email: `${currentUser?.email}`,
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error('API çağrısı başarısız oldu');
+      }
+
+      console.log("Doğrulama e-postası gönderildi.");
+    } catch (error) {
+      console.error("Doğrulama e-postası gönderilirken hata oluştu:", error);
+    }
+    // API çağrısı tamamlandıktan sonra modal açılıyor
+    setShowModal(true);
+  };
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = event.target;
 
@@ -206,6 +231,7 @@ const Page = () => {
               id="email"
               onChange={handleInputChange}
             />
+            <span className="hover:underline text-blue-800 cursor-pointer" onClick={handleEmailVerification}>E-Posta adresini doğrula</span>
             <button
               className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${
                 change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
@@ -218,6 +244,27 @@ const Page = () => {
           </div>
         </div>
       </div>
+      {showModal && (
+        <>
+          {/* Modal arka planı */}
+          <div 
+            className="fixed inset-0 bg-black opacity-50" 
+            onClick={() => setShowModal(false)}
+          ></div>
+          {/* Modal içerik */}
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg z-10">
+              <p>E-posta adresinize doğrulama linki gönderildi.</p>
+              <button
+                onClick={() => setShowModal(false)}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Tamam
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

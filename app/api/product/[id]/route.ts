@@ -6,6 +6,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       const product = await prisma.product.findUnique({
         where: { id: params.id },
         include: {
+          
           specifications: {
             include: {
               specification: true,  // ✅ Özellik adını da alıyoruz
