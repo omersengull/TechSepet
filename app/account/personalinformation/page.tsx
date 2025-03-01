@@ -4,6 +4,7 @@ import { useSpinner } from "@/app/spinner/SpinnerContext";
 import React, { useState, useEffect } from "react";
 
 interface User {
+  id: string;
   name?: string;
   surname?: string;
   birthday?: string;
@@ -14,23 +15,26 @@ interface User {
   addresses?: string | null;
 }
 
+// Güncellenebilir alanları tanımlıyoruz
+type EditableField = "name" | "surname" | "birthday" | "phone" | "email";
+
 const Page = () => {
   const { setIsLoading } = useSpinner();
   const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
+
   const handleEmailVerification = async () => {
     try {
-      // API'ye POST isteği gönderiliyor. Burada '/api/sendVerificationLink' örnek endpoint'tir.
+      // API'ye POST isteği gönderiliyor.
       const response = await fetch('/api/sendVerificationLink', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Gerçek kullanımda, email bilgisini dinamik olarak (örneğin kullanıcıdan alınan değer) gönderebilirsiniz.
         body: JSON.stringify({
-          email: `${currentUser?.email}`,
+          email: currentUser?.email,
         }),
       });
 
@@ -45,14 +49,16 @@ const Page = () => {
     // API çağrısı tamamlandıktan sonra modal açılıyor
     setShowModal(true);
   };
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = event.target;
-
+    // id değerini editable alanlar türüne dönüştürüyoruz.
+    const field = id as EditableField;
     setCurrentUser((prev) => {
       if (!prev) return null;
       return {
         ...prev,
-        [id]: id === "birthday" ? new Date(value).toISOString() : value,
+        [field]: field === "birthday" ? new Date(value).toISOString() : value,
       };
     });
   };
@@ -92,9 +98,12 @@ const Page = () => {
 
         if (user) {
           const mappedUser: User = {
+            id: user.id,
             name: user.name ?? undefined,
             surname: user.surname ?? undefined,
-            birthday: user.birthday ? new Date(user.birthday).toISOString() : undefined,
+            birthday: user.birthday
+              ? new Date(user.birthday).toISOString()
+              : undefined,
             phone: user.phone ?? undefined,
             email: user.email ?? undefined,
             gender: user.gender ?? undefined,
@@ -119,7 +128,8 @@ const Page = () => {
 
   useEffect(() => {
     if (currentUser && initialUser) {
-      const isChanged = JSON.stringify(currentUser) !== JSON.stringify(initialUser);
+      const isChanged =
+        JSON.stringify(currentUser) !== JSON.stringify(initialUser);
       setChange(isChanged);
     }
   }, [currentUser, initialUser]);
@@ -146,7 +156,7 @@ const Page = () => {
               type="text"
               value={currentUser?.name || ""}
               onChange={handleInputChange}
-              className="border-2  p-2 w-60 md:w-full outline-renk1 rounded-lg"
+              className="border-2 p-2 w-60 md:w-full outline-renk1 rounded-lg"
             />
           </div>
 
@@ -188,7 +198,10 @@ const Page = () => {
                   className="mr-2"
                   checked={currentUser?.gender === "male"}
                   onChange={(e) =>
-                    setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
+                    setCurrentUser((prev) => ({
+                      ...prev!,
+                      gender: e.target.value,
+                    }))
                   }
                 />
                 <label htmlFor="male">Erkek</label>
@@ -202,7 +215,10 @@ const Page = () => {
                   className="mr-2"
                   checked={currentUser?.gender === "female"}
                   onChange={(e) =>
-                    setCurrentUser((prev) => ({ ...prev, gender: e.target.value }))
+                    setCurrentUser((prev) => ({
+                      ...prev!,
+                      gender: e.target.value,
+                    }))
                   }
                 />
                 <label htmlFor="female">Kadın</label>
@@ -231,7 +247,12 @@ const Page = () => {
               id="email"
               onChange={handleInputChange}
             />
-            <span className="hover:underline text-blue-800 cursor-pointer" onClick={handleEmailVerification}>E-Posta adresini doğrula</span>
+            <span
+              className="hover:underline text-blue-800 cursor-pointer"
+              onClick={handleEmailVerification}
+            >
+              E-Posta adresini doğrula
+            </span>
             <button
               className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${
                 change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
@@ -247,8 +268,8 @@ const Page = () => {
       {showModal && (
         <>
           {/* Modal arka planı */}
-          <div 
-            className="fixed inset-0 bg-black opacity-50" 
+          <div
+            className="fixed inset-0 bg-black opacity-50"
             onClick={() => setShowModal(false)}
           ></div>
           {/* Modal içerik */}

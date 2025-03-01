@@ -111,7 +111,7 @@ const Footer = () => {
                             </div>
                             <div className='flex items-center mb-4  py-1 px-3 rounded-xl hover:bg-gray-200'>
                                 <FaPhoneAlt className="mr-2" />
-                                <a href='tel:+905438334030' className=''>+90 543 833 40 30</a>
+                                <a href='tel:+905438334030' className=''>+90 312 476 85 39 </a>
                             </div>
                             <div className='flex items-center px-3  py-1 rounded-xl hover:bg-gray-200'>
                                 <IoMail className="mr-2" />
