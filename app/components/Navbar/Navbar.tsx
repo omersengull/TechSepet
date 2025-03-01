@@ -59,6 +59,8 @@ type SafeUser = {
     birthday: Date | null;
     resetToken: string | null;  // Opsiyonel hale getir
     resetTokenExpiry: Date | null;
+    verificationTokenExpiry:Date | null;
+    verificationToken:string | null;
 };
 
 const Navbar = () => {
@@ -87,6 +89,8 @@ const Navbar = () => {
                         birthday: user.birthday ? new Date(user.birthday) : null,
                         resetToken:user.resetToken,
                         resetTokenExpiry:user.resetTokenExpiry,
+                        verificationTokenExpiry:user.verificationTokenExpiry,
+                        verificationToken:user.verificationToken,
                     };
                     setCurrentUser(transformedUser);
                 } else {

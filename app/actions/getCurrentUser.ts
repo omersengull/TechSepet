@@ -44,7 +44,9 @@ export async function getCurrentUser() {
                 emailVerified: true,
                 hashedPassword:true,
                 resetToken:true,
-                resetTokenExpiry:true
+                resetTokenExpiry:true,
+                verificationToken:true,
+                verificationTokenExpiry:true
             },
         });
 

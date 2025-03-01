@@ -22,6 +22,8 @@ type SafeUser = Omit<User, 'hashedPassword' | 'name' | 'surname'> & {
   surname: string;
   resetToken: string | null; // ✅ undefined kaldırıldı
   resetTokenExpiry: Date | null;
+  verificationToken:string | null,
+  verificationTokenExpiry: Date | null;
   addresses: {
     address: string;
     title: string;
@@ -75,6 +77,8 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
           image: session.user.image || null,
           resetToken: user?.resetToken ?? null,  // ✅ undefined yerine null atandı
           resetTokenExpiry: user?.resetTokenExpiry ?? null,  // ✅ undefined yerine null atandı
+          verificationToken:user?.verificationToken ?? null,
+          verificationTokenExpiry:user?.verificationTokenExpiry ?? null,
 
 
         };
