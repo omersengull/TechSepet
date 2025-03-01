@@ -1,4 +1,4 @@
-"use client";
+"use client"; // İstemci bileşeni olduğunu belirtir
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
