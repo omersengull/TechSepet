@@ -71,8 +71,6 @@ const DetailClient = ({ product }: { product: any }) => {
       }
     };
 
-
-
     fetchUser();
   }, []);
   useEffect(() => {
@@ -101,6 +99,13 @@ const DetailClient = ({ product }: { product: any }) => {
       localStorage.removeItem("reviewingProduct"); // Değerlendirme yapıldıktan sonra temizle
     }
   }, [product.id]);
+
+  // Yardımcı fonksiyon: İsim ve soyadı anonimleştirir. Örneğin "Ahmet Yılmaz" -> "A**** Y******"
+  const anonymizeFullName = (firstName: string, surname: string): string => {
+    const anonymizedFirst = firstName ? firstName[0] + "*".repeat(firstName.length - 1) : "";
+    const anonymizedSurname = surname ? surname[0] + "*".repeat(surname.length - 1) : "";
+    return `${anonymizedFirst} ${anonymizedSurname}`.trim() || "Anonim";
+  };
 
   const submitReview = async () => {
     if (!rating || !comment.trim()) {
@@ -141,7 +146,6 @@ const DetailClient = ({ product }: { product: any }) => {
       toast.error(error.message);
     }
   };
-
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -273,7 +277,6 @@ const DetailClient = ({ product }: { product: any }) => {
                   }
                   readOnly
                 />
-
               </div>
               <span className="mx-2 text-slate-500 hidden md:inline">|</span>
               <div className="flex items-center mt-1 md:mt-0">Ürün no: {product.id}</div>
@@ -326,12 +329,8 @@ const DetailClient = ({ product }: { product: any }) => {
 
         {renderProductFeatures()}
 
-
-
-
         <div className="mt-10 w-[94%] mx-auto flex flex-col items-center">
           {isLoading ? (
-            // 🟢 Veri yüklenirken Skeleton göstermek için
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...Array(5)].map((_, index) => (
                 <div key={index} className="w-[180px] h-[280px] bg-gray-200 rounded-md p-3">
@@ -343,20 +342,17 @@ const DetailClient = ({ product }: { product: any }) => {
               ))}
             </div>
           ) : recommendedProducts.length > 0 ? (
-            // 🟢 Eğer önerilen ürün varsa, bunları Swiper.js ile göster
             <>
               <h3 className="text-lg mb-4 font-bold text-center">Bu ürünü alanlar şunları da aldı:</h3>
-
-              {/* Swiper.js Bileşeni */}
               <div className="w-full flex justify-center">
                 <Swiper
                   modules={[Navigation, Pagination]}
                   spaceBetween={15}
-                  slidesPerView={2} // Küçük ekranlarda 2 ürün
+                  slidesPerView={2}
                   breakpoints={{
-                    640: { slidesPerView: 2 }, // Orta ekranlarda 2 ürün
-                    768: { slidesPerView: 3 }, // Büyük ekranlarda 3 ürün
-                    1024: { slidesPerView: 5 }, // Büyük ekranlarda 5 ürün
+                    640: { slidesPerView: 2 },
+                    768: { slidesPerView: 3 },
+                    1024: { slidesPerView: 5 },
                   }}
                   navigation
                   pagination={{ clickable: true }}
@@ -373,25 +369,17 @@ const DetailClient = ({ product }: { product: any }) => {
           ) : null}
         </div>
 
-
-
         <h1 className="font-bold text-2xl flex justify-center mt-2">Yorumlar</h1>
         {isReviewing && (
           <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-gray-100">
             <h2 className="text-lg font-semibold">Ürünü Değerlendir</h2>
-
-            {/* ⭐ Rating Bileşeni */}
             <Rating value={rating} onChange={(_, newValue) => setRating(newValue)} />
-
-            {/* 💬 Yorum Alanı */}
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Ürün hakkında yorumunuzu yazın..."
               className="w-full mt-2 p-2 border rounded-md"
             ></textarea>
-
-            {/* Gönder Butonu */}
             <button
               onClick={submitReview}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
@@ -404,12 +392,21 @@ const DetailClient = ({ product }: { product: any }) => {
         {reviews.length > 0 ? (
           reviews.map((review: any) => (
             <div key={review.id} className="border p-2 rounded-md mt-2">
-              <div className="flex items-center"><div><img
-                src={user?.image || "/default-avatar.png"} // ✅ Eğer `null` veya `undefined` ise, varsayılan resim göster
-                alt="User Avatar"
-                className="w-10 h-10 rounded-full"
-              /></div> <div>{user?.name}</div></div>
-
+              <div className="flex items-center">
+                <div>
+                  <img
+                    src={review.userImage || "/default-avatar.png"}
+                    alt="User Avatar"
+                    className="w-10 h-10 rounded-full"
+                  />
+                </div>
+                <div>
+                  {anonymizeFullName(
+                    review.userName || "Anonim",
+                    review.userSurname || ""
+                  )}
+                </div>
+              </div>
               <Rating value={review.rating} readOnly />
               <p>{review.content}</p>
             </div>

@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { Rating } from "@mui/material";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+
 interface Item {
   description: string;
   quantity: number;
@@ -37,26 +38,17 @@ const OrderCard = ({ order }: { order: Order }) => {
   let items: Item[] = [];
   const router = useRouter();
 
-
-
   const handleRate = async (item: any, stars: number | null) => {
     if (stars === null) return;
-  
     console.log(`Kullanıcı ${stars} yıldız verdi.`);
-  
     try {
       if (!item.id) {
         console.error("Ürün ID'si bulunamadı!");
         return;
       }
-  
       console.log("Yönlendirme yapılıyor:", `/product/${item.id}`);
-  
-      // ✅ Değerlendirilmek istenen ürünü localStorage'a kaydet
       localStorage.setItem("reviewingProduct", item.id);
-  
       toast.success("Ürün sayfasına yönlendiriliyorsunuz!", { duration: 1500 });
-  
       setTimeout(() => {
         router.push(`/product/${item.id}`);
       }, 1500);
@@ -64,14 +56,10 @@ const OrderCard = ({ order }: { order: Order }) => {
       console.error("Yönlendirme hatası:", error);
     }
   };
-  
-  
 
-  // ✅ Yönlendirme sonrası sayfa açıldığında yorumlara kaydırma işlemini gerçekleştirmek için
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("scrollToReview") === "true") {
-      localStorage.removeItem("scrollToReview"); // ✅ Scroll işlemi tamamlandıktan sonra flag'i temizle
-  
+      localStorage.removeItem("scrollToReview");
       setTimeout(() => {
         if (detailsRef.current) {
           console.log("Sayfa aşağı kaydırılıyor...");
@@ -79,18 +67,15 @@ const OrderCard = ({ order }: { order: Order }) => {
         } else {
           console.error("detailsRef bulunamadı!");
         }
-      }, 1000); // 1 saniye sonra kaydırma yap
+      }, 1000);
     }
   }, []);
-  
-  
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
     };
-
     fetchUser();
   }, []);
 
@@ -107,13 +92,11 @@ const OrderCard = ({ order }: { order: Order }) => {
 
   return (
     <div
-      className={`border rounded-2xl border-gray-300 p-4 md:p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full max-w-4xl mx-auto cursor-pointer ${expanded ? "pb-4" : ""
-        }`}
+      className={`border rounded-2xl border-gray-300 p-4 md:p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full max-w-4xl mx-auto cursor-pointer ${expanded ? "pb-4" : ""}`}
       onClick={() => setExpanded(!expanded)}
     >
       {/* Üst Satır */}
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between">
-        {/* Ürün resimleri */}
         <div className="grid grid-cols-5 gap-2 md:gap-4 w-full md:w-auto">
           {items.map((item, index) => (
             <img
@@ -124,19 +107,13 @@ const OrderCard = ({ order }: { order: Order }) => {
             />
           ))}
         </div>
-
-        {/* Sipariş Bilgileri */}
         <div className="text-center w-1/3 md:w-auto">
           <span className="font-bold text-sm md:text-base">Sipariş Numarası</span>
           <p className="text-gray-700 text-sm md:text-base">{order.id}</p>
         </div>
-
-        {/* Sipariş Tarihi */}
         <span className="text-gray-500 text-xs md:text-sm w-1/3 md:w-auto text-center">
           {new Date(order.createdAt).toLocaleDateString()}
         </span>
-
-        {/* Fiyat ve Aç/Kapat */}
         <span className="text-green-600 font-bold text-base md:text-lg w-1/3 md:w-auto flex items-center justify-center">
           {priceClip(order.totalPrice)}₺
           <IoIosArrowDown className={`ml-2 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`} />
@@ -153,14 +130,11 @@ const OrderCard = ({ order }: { order: Order }) => {
                 key={index}
                 className="flex flex-col md:flex-row items-center md:justify-between space-x-0 md:space-x-4 border-b border-gray-200 pb-2"
               >
-                {/* Ürün Görseli */}
                 <img
                   src={item.image}
                   alt={item.description}
                   className="w-24 h-24 object-contain border rounded-lg mx-auto md:mx-0"
                 />
-
-                {/* Ürün Bilgileri */}
                 <div className="flex flex-col md:flex-row justify-between w-full items-center">
                   <div className="text-center md:text-left w-1/2">
                     <p className="font-medium">{item.description}</p>
@@ -169,11 +143,10 @@ const OrderCard = ({ order }: { order: Order }) => {
                       Fiyat: <span className="text-green-600">{priceClip(item.price)}₺</span>
                     </p>
                   </div>
-
-                  {/* ⭐ Rating Bileşeni (Sağa Yaslanıyor) */}
                   <div className="ml-auto md:ml-4 flex items-center">
-                    <span className="mr-1">Ürünü Değerlendir</span><Rating
-                      value={null} // ✅ Varsayılan değer, kullanıcı seçene kadar null olacak
+                    <span className="mr-1">Ürünü Değerlendir</span>
+                    <Rating
+                      value={null}
                       onChange={(_, stars) => handleRate(item, stars)}
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -182,7 +155,6 @@ const OrderCard = ({ order }: { order: Order }) => {
               </li>
             ))}
           </ul>
-
 
           {/* Teslimat ve Ödeme Bilgileri */}
           <div className="flex flex-col md:flex-row md:space-x-4 mt-4">
@@ -207,11 +179,25 @@ const OrderCard = ({ order }: { order: Order }) => {
 const OrdersPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("/api/orders");
+        // Eğer geçerli kullanıcı varsa API çağrısına userId parametresini ekliyoruz
+        let url = "/api/orders";
+        if (currentUser && currentUser.id) {
+          url = `/api/orders?userId=${currentUser.id}`;
+        }
+        const response = await axios.get(url);
         console.log("API'den gelen siparişler:", response.data);
         setOrders(response.data);
       } catch (error) {
@@ -220,9 +206,10 @@ const OrdersPage = () => {
         setLoading(false);
       }
     };
-
-    fetchOrders();
-  }, []);
+    if (currentUser !== null) {
+      fetchOrders();
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-12">

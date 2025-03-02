@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ürün bulunamadı!" }, { status: 404 });
     }
 
-    // Yorum veritabanına ekleniyor
+    // Yorum veritabanına ekleniyor ve user bilgileri de dahil ediliyor
     const newReview = await prisma.review.create({
       data: {
         rating,
@@ -35,9 +35,19 @@ export async function POST(req: Request) {
         product: { connect: { id: productId } },
         user: { connect: { id: userId } },
       },
+      include: {
+        user: { select: { name: true, image: true } },
+      },
     });
 
-    return NextResponse.json(newReview, { status: 201 });
+    // API'nin döndürdüğü yoruma, top-level userName ve userImage alanları ekliyoruz
+    const transformedReview = {
+      ...newReview,
+      userName: newReview.user?.name || "Anonim",
+      userImage: newReview.user?.image || "/default-avatar.png",
+    };
+
+    return NextResponse.json(transformedReview, { status: 201 });
   } catch (error: any) {
     console.error("⚠️ Yorum eklenirken hata oluştu:", error);
     return NextResponse.json({ error: "Sunucu hatası!" }, { status: 500 });
@@ -57,14 +67,19 @@ export async function GET(req: Request) {
     const reviews = await prisma.review.findMany({
       where: { productId },
       include: {
-        user: {
-          select: { name: true, image: true },
-        },
+        user: { select: { name: true, image: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(reviews);
+    // Her yoruma top-level userName ve userImage alanlarını ekliyoruz
+    const transformedReviews = reviews.map((review) => ({
+      ...review,
+      userName: review.user?.name || "Anonim",
+      userImage: review.user?.image || "/default-avatar.png",
+    }));
+
+    return NextResponse.json(transformedReviews);
   } catch (error) {
     console.error("⚠️ Yorumları çekerken hata oluştu:", error);
     return NextResponse.json({ error: "Sunucu hatası!" }, { status: 500 });
