@@ -11,36 +11,7 @@ import Spinner from "@/app/spinner/Spinner";
 import { MdManageSearch } from "react-icons/md";
 import type { User as PrismaUser } from "@prisma/client";
 
-// Dark Mode Toggle Bileşeni
-const DarkModeToggle = () => {
-    const [theme, setTheme] = useState("light");
 
-    useEffect(() => {
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            setTheme("dark");
-            document.documentElement.classList.add("dark");
-        }
-    }, []);
-
-    const toggleTheme = () => {
-        if (theme === "light") {
-            setTheme("dark");
-            document.documentElement.classList.add("dark");
-        } else {
-            setTheme("light");
-            document.documentElement.classList.remove("dark");
-        }
-    };
-
-    return (
-        <button
-            onClick={toggleTheme}
-            className={`p-3 text-lg rounded-3xl bg-gray-300 text-black dark:text-white ${theme === 'light' ? "bg-white" : "bg-white"}`}
-        >
-            {theme === "light" ? "🌙" : "☀️"}
-        </button>
-    );
-};
 
 // SafeUser Tip Tanımı
 type SafeUser = {
@@ -128,7 +99,7 @@ const Navbar = () => {
                     <Spinner />
                 </div>
             )}
-            <div className="flex flex-col bg-renk1 h-auto px-4 lg:px-16 text-white dark:bg-gray-900">
+            <div className="flex flex-col bg-renk1 h-auto px-4 lg:px-16 text-white ">
                 <div className="flex flex-row h-[80px] justify-between items-center gap-3">
                     <div className="flex flex-row items-center md:gap-3">
                         <div className="mr-3 lg:mr-7 cursor-pointer" onClick={handleRouteMain}>
@@ -154,16 +125,13 @@ const Navbar = () => {
                         <div className="mr-3 cursor-pointer" onClick={handleRouteCart}>
                             <ShoppingCart />
                         </div>
-                        {/* Dark Mode Toggle Butonu */}
-                        <div className="hidden md:block">
-                            <DarkModeToggle />
-                        </div>
+                        
                     </div>
                 </div>
 
-                <div className="sm:hidden mb-6 flex items-center">
-                    <div className="w-5/6" ><Search /></div>
-                    <div className="ml-4"><DarkModeToggle /></div>
+                <div className="sm:hidden mb-6 flex ">
+                    <div className="w-full" ><Search /></div>
+                   
 
 
                 </div>

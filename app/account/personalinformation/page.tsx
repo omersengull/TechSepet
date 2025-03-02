@@ -2,6 +2,8 @@
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { FadeLoader } from "react-spinners";
 
 interface User {
   id: string;
@@ -20,13 +22,13 @@ type EditableField = "name" | "surname" | "birthday" | "phone" | "email";
 
 const Page = () => {
   const { setIsLoading } = useSpinner();
-  const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [initialUser, setInitialUser] = useState<User | null>(null);
   const [change, setChange] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const handleEmailVerification = async () => {
     try {
+      setLoading(true);
       // API'ye POST isteği gönderiliyor.
       const response = await fetch('/api/sendVerificationLink', {
         method: 'POST',
@@ -47,7 +49,10 @@ const Page = () => {
       console.error("Doğrulama e-postası gönderilirken hata oluştu:", error);
     }
     // API çağrısı tamamlandıktan sonra modal açılıyor
-    setShowModal(true);
+    finally{
+      setLoading(false);
+      toast.success("E-posta adresinize doğrulama linki gönderildi!");
+    }
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,15 +253,17 @@ const Page = () => {
               onChange={handleInputChange}
             />
             <span
-              className="hover:underline text-blue-800 cursor-pointer"
+              className="hover:underline text-blue-800 cursor-pointer flex items-center"
               onClick={handleEmailVerification}
             >
-              E-Posta adresini doğrula
+              E-Posta adresini doğrula <span className="ml-1 ">{loading ? <FadeLoader  
+        height={8} 
+        width={3} 
+        margin={2} /> : null}</span>
             </span>
             <button
-              className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${
-                change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
-              }`}
+              className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
+                }`}
               onClick={updatePersonalInformation}
               disabled={!change}
             >
@@ -265,27 +272,7 @@ const Page = () => {
           </div>
         </div>
       </div>
-      {showModal && (
-        <>
-          {/* Modal arka planı */}
-          <div
-            className="fixed inset-0 bg-black opacity-50"
-            onClick={() => setShowModal(false)}
-          ></div>
-          {/* Modal içerik */}
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg z-10">
-              <p>E-posta adresinize doğrulama linki gönderildi.</p>
-              <button
-                onClick={() => setShowModal(false)}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                Tamam
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+
     </div>
   );
 };

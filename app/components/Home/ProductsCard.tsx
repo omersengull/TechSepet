@@ -129,7 +129,7 @@ const ProductsCard = ({ product }: { product: any }) => {
     };
     
     return (
-        <div className="bg-white dark:bg-gray-800 dark:text-white w-full sm:w-[250px] xl:w-[220px] min-h-[420px] shadow-lg p-4 sm:px-5 sm:py-5 rounded-lg transition-transform transform hover:scale-105 flex flex-col justify-between h-full">
+        <div className="bg-white  w-full sm:w-[250px] xl:w-[220px] min-h-[420px] shadow-lg p-4 sm:px-5 sm:py-5 rounded-lg transition-transform transform hover:scale-105 flex flex-col justify-between h-full">
             
             {/* Favori İkonu */}
             <div className="flex justify-end mb-2">
