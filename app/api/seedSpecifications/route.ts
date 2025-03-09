@@ -1,4 +1,4 @@
-// app/api/seedSpecifications.ts
+// app/api/seedSpecifications/route.ts (Next.js App Router için)
 import { NextResponse } from "next/server";
 import prisma from "@/libs/prismadb";
 
@@ -6,321 +6,25 @@ export async function GET() {
     try {
         const categories = await prisma.category.findMany();
 
-        if (categories.length === 0) {
+        if (!categories || categories.length === 0) {
             return NextResponse.json({ message: "Hiçbir kategori bulunamadı!" }, { status: 404 });
         }
 
         const specifications = {
-            Telefon: [
-                "Marka ve Model",
-                "İşletim Sistemi",
-                "İşlemci",
-                "RAM",
-                "Depolama Alanı",
-                "Ekran Boyutu",
-                "Ekran Çözünürlüğü",
-                "Ekran Teknolojisi",
-                "Yenileme Hızı",
-                "Batarya Kapasitesi",
-                "Hızlı Şarj Desteği",
-                "Kablosuz Şarj Desteği",
-                "Su ve Toz Geçirmezlik",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Arka Kamera Çözünürlüğü",
-                "Arka Kamera Özellikleri",
-                "Ön Kamera Çözünürlüğü",
-                "Ön Kamera Özellikleri",
-                "Video Kayıt Çözünürlüğü",
-                "Video Kayıt Özellikleri",
-                "5G Desteği",
-                "Wi-Fi",
-                "Bluetooth",
-                "NFC",
-                "GPS",
-                "USB Bağlantı Noktası",
-                "Kulaklık Girişi",
-                "Parmak İzi Okuyucu",
-                "Yüz Tanıma",
-                "Hoparlör",
-                "Boyutlar",
-                "Ağırlık",
-                "Kutu İçeriği"
-            ],
-            "Akıllı Saat": [
-                "Marka ve Model",
-                "Uyumluluk",
-                "Kasa Malzemesi",
-                "Kasa Boyutu",
-                "Kordon Malzemesi",
-                "Kordon Boyutu",
-                "Renk Seçenekleri",
-                "Su Geçirmezlik",
-                "Garanti Süresi",
-                "Ekran Tipi",
-                "Ekran Boyutu",
-                "Ekran Çözünürlüğü",
-                "Dokunmatik Ekran",
-                "Always-On Display",
-                "Bluetooth",
-                "Wi-Fi",
-                "GPS",
-                "NFC",
-                "Hücresel Bağlantı",
-                "Kalp Atış Hızı Sensörü",
-                "Kan Oksijen Sensörü",
-                "Uyku Takibi",
-                "Adım Sayar",
-                "Aktivite Takibi",
-                "GPS Takibi",
-                "Düşme Algılama",
-                "Elektrokardiyogram (EKG)",
-                "Vücut Kompozisyonu Analizi",
-                "Bildirimler",
-                "Müzik Kontrolü",
-                "Mobil Ödeme",
-                "Sesli Asistan",
-                "Uygulama Desteği",
-                "Batarya Ömrü",
-                "Şarj Süresi",
-                "Şarj Tipi",
-                "Dahili Depolama",
-                "Hoparlör ve Mikrofon"
-            ],
-            Laptop: [
-                "Marka ve Model",
-                "İşletim Sistemi",
-                "İşlemci",
-                "RAM",
-                "RAM Tipi",
-                "Depolama",
-                "Depolama Türü",
-                "Ekran Boyutu",
-                "Ekran Çözünürlüğü",
-                "Ekran Teknolojisi",
-                "Ekran Özellikleri",
-                "Grafik Kartı",
-                "Bağlantı Noktaları",
-                "Kablosuz Bağlantı",
-                "Klavye",
-                "Web Kamerası",
-                "Ses",
-                "Batarya Ömrü",
-                "Boyutlar",
-                "Ağırlık",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Parmak İzi Okuyucu",
-                "Yüz Tanıma",
-                "Dokunmatik Ekran",
-                "2'si 1 Arada Tasarım",
-                "Oyun Bilgisayarı",
-                "İş İstasyonu"
-            ],
-            Kulaklık: [
-                "Marka ve Model",
-                "Kulaklık Tipi",
-                "Bağlantı Türü",
-                "Kullanım Amacı",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Su Geçirmezlik",
-                "Sürücü Çapı",
-                "Frekans Tepkisi",
-                "Empedans",
-                "Hassasiyet",
-                "Aktif Gürültü Engelleme (ANC)",
-                "Ses Geçirgenliği",
-                "Ses Destekleri",
-                "Mikrofon Tipi",
-                "Gürültü Engelleme",
-                "Ses Kalitesi",
-                "Bluetooth Sürümü",
-                "Bluetooth Profilleri",
-                "Menzil",
-                "Pil Ömrü",
-                "Şarj Süresi",
-                "Hızlı Şarj",
-                "Ağırlık",
-                "Kulaklık Yastığı Malzemesi",
-                "Katlanabilir Tasarım",
-                "Taşıma Çantası",
-                "Kontroller",
-                "Oyun Modu",
-                "Çoklu Cihaz Bağlantısı",
-                "Sesli Asistan Desteği",
-                "Eşleştirme Teknolojisi"
-            ],
-            Monitör: [
-                "Marka ve Model",
-                "Ekran Boyutu",
-                "Ekran Çözünürlüğü",
-                "Panel Tipi",
-                "En Boy Oranı",
-                "Yenileme Hızı",
-                "Tepki Süresi",
-                "Parlaklık",
-                "Kontrast Oranı",
-                "Renk Gamı",
-                "Renk Derinliği",
-                "Görüş Açısı",
-                "Kavisli Ekran",
-                "HDR Desteği",
-                "Adaptive Sync Teknolojisi",
-                "Bağlantı Noktaları",
-                "Hoparlör",
-                "Ayarlanabilir Stand",
-                "VESA Montaj Desteği",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Oyun Modu",
-                "Mavi Işık Filtresi",
-                "Flicker-Free Teknolojisi",
-                "Picture-in-Picture (PIP)",
-                "Dahili USB Hub"
-            ],
-            Klavye: [
-                "Marka ve Model",
-                "Klavye Türü",
-                "Bağlantı Türü",
-                "Tuş Dizilimi",
-                "Tuş Sayısı",
-                "Switch Türü",
-                "Aydınlatma",
-                "Makro Tuşları",
-                "Medya Tuşları",
-                "Boyutlar",
-                "Ağırlık",
-                "Renk Seçenekleri",
-                "Malzeme",
-                "Garanti Süresi",
-                "Programlanabilir Tuşlar",
-                "N-Key Rollover (NKRO)",
-                "Anti-Ghosting",
-                "Dahili Bellek",
-                "Palm Rest",
-                "Ayarlanabilir Ayaklar",
-                "Suya Dayanıklılık",
-                "Oyun Modu"
-            ],
-            Mouse: [
-                "Marka ve Model",
-                "Mouse Türü",
-                "Bağlantı Türü",
-                "Sensör Türü",
-                "DPI",
-                "Tuş Sayısı",
-                "Programlanabilir Tuşlar",
-                "Scroll Tekerleği",
-                "Ağırlık",
-                "Boyutlar",
-                "Renk Seçenekleri",
-                "Malzeme",
-                "Garanti Süresi",
-                "Ergonomik Tasarım",
-                "Aydınlatma",
-                "DPI Ayarlama Düğmesi",
-                "Oyun Özellikleri",
-                "Çoklu Cihaz Desteği",
-                "Pil Ömrü",
-                "Şarj Edilebilir Pil",
-                "Hızlı Şarj",
-                "Bluetooth Sürümü"
-            ],
-            Televizyon: [
-                "Marka ve Model",
-                "Ekran Boyutu",
-                "Ekran Teknolojisi",
-                "Çözünürlük",
-                "Panel Tipi",
-                "En Boy Oranı",
-                "Yenileme Hızı",
-                "Tepki Süresi",
-                "HDR Desteği",
-                "Parlaklık",
-                "Kontrast Oranı",
-                "Renk Gamı",
-                "İşletim Sistemi",
-                "Ses Çıkışı",
-                "Ses Teknolojileri",
-                "Bağlantı Noktaları",
-                "Kablosuz Bağlantı",
-                "Dahili Uydu Alıcısı",
-                "Enerji Verimliliği",
-                "VESA Uyumluluğu",
-                "Boyutlar",
-                "Ağırlık",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Dahili Wi-Fi",
-                "Ekran Paylaşımı",
-                "Sesli Asistan",
-                "Uygulama Desteği",
-                "Oyun Modu"
-            ],
-            "Oyun Konsolu": [
-                "Marka ve Model",
-                "Konsol Türü",
-                "İşlemci",
-                "Grafik İşlemci",
-                "RAM",
-                "Depolama Alanı",
-                "Genişletilebilir Depolama",
-                "Optik Sürücü",
-                "Çıkış Çözünürlüğü",
-                "Kare Hızı",
-                "HDR Desteği",
-                "Ray Tracing Desteği",
-                "Bağlantı Noktaları",
-                "Kablosuz Bağlantı",
-                "Kontrolcü",
-                "Boyutlar",
-                "Ağırlık",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Geriye Dönük Uyumluluk",
-                "VR Desteği",
-                "Bulut Oyun Desteği",
-                "Oyun Abonelik Hizmeti",
-                "Medya Oynatma",
-                "Ses Özellikleri"
-            ],
-            Kamera: [
-                "Marka ve Model",
-                "Kamera Türü",
-                "Sensör Boyutu",
-                "Sensör Çözünürlüğü",
-                "ISO Aralığı",
-                "Enstantane Hızı",
-                "Çekim Hızları",
-                "Odaklama Sistemi",
-                "Odak Noktaları",
-                "Video Kayıt Çözünürlüğü",
-                "Video Kayıt Kare Hızı",
-                "Ekran",
-                "Ekran Boyutu",
-                "Vizör",
-                "Dahili Flaş",
-                "Görüntü Sabitleme",
-                "Bağlantı Noktaları",
-                "Kablosuz Bağlantı",
-                "Pil Ömrü",
-                "Boyutlar",
-                "Ağırlık",
-                "Renk Seçenekleri",
-                "Garanti Süresi",
-                "Su ve Toz Geçirmezlik",
-                "Yüz/Göz Takibi",
-                "Zaman Atlamalı Çekim",
-                "Yavaş Çekim",
-                "HDR Çekim",
-                "Panorama Çekim",
-                "Dahili GPS",
-                "Filtre Efektleri"
-            ]
+            Telefon: ["Marka ve Model", "İşletim Sistemi", "İşlemci", "RAM", "Depolama Alanı"],
+            "Akıllı Saat": ["Marka ve Model", "Uyumluluk", "Kasa Malzemesi", "Kasa Boyutu"],
+            Laptop: ["Marka ve Model", "İşletim Sistemi", "İşlemci", "RAM", "Depolama"],
+            Kulaklık: ["Marka ve Model", "Kulaklık Tipi", "Bağlantı Türü", "Kullanım Amacı"],
+            Monitör: ["Marka ve Model", "Ekran Boyutu", "Ekran Çözünürlüğü", "Panel Tipi"],
+            Klavye: ["Marka ve Model", "Klavye Türü", "Bağlantı Türü", "Tuş Dizilimi"],
+            Mouse: ["Marka ve Model", "Mouse Türü", "Bağlantı Türü", "Sensör Türü"],
+            Televizyon: ["Marka ve Model", "Ekran Boyutu", "Ekran Teknolojisi", "Çözünürlük"],
+            "Oyun Konsolu": ["Marka ve Model", "Konsol Türü", "İşlemci", "Grafik İşlemci"],
+            Kamera: ["Marka ve Model", "Kamera Türü", "Sensör Boyutu", "Sensör Çözünürlüğü"]
         };
 
-        for (const category of categories) {
+        // Tüm kategoriler için verileri paralel olarak ekleyelim
+        const createPromises = categories.map(async (category) => {
             const specs = specifications[category.name];
 
             if (specs) {
@@ -329,17 +33,20 @@ export async function GET() {
                     categoryId: category.id
                 }));
 
-                await prisma.specification.createMany({
-                    data: specData
-                });
-
-                console.log(`"${category.name}" kategorisi için özellikler eklendi.`);
+                // Prisma ile toplu ekleme işlemi
+                return prisma.specification.createMany({ data: specData });
             }
-        }
+            return null;
+        });
 
-        return NextResponse.json({ message: "Tüm özellikler başarıyla eklendi." });
+        // Paralel işlemleri bekle
+        await Promise.all(createPromises);
+
+        console.log("✅ Tüm özellikler başarıyla eklendi.");
+        return NextResponse.json({ message: "Tüm özellikler başarıyla eklendi." }, { status: 200 });
+
     } catch (error) {
-        console.error("Hata:", error);
+        console.error("❌ Hata:", error);
         return NextResponse.json({ error: "Bir hata oluştu." }, { status: 500 });
     }
 }
