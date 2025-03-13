@@ -8,6 +8,7 @@ import axios from "axios";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
+import { HashLoader } from "react-spinners";
 
 import AuthContainer from "../containers/AuthContainer";
 import Heading from "../General/Heading";
@@ -19,21 +20,13 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ currentUser }) => {
-  // Kayıt Ol <-> Giriş Yap arayüzünü belirler
   const [isSignUp, setIsSignUp] = useState(false);
-
-  // Arka planın kırmızıya dönüşmesi
   const [expandRed, setExpandRed] = useState(false);
-
-  // Butonların disable (yükleniyor) durumu
-  const [isLoading, setIsLoading] = useState(false);
-
-  // İçerik görünür/gizli durumu (formlar ve metinler)
+  // loadingType: "credentials" | "google" | null
+  const [loadingType, setLoadingType] = useState<"credentials" | "google" | null>(null);
   const [isVisible, setIsVisible] = useState(true);
-
   const router = useRouter();
 
-  // react-hook-form ayarları
   const {
     register,
     handleSubmit,
@@ -43,21 +36,15 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
   /**
    * Kayıt Ol <-> Giriş Yap geçişi
-   * 1) Kutuyu kırmızıya boyar, içerikleri gizler
-   * 2) 800ms sonra kutu beyaza döner, arayüz değişir
-   * 3) 100ms sonra yeni içerikler görünür
    */
   const toggle = () => {
-    // 1) Kırmızıya geç ve içerikleri gizle
     setExpandRed(true);
     setIsVisible(false);
 
-    // 2) 800ms sonra arayüzü değiştir ve kırmızıyı kapat
     setTimeout(() => {
       setIsSignUp(!isSignUp);
       setExpandRed(false);
 
-      // 3) 100ms sonra yeni içerikleri göster
       setTimeout(() => {
         setIsVisible(true);
       }, 100);
@@ -66,7 +53,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
   // Giriş Yap (Credentials)
   const handleLogin: SubmitHandler<FieldValues> = async (data) => {
-    setIsLoading(true);
+    setLoadingType("credentials");
     try {
       const callback = await signIn("credentials", {
         ...data,
@@ -85,13 +72,13 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
       console.error("Giriş sırasında hata oluştu:", error);
       toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
-      setIsLoading(false);
+      setLoadingType(null);
     }
   };
 
   // Kayıt Ol
   const handleRegister: SubmitHandler<FieldValues> = async (data) => {
-    setIsLoading(true);
+    setLoadingType("credentials");
     try {
       await axios.post("/api/register", data);
       toast.success("Kullanıcı Oluşturuldu!");
@@ -114,21 +101,20 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
       console.error("Kayıt sırasında hata oluştu:", error);
       toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
-      setIsLoading(false);
+      setLoadingType(null);
     }
   };
 
   // Google ile Giriş/Kayıt
   const handleGoogleSignIn = () => {
-    setIsLoading(true);
+    setLoadingType("google");
     signIn("google").catch((error) => {
       console.error("Google ile giriş sırasında hata:", error);
       toast.error("Google ile giriş sırasında bir hata oluştu.");
-      setIsLoading(false);
+      setLoadingType(null);
     });
   };
 
-  // Eğer kullanıcı zaten giriş yapmışsa otomatik /cart sayfasına yönlendir
   useEffect(() => {
     if (currentUser) {
       router.push("/cart");
@@ -138,33 +124,16 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
   return (
     <AuthContainer>
-      {/**
-       * Dış container
-       * - min-h-screen ve overflow-y-auto ile dikey scroll mümkün
-       * - py-8 üst-alt boşluk
-       */}
       <div className="min-h-screen w-full flex justify-center items-center px-4 py-8 overflow-y-auto">
-        {/**
-         * Ana Kutu
-         * - Arka plan 800ms içinde kırmızıya döner (expandRed = true)
-         * - transition-all ile yumuşak geçiş
-         */}
         <div
           className={`
             relative w-full max-w-[1050px] min-h-[550px] flex flex-col md:flex-row
             shadow-2xl rounded-md overflow-hidden
             transform-gpu ring-2 ring-red-300/50
             transition-all duration-[800ms] ease-in-out 
-            ${
-              expandRed
-                ? "bg-renk1 scale-102"
-                : "bg-white scale-100"
-            }
+            ${expandRed ? "bg-renk1 scale-102" : "bg-white scale-100"}
           `}
         >
-          {/**
-           * 1) isSignUp = true ve içerik görünürken "Tekrar Hoş Geldiniz" alanı
-           */}
           {isSignUp && isVisible && (
             <div
               className={`
@@ -182,7 +151,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
               </p>
               <button
                 onClick={toggle}
-                disabled={isLoading}
+                disabled={loadingType !== null}
                 className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
                   hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
                   transition disabled:opacity-70 disabled:cursor-not-allowed"
@@ -192,11 +161,6 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
             </div>
           )}
 
-          {/**
-           * 2) Form Alanı
-           * - Hem Giriş Yap hem de Kayıt Ol formu
-           * - Sadece isVisible = true iken görünür
-           */}
           {isVisible && (
             <div
               className={`
@@ -205,10 +169,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
                 ${!expandRed ? "opacity-100" : "opacity-90"}
               `}
             >
-              <Heading
-                text={isSignUp ? "Kayıt Ol" : "Giriş Yap"}
-                center={true}
-              />
+              <Heading text={isSignUp ? "Kayıt Ol" : "Giriş Yap"} center={true} />
               <form
                 onSubmit={
                   isSignUp
@@ -217,7 +178,6 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
                 }
                 className="space-y-4 mt-6"
               >
-                {/* Kayıt Ol Elemanları */}
                 {isSignUp && (
                   <>
                     <Input
@@ -239,7 +199,6 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
                   </>
                 )}
 
-                {/* Ortak Elemanlar (Email & Password) */}
                 <Input
                   placeholder="E-Posta"
                   type="email"
@@ -257,7 +216,6 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
                   required
                 />
 
-                {/* Giriş Yap'a özel elemanlar */}
                 {!isSignUp && (
                   <div
                     onClick={() => {
@@ -274,32 +232,47 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
                   </div>
                 )}
 
+                {/* Credentials Butonu */}
                 <Button
-                  text={isSignUp ? "Kayıt Ol" : "Giriş Yap"}
                   onClick={
                     isSignUp
                       ? handleSubmit(handleRegister)
                       : handleSubmit(handleLogin)
                   }
-                  disabled={isLoading}
-                />
+                  disabled={loadingType !== null}
+                >
+                  <span>{isSignUp ? "Kayıt Ol" : "Giriş Yap"}</span>
+                  {loadingType === "credentials" && (
+                    <span className="ml-2">
+                      <HashLoader size={20} color="#3489eb" />
+                    </span>
+                  )}
+                </Button>
               </form>
 
-              {/* Google ile Giriş/Kayıt */}
               <div className="text-center my-4 text-gray-400">Ya da</div>
-              <Button
-                text={isSignUp ? "Google ile Kayıt Ol" : "Google ile Giriş Yap"}
-                icon={FcGoogle}
-                outline
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-              />
+              <div className="flex items-center justify-center">
+                <Button 
+                  icon={FcGoogle}
+                  outline
+                  onClick={handleGoogleSignIn}
+                  disabled={loadingType !== null}
+                >
+                  <span className="ml-1">
+                    {isSignUp
+                      ? "Google ile Kayıt Ol"
+                      : "Google ile Giriş Yap"}
+                  </span>
+                  {loadingType === "google" && (
+                    <span className="ml-2">
+                      <HashLoader size={20} color="#3489eb" />
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
 
-          {/**
-           * 3) isSignUp = false ve içerik görünürken "Hoş Geldiniz" alanı
-           */}
           {!isSignUp && isVisible && (
             <div
               className={`
@@ -317,7 +290,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
               </p>
               <button
                 onClick={toggle}
-                disabled={isLoading}
+                disabled={loadingType !== null}
                 className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
                   hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
                   transition disabled:opacity-70 disabled:cursor-not-allowed"
