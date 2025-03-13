@@ -58,12 +58,19 @@ const OrderCard = ({ order }: { order: Order }) => {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("scrollToReview") === "true") {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("scrollToReview") === "true"
+    ) {
       localStorage.removeItem("scrollToReview");
       setTimeout(() => {
         if (detailsRef.current) {
           console.log("Sayfa aşağı kaydırılıyor...");
-          detailsRef.current.scrollIntoView({ behavior: "smooth" });
+          detailsRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
         } else {
           console.error("detailsRef bulunamadı!");
         }
@@ -80,7 +87,8 @@ const OrderCard = ({ order }: { order: Order }) => {
   }, []);
 
   try {
-    let parsedItems = typeof order.items === "string" ? JSON.parse(order.items) : order.items;
+    let parsedItems =
+      typeof order.items === "string" ? JSON.parse(order.items) : order.items;
     if (typeof parsedItems === "string") {
       parsedItems = JSON.parse(parsedItems);
     }
@@ -92,12 +100,16 @@ const OrderCard = ({ order }: { order: Order }) => {
 
   return (
     <div
-      className={`border rounded-2xl border-gray-300 p-4 md:p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full max-w-4xl mx-auto cursor-pointer ${expanded ? "pb-4" : ""}`}
+      className={`border rounded-2xl border-gray-300 p-4 md:p-6 mb-4 bg-white shadow-lg transition-all duration-300 transform w-full max-w-4xl mx-auto cursor-pointer ${
+        expanded ? "pb-4" : ""
+      }`}
       onClick={() => setExpanded(!expanded)}
     >
       {/* Üst Satır */}
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between">
-        <div className="grid grid-cols-5 gap-2 md:gap-4 w-full md:w-auto">
+        {/* Ürün resimleri için; masaüstünde eski haline döndürdüm (grid-cols-5, md:gap-4) 
+            Mobilde boşluğu azaltmak için gap-1 kullanıldı */}
+        <div className="grid grid-cols-5 gap-1 md:gap-4 w-full md:w-auto">
           {items.map((item, index) => (
             <img
               key={index}
@@ -107,28 +119,34 @@ const OrderCard = ({ order }: { order: Order }) => {
             />
           ))}
         </div>
-        <div className="text-center w-1/3 md:w-auto">
+        <div className="text-center w-full md:w-auto mt-2 md:mt-0">
           <span className="font-bold text-sm md:text-base">Sipariş Numarası</span>
           <p className="text-gray-700 text-sm md:text-base">{order.id}</p>
         </div>
-        <span className="text-gray-500 text-xs md:text-sm w-1/3 md:w-auto text-center">
+        <span className="text-gray-500 text-xs md:text-sm w-full md:w-auto text-center mt-2 md:mt-0">
           {new Date(order.createdAt).toLocaleDateString()}
         </span>
-        <span className="text-green-600 font-bold text-base md:text-lg w-1/3 md:w-auto flex items-center justify-center">
+        <span className="text-green-600 font-bold text-base md:text-lg w-full md:w-auto flex items-center justify-center mt-2 md:mt-0">
           {priceClip(order.totalPrice)}₺
-          <IoIosArrowDown className={`ml-2 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`} />
+          <IoIosArrowDown
+            className={`ml-2 transition-transform ${
+              expanded ? "rotate-180" : "rotate-0"
+            }`}
+          />
         </span>
       </div>
 
       {/* Genişletilmiş İçerik */}
       {expanded && (
         <div className="mt-4 border-t border-gray-300 pt-4">
-          <h2 className="text-lg font-semibold mb-2 text-center md:text-left">Ürünler</h2>
+          <h2 className="text-lg font-semibold mb-2 text-center md:text-left">
+            Ürünler
+          </h2>
           <ul className="space-y-2">
             {items.map((item, index) => (
               <li
                 key={index}
-                className="flex flex-col md:flex-row items-center md:justify-between space-x-0 md:space-x-4 border-b border-gray-200 pb-2"
+                className="flex flex-col md:flex-row items-center md:justify-between space-y-2 md:space-y-0 md:space-x-4 border-b border-gray-200 pb-2"
               >
                 <img
                   src={item.image}
@@ -136,14 +154,17 @@ const OrderCard = ({ order }: { order: Order }) => {
                   className="w-24 h-24 object-contain border rounded-lg mx-auto md:mx-0"
                 />
                 <div className="flex flex-col md:flex-row justify-between w-full items-center">
-                  <div className="text-center md:text-left w-1/2">
+                  <div className="text-center md:text-left w-full md:w-1/2">
                     <p className="font-medium">{item.description}</p>
                     <p className="text-gray-600">Miktar: {item.quantity}</p>
                     <p>
-                      Fiyat: <span className="text-green-600">{priceClip(item.price)}₺</span>
+                      Fiyat:{" "}
+                      <span className="text-green-600">
+                        {priceClip(item.price)}₺
+                      </span>
                     </p>
                   </div>
-                  <div className="ml-auto md:ml-4 flex items-center">
+                  <div className="ml-auto md:ml-4 flex items-center mt-2 md:mt-0">
                     <span className="mr-1">Ürünü Değerlendir</span>
                     <Rating
                       value={null}
@@ -161,9 +182,12 @@ const OrderCard = ({ order }: { order: Order }) => {
             <div className="border rounded-xl p-4 bg-gray-100 flex-1">
               <h2 className="font-semibold text-lg">Teslimat Adresi</h2>
               <p>
-                ({order.addressInfo.title}) {order.addressInfo.address} / {order.addressInfo.city} {order.addressInfo.postalCode}
+                ({order.addressInfo.title}) {order.addressInfo.address} /{" "}
+                {order.addressInfo.city} {order.addressInfo.postalCode}
               </p>
-              <p>{user?.name} {user?.surname}</p>
+              <p>
+                {user?.name} {user?.surname}
+              </p>
             </div>
             <div className="border rounded-xl p-4 bg-gray-100 flex-1 mt-4 md:mt-0">
               <h2 className="font-semibold text-lg">Ödeme Bilgileri</h2>
@@ -172,6 +196,7 @@ const OrderCard = ({ order }: { order: Order }) => {
           </div>
         </div>
       )}
+      <div ref={detailsRef}></div>
     </div>
   );
 };
@@ -213,7 +238,9 @@ const OrdersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-12">
-      <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">Siparişlerim</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">
+        Siparişlerim
+      </h1>
       {loading ? (
         <div className="text-center text-lg">Yükleniyor...</div>
       ) : orders.length > 0 ? (
@@ -223,7 +250,9 @@ const OrdersPage = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center text-gray-500 text-lg">Henüz siparişiniz bulunmamaktadır.</div>
+        <div className="text-center text-gray-500 text-lg">
+          Henüz siparişiniz bulunmamaktadır.
+        </div>
       )}
     </div>
   );

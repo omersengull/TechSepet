@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { FaRegUser } from "react-icons/fa";
+import { FaRegUser, FaUserShield } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { signOut, getSession, useSession } from "next-auth/react";
 import type { User } from "@prisma/client";
@@ -16,7 +16,7 @@ interface UserProps {
 }
 
 // Prisma User tipini extend eden yeni bir tip tanımlayalım
-type SafeUser = Omit<User, 'hashedPassword' | 'name' | 'surname'> & {
+type SafeUser = Omit<User, "hashedPassword" | "name" | "surname"> & {
   hashedPassword: string;
   name: string;
   surname: string;
@@ -46,8 +46,12 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
 
   // useSession hook'u ile oturum durumundaki değişiklikleri dinliyoruz
   const { data: session, status } = useSession();
+
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      // Aşağıdaki kısımda daha önce role: "USER" olarak zorla atanıyordu.
+      // Bunu yerine veritabanından gelen (currentUser) rolü esas alıyoruz.
+      // Eğer currentUser.role boş gelirse, "USER" olarak varsayabiliriz.
       const transformedUser: SafeUser = {
         id: "default-id",
         createdAt: new Date(),
@@ -55,11 +59,15 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         emailVerified: null,
         hashedPassword: "default-hash",
         gender: null,
+        // Aşağıdaki name-surname atamalarını koruyoruz
         surname: session.user.name?.split(" ")[1] || "Surname",
         phone: null,
         birthday: null,
         addresses: [],
-        role: "USER",
+        // --- ORİJİNALDE role: "USER" ZORLA VARDI ---
+        // role: "USER",
+        // --- YENİ: veritabanından gelen rolü esas alıyoruz ---
+        role: currentUser?.role || "USER",
         name: session.user.name?.split(" ")[0] || "Name",
         email: session.user.email || "example@gmail.com",
         image: session.user.image || null,
@@ -72,7 +80,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     } else {
       setUser(null);
     }
-  }, [status, session]);
+  }, [status, session, currentUser, user?.resetToken, user?.resetTokenExpiry, user?.verificationToken, user?.verificationTokenExpiry]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -146,12 +154,56 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     }
   }, [user]);
 
+  // YENİ: Menüdeki seçenekleri rol'e göre render edelim
+  const renderMenuItems = () => {
+    // Kullanıcı yoksa (henüz login olmamış)
+    if (!user) {
+      return (
+        <div
+          onClick={() => menuFunc("login")}
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md cursor-pointer"
+        >
+          <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
+        </div>
+      );
+    }
+
+    // Kullanıcı admin ise
+    if (user.role === "ADMIN") {
+      return (
+        <>
+          <a
+            href="/admin"
+            className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+          >
+            <FaUserShield className="mr-2" /> Admin Panel
+          </a>
+          <hr className="my-2 border-gray-300" />
+          <div
+            onClick={() => menuFunc("logout")}
+            className="flex items-center text-red-600 hover:bg-red-100 px-3 py-2 rounded-md cursor-pointer"
+          >
+            <IoLogOut className="mr-2" /> Çıkış Yap
+          </div>
+        </>
+      );
+    }
+
+    // Admin değil ama giriş yapmış kullanıcı
+    return (
+      <div
+        onClick={() => menuFunc("logout")}
+        className="flex items-center text-red-600 hover:bg-red-100 px-3 py-2 rounded-md cursor-pointer"
+      >
+        <IoLogOut className="mr-2" /> Çıkış Yap
+      </div>
+    );
+  };
+
   return (
     <div className="md:flex relative z-40" ref={menuRef}>
-      <div
-        onClick={() => setOpenMenu(!openMenu)}
-        className="rounded-full cursor-pointer border border-white bg-white p-3"
-      >
+      {/* 
+        Orijinal avatar kodu:
         {user?.role === "ADMIN" ? (
           <FaRegUser className="text-black m-1" />
         ) : user?.name && user?.surname ? (
@@ -161,8 +213,17 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         ) : (
           <FaRegUser className="text-black m-1" />
         )}
+      */}
+
+      {/* YENİ: Her zaman sadece ikon gösterilsin */}
+      <div
+        onClick={() => setOpenMenu(!openMenu)}
+        className="rounded-full cursor-pointer border border-white bg-white p-3"
+      >
+        <FaRegUser className="text-black m-1" />
       </div>
 
+      {/* Mobil görünüm */}
       {isMobile && (
         <div
           className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${
@@ -182,6 +243,8 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
             >
               ✖️
             </button>
+
+            {/* Orijinal mobil menü içerikleri (YORUMA ALINDI)
             <div className="mt-10 space-y-4 text-lg text-slate-700">
               {user ? (
                 <>
@@ -234,6 +297,12 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
                 </>
               )}
             </div>
+            */}
+
+            {/* YENİ mobil menü içerikleri */}
+            <div className="mt-10 space-y-4 text-lg text-slate-700">
+              {renderMenuItems()}
+            </div>
           </div>
         </div>
       )}
@@ -241,6 +310,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       {/* Büyük ekranlarda dropdown menü */}
       {!isMobile && openMenu && (
         <div className="absolute w-[250px] top-14 bg-white shadow-lg right-0 p-4 rounded-md border">
+          {/* Orijinal büyük ekran menü içerikleri (YORUMA ALINDI)
           <div className="space-y-2 text-slate-700">
             {user ? (
               <>
@@ -293,6 +363,10 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
               </>
             )}
           </div>
+          */}
+
+          {/* YENİ büyük ekran menü içerikleri */}
+          <div className="space-y-2 text-slate-700">{renderMenuItems()}</div>
         </div>
       )}
     </div>

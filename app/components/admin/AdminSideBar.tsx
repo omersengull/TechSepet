@@ -6,11 +6,11 @@ import { IoIosCreate, IoIosCloseCircle } from "react-icons/io";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { GiHamburgerMenu } from "react-icons/gi";
-import React from "react"
+import React from "react";
+
 const AdminSideBar = () => {
   const pathName = usePathname();
   const AdminPanel = [
-    { name: "Özetler", icon: MdDashboard, url: "/admin" },
     { name: "Ürün Oluştur", icon: IoIosCreate, url: "/admin/create" },
     { name: "Siparişlerim", icon: FaFirstOrder, url: "/admin/order" },
     { name: "Ürünleri Yönet", icon: IoIosCreate, url: "/admin/manage" },
@@ -23,35 +23,23 @@ const AdminSideBar = () => {
 
   return (
     <div className="relative">
- 
-      <div
-        className={`absolute top-5 left-5 z-50 transition-transform duration-500 ease-in-out ${
-          show ? "translate-x-[-250px] opacity-0" : "translate-x-0 opacity-100"
-        }`}
-      >
+      {/* Toggle Butonu - Sağ üst köşede */}
+      <div className="absolute top-5 right-5 z-50">
         <div
           onClick={handleToggleMenu}
           className="flex cursor-pointer items-center text-3xl text-black"
         >
-          <GiHamburgerMenu />
+          {show ? <IoIosCloseCircle /> : <GiHamburgerMenu />}
         </div>
       </div>
 
+      {/* Yukarıdan Aşağı Açılan (Yatay) Menü */}
       <div
-        className={` h-screen sticky w-64 bg-renk2 border-r p-4 transform transition-transform duration-500 ease-in-out ${
-          show ? "translate-x-0" : "-translate-x-full"
+        className={`w-full bg-renk2 border-b p-4 transform transition-transform duration-500 ease-in-out ${
+          show ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         }`}
       >
-        <div className="space-y-4">
- 
-          <div
-            onClick={handleToggleMenu}
-            className="flex items-center cursor-pointer"
-          >
-            <IoIosCloseCircle className="text-xl" />
-            <span className="ml-1 font-bold">Menüyü kapat</span>
-          </div>
-        
+        <div className="flex justify-center space-x-8">
           {AdminPanel.map((admin, index) => (
             <AdminSideBarItem
               key={index}
@@ -62,6 +50,11 @@ const AdminSideBar = () => {
             />
           ))}
         </div>
+      </div>
+
+      {/* İçerik için boşluk: Menü açıldığında alt kısımda içerik görünür */}
+      <div className="pt-20">
+        {/* Buraya sayfa içeriğinizi ekleyebilirsiniz */}
       </div>
     </div>
   );

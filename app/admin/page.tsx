@@ -1,9 +1,9 @@
 import React from 'react'
-import Summaries from './summaries/page'
+import CreateProduct from './create/page'
 const Admin = () => {
     return (
         <>
-        <Summaries/>
+        <CreateProduct/>
         </>
     )
 }

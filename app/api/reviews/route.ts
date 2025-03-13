@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import prisma from "@/libs/prismadb";
-
 export async function POST(req: Request) {
   try {
     const { productId, rating, comment, userId } = await req.json();
@@ -8,6 +7,18 @@ export async function POST(req: Request) {
     // Eksik veri kontrolü
     if (!productId || !userId || !rating || !comment.trim()) {
       return NextResponse.json({ error: "Eksik veya geçersiz veri!" }, { status: 400 });
+    }
+
+    // Kullanıcının daha önce bu ürüne yorum yapıp yapmadığını kontrol et
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        productId,
+        userId,
+      },
+    });
+
+    if (existingReview) {
+      return NextResponse.json({ error: "Bu ürüne zaten yorum yaptınız!" }, { status: 403 });
     }
 
     // Kullanıcının varlığını kontrol et

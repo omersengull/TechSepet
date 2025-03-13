@@ -21,7 +21,7 @@ const Footer = () => {
                             <a href="#">Hakkımızda</a>
                         </li>
                         <li onClick={()=>{router.push("/account/personalinformation")}} className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Profil Ayarları</a>
+                            <a href="/account/personalinformation">Profil Ayarları</a>
                         </li>
                         <li className="mb-3   py-1 rounded-xl hover:bg-gray-200" >
                             <a href="#">Sipariş Takibi</a>

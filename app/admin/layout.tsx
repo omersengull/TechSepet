@@ -1,12 +1,16 @@
-import React from 'react'
-import AdminSideBar from '../components/admin/AdminSideBar'
+import React from 'react';
+import AdminSideBar from '../components/admin/AdminSideBar';
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='flex gap-3'>
+    <div>
       <AdminSideBar />
-      {children}
+      {/* Menü sabit olduğundan, içerik menü altına gelmesi için üst boşluğu ayarlıyoruz */}
+      <main >
+        {children}
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default AdminLayout
+export default AdminLayout;

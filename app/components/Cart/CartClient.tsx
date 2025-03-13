@@ -1,13 +1,11 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import priceClip from "@/app/utils/priceClip";
 import useCart from "@/app/hooks/useCart";
 import PageContainer from "../containers/PageContainer";
 import { RiDeleteBinFill } from "react-icons/ri";
 import Image from "next/image";
 import Counter from "../General/Counter";
-import { useState } from "react";
-import { ProductsData } from "@/app/utils/ProductsData";
 import { CardProductProps } from "../detail/DetailClient";
 import Button from "../General/Button";
 import { useRouter } from "next/navigation";
@@ -16,21 +14,34 @@ import toast from "react-hot-toast";
 import Head from "next/head";
 import axios from "axios";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
+
 const CartClient = () => {
+    const router = useRouter();
     const handleCardClick = (id) => {
         router.push(`/product/${id}`);
     };
+
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Kullanıcıyı çekiyoruz.
     useEffect(() => {
+        const fetchUser = async () => {
+            const user = await getCurrentUser();
+            setCurrentUser(user);
+        };
+        fetchUser();
+    }, []);
+
+    // currentUser değiştiğinde adresleri tekrar çekiyoruz.
+    useEffect(() => {
+        if (!currentUser) return;
         const fetchAddresses = async () => {
             try {
-                const currentUser = await getCurrentUser();
-                if (currentUser) {
-                    const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
-                    console.log("API'den dönen adresler:", response.data.addresses);
-                    setAddresses(response.data.addresses);
-                }
+                const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
+                console.log("API'den dönen adresler:", response.data.addresses);
+                setAddresses(response.data.addresses);
             } catch (error) {
                 console.error("Adresler yüklenirken hata oluştu:", error);
             }
@@ -40,15 +51,16 @@ const CartClient = () => {
 
         const timeout = setTimeout(() => {
             setLoading(false);
-        }, 16000); // 10 saniye sonra loading false olacak
+        }, 16000); // 16 saniye sonra loading false olacak
 
-        return () => clearTimeout(timeout); // Component unmount olduğunda temizleme işlemi
-    }, []);
+        return () => clearTimeout(timeout);
+    }, [currentUser]);
+
     useEffect(() => {
         console.log("setAddresses sonrası güncel değer:", addresses);
         console.log("addresses bir dizi mi?:", Array.isArray(addresses));
     }, [addresses]);
-    const router = useRouter();
+
     // Spinner için ek state
     const [isRedirecting, setIsRedirecting] = useState(false);
     const handlePayment = () => {
@@ -70,15 +82,12 @@ const CartClient = () => {
     const increaseFunc = (productId: string) => {
         setCartPrdcts(prevCart => {
             if (!prevCart) return [];
-
             const updatedCart = prevCart.map(prd =>
                 prd.id === productId && prd.quantity < 10
                     ? { ...prd, quantity: prd.quantity + 1 }
                     : prd
             );
-
             localStorage.setItem('Cart', JSON.stringify(updatedCart));
-
             return updatedCart;
         });
     };
@@ -86,15 +95,12 @@ const CartClient = () => {
     const decreaseFunc = (productId: string) => {
         setCartPrdcts(prevCart => {
             if (!prevCart) return [];
-
             const updatedCart = prevCart.map(prd =>
                 prd.id === productId && prd.quantity > 1
                     ? { ...prd, quantity: prd.quantity - 1 }
                     : prd
             );
-
             localStorage.setItem('Cart', JSON.stringify(updatedCart));
-
             return updatedCart;
         });
     };
@@ -134,8 +140,7 @@ const CartClient = () => {
                     <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="bg-white border border-gray-300 p-4 shadow-lg rounded-lg w-[300px] md:w-[600px]">
                             <p className="font-bold mb-2">Kargo bilgileri hakkında</p>
-                            <p className="text-sm mb-2"><p className="text-sm mb-2">Saat 14:00&apos;e kadar verilen siparişleriniz aynı gün, saat 14:00 sonrası verilen siparişleriniz ertesi gün kargoya verilir.</p>
-                            </p>
+                            <p className="text-sm mb-2">Saat 14:00'e kadar verilen siparişleriniz aynı gün, saat 14:00 sonrası verilen siparişleriniz ertesi gün kargoya verilir.</p>
                             <p className="text-sm mb-2">1000 TL ve üzeri siparişlerinizde kargo ücreti alınmaz.</p>
                             <p className="text-sm">Tahmini teslimat tarihleri için ürün sayfamızdaki tarihleri inceleyebilir veya sepet adımında adres bilgilerinizi girerek kendi bölgenize dair tahmini teslimat tarihlerine de ulaşabilirsiniz.</p>
                             <button onClick={togglePopup} className="mt-4 px-4 py-2 bg-renk1 text-white rounded">Kapat</button>
@@ -164,7 +169,6 @@ const CartClient = () => {
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold">{prd.description}</span>
                                     </div>
-
                                     <div className="flex items-center justify-between">
                                         <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
                                         <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-2xl ml-16" />
@@ -196,7 +200,6 @@ const CartClient = () => {
                             <h1 className="font-bold">Adres seçimi</h1>
                             <div>
                                 {loading ? (
-                                    // Skeleton Loader
                                     <>
                                         <div className="animate-pulse h-6 bg-gray-300 rounded mb-2 w-3/4"></div>
                                         <div className="animate-pulse h-6 bg-gray-300 rounded mb-2 w-2/3"></div>
@@ -212,10 +215,9 @@ const CartClient = () => {
                                                 value={address.id}
                                                 onChange={() => {
                                                     setSelectedAddress(address.id);
-                                                    localStorage.setItem('selectedAddressId', address.id); // 📌 Seçilen adres ID'si localStorage'a kaydediliyor
+                                                    localStorage.setItem('selectedAddressId', address.id);
                                                 }}
                                             />
-
                                             <span className="font-bold mr-1">{address.title} </span>
                                             <div>({address.address})</div>
                                         </div>
@@ -260,7 +262,7 @@ const CartClient = () => {
                             </div>
 
                             <div className="mt-5 flex justify-center">
-                                {selectedAddress && isFormChecked ? (  // ✅ Doğru kontrol burada
+                                {selectedAddress && isFormChecked ? (
                                     <button
                                         onClick={handlePayment}
                                         className="w-[300px] md:w-[500px] bg-renk1 px-5 py-3 rounded-xl text-white"
