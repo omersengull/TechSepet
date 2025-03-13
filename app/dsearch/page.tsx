@@ -32,7 +32,19 @@ const Page = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedSpecifications, setSelectedSpecifications] = useState<{ [key: string]: string[] }>({});
   const [expandedSpec, setExpandedSpec] = useState<string | null>(null);
+  const [hoveredProduct, setHoveredProduct] = useState<any>(null);
 
+  const handleMouseEnter = (product: any) => {
+    setHoveredProduct(product);
+    console.log("Ürün üzerine gelindi:", product);
+    // İsteğe bağlı: Burada modal açma gibi işlemler yapılabilir.
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredProduct(null);
+    console.log("Ürün üzerinden çıkıldı.");
+    // İsteğe bağlı: Modal kapatma işlemleri yapılabilir.
+  };
   // Ürünleri çek
   useEffect(() => {
     const fetchProducts = async () => {
@@ -366,7 +378,12 @@ const finalProducts = [...filteredProducts].sort((a, b) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {finalProducts.length > 0 ? (
               finalProducts.map((prd: any, index: number) => (
-                <ProductsCard key={index} product={prd} />
+                <ProductsCard
+                key={index}
+                product={prd}
+                onMouseEnter={() => handleMouseEnter(prd)}
+                onMouseLeave={handleMouseLeave}
+              />
               ))
             ) : (
               <p className="text-center text-gray-500 col-span-full">
