@@ -31,7 +31,7 @@ const Category = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setSelectedProduct(product);
       setIsModalOpen(true);
-    }, 2500);
+    }, 2000);
   };
 
   // Ürün kartından çıkıldığında modalı kapatmak için gecikmeli işlem başlat
