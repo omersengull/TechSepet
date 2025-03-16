@@ -94,8 +94,6 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // (Daha önce currentUser bağımlı updateUser effect'i burada kaldırıldı)
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -154,7 +152,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     }
   }, [user]);
 
-  // YENİ: Menüdeki seçenekleri rol'e göre render edelim
+  // Menüdeki seçenekleri rol'e göre render edelim
   const renderMenuItems = () => {
     // Kullanıcı yoksa (henüz login olmamış)
     if (!user) {
@@ -189,33 +187,52 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       );
     }
 
-    // Admin değil ama giriş yapmış kullanıcı
+    // Admin olmayan giriş yapmış kullanıcı için tüm menü seçenekleri
     return (
-      <div
-        onClick={() => menuFunc("logout")}
-        className="flex items-center text-red-600 hover:bg-red-100 px-3 py-2 rounded-md cursor-pointer"
-      >
-        <IoLogOut className="mr-2" /> Çıkış Yap
-      </div>
+      <>
+        <a
+          href="/account"
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+        >
+          <MdAccountBox className="mr-2" /> Hesabım
+        </a>
+        <a
+          href="/account/personalinformation"
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+        >
+          <MdOutlineContactPage className="mr-2" /> Kişisel Bilgiler
+        </a>
+        <a
+          href="/account/orders"
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+        >
+          <FaBox className="mr-2" /> Siparişlerim
+        </a>
+        <a
+          href="/account/addresses"
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+        >
+          <FaLocationDot className="mr-2" /> Adreslerim
+        </a>
+        <a
+          href="/account/favorites"
+          className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
+        >
+          <MdFavorite className="mr-2 text-red-500" /> Favori Ürünlerim
+        </a>
+        <hr className="my-2 border-gray-300" />
+        <div
+          onClick={() => menuFunc("logout")}
+          className="flex items-center text-red-600 hover:bg-red-100 px-3 py-2 rounded-md cursor-pointer"
+        >
+          <IoLogOut className="mr-2" /> Çıkış Yap
+        </div>
+      </>
     );
   };
 
   return (
     <div className="md:flex relative z-40" ref={menuRef}>
-      {/* 
-        Orijinal avatar kodu:
-        {user?.role === "ADMIN" ? (
-          <FaRegUser className="text-black m-1" />
-        ) : user?.name && user?.surname ? (
-          <div className="text-black font-bold">
-            {user.name[0]?.toUpperCase()} {user.surname[0]?.toUpperCase()}
-          </div>
-        ) : (
-          <FaRegUser className="text-black m-1" />
-        )}
-      */}
-
-      {/* YENİ: Her zaman sadece ikon gösterilsin */}
       <div
         onClick={() => setOpenMenu(!openMenu)}
         className="rounded-full cursor-pointer border border-white bg-white p-3"
@@ -243,63 +260,6 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
             >
               ✖️
             </button>
-
-            {/* Orijinal mobil menü içerikleri (YORUMA ALINDI)
-            <div className="mt-10 space-y-4 text-lg text-slate-700">
-              {user ? (
-                <>
-                  <a
-                    href="/account"
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                  >
-                    <MdAccountBox className="mr-2" /> Hesabım
-                  </a>
-                  <a
-                    href="/account/personalinformation"
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                  >
-                    <MdOutlineContactPage className="mr-2" /> Kişisel Bilgiler
-                  </a>
-                  <a
-                    href="/account/orders"
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                  >
-                    <FaBox className="mr-2" /> Siparişlerim
-                  </a>
-                  <a
-                    href="/account/addresses"
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                  >
-                    <FaLocationDot className="mr-2" /> Adreslerim
-                  </a>
-                  <a
-                    href="/account/favorites"
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                  >
-                    <MdFavorite className="mr-2 text-red-500" /> Favori Ürünlerim
-                  </a>
-                  <hr className="my-2 border-gray-300" />
-                  <div
-                    onClick={() => menuFunc("logout")}
-                    className="flex items-center text-red-600 hover:bg-red-100 px-3 py-2 rounded-md cursor-pointer"
-                  >
-                    <IoLogOut className="mr-2" /> Çıkış Yap
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div
-                    onClick={() => menuFunc("login")}
-                    className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md cursor-pointer"
-                  >
-                    <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
-                  </div>
-                </>
-              )}
-            </div>
-            */}
-
-            {/* YENİ mobil menü içerikleri */}
             <div className="mt-10 space-y-4 text-lg text-slate-700">
               {renderMenuItems()}
             </div>
@@ -310,62 +270,6 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       {/* Büyük ekranlarda dropdown menü */}
       {!isMobile && openMenu && (
         <div className="absolute w-[250px] top-14 bg-white shadow-lg right-0 p-4 rounded-md border">
-          {/* Orijinal büyük ekran menü içerikleri (YORUMA ALINDI)
-          <div className="space-y-2 text-slate-700">
-            {user ? (
-              <>
-                <a
-                  href="/account"
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                >
-                  <MdAccountBox className="mr-2" /> Hesabım
-                </a>
-                <a
-                  href="/account/personalinformation"
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                >
-                  <MdOutlineContactPage className="mr-2" /> Kişisel Bilgiler
-                </a>
-                <a
-                  href="/account/orders"
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                >
-                  <FaBox className="mr-2" /> Siparişlerim
-                </a>
-                <a
-                  href="/account/addresses"
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                >
-                  <FaLocationDot className="mr-2" /> Adreslerim
-                </a>
-                <a
-                  href="/account/favorites"
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
-                >
-                  <MdFavorite className="mr-2 text-red-500" /> Favori Ürünlerim
-                </a>
-                <hr className="my-2 border-gray-300" />
-                <div
-                  onClick={() => menuFunc("logout")}
-                  className="flex items-center text-red-600 px-3 py-2 rounded-md cursor-pointer"
-                >
-                  <IoLogOut className="mr-2" /> Çıkış Yap
-                </div>
-              </>
-            ) : (
-              <>
-                <div
-                  onClick={() => menuFunc("login")}
-                  className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md cursor-pointer"
-                >
-                  <IoLogOut className="mr-2 text-green-600" /> Giriş Yap
-                </div>
-              </>
-            )}
-          </div>
-          */}
-
-          {/* YENİ büyük ekran menü içerikleri */}
           <div className="space-y-2 text-slate-700">{renderMenuItems()}</div>
         </div>
       )}

@@ -10,6 +10,9 @@ import { PiHeartStraightLight, PiHeartStraightFill } from "react-icons/pi";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import Modal from "@/app/components/Modal";
+import { BsCartFill } from "react-icons/bs";
+import { MdLaptopChromebook } from "react-icons/md";
+import { BsCartCheckFill } from "react-icons/bs";
 export type CardProductProps = {
     id: string;
     name: string;
@@ -20,9 +23,11 @@ export type CardProductProps = {
     inStock: boolean;
 };
 
-const ProductsCard = ({ product,  onMouseEnter,
-    onMouseLeave }: { product: any,    onMouseEnter: () => void;
-        onMouseLeave: () => void; }) => {
+const ProductsCard = ({ product, onMouseEnter,
+    onMouseLeave }: {
+        product: any, onMouseEnter: () => void;
+        onMouseLeave: () => void;
+    }) => {
     const [reviews, setReviews] = useState([]);
     const [clicked, setClicked] = useState(false);
     const [productRating, setProductRating] = useState(0);
@@ -129,10 +134,18 @@ const ProductsCard = ({ product,  onMouseEnter,
             toast.error(newClicked ? "Favoriye eklenirken hata oluştu!" : "Favoriden kaldırılırken hata oluştu!");
         }
     };
+    const [isPopped, setIsPopped] = useState(false);
 
+    const handleClick = () => {
+      setIsPopped(true);
+  
+      setTimeout(() => {
+        setIsPopped(false);
+      }, 1000); // 1 saniye sonra ikonu geri sıfırla
+    };
     return (
         <div onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave} className="bg-white w-full sm:w-[250px] xl:w-[220px] min-h-[420px] shadow-lg p-4 sm:px-5 sm:py-5 rounded-lg transition-transform transform hover:scale-105 flex flex-col justify-between h-full">
+            onMouseLeave={onMouseLeave} className="bg-white w-full sm:w-[250px] xl:w-[220px] min-h-[420px] shadow-lg p-4 sm:px-5 sm:py-5 rounded-lg transition-transform transform hover:scale-105 flex flex-col justify-between h-full">
 
             {/* Favori İkonu */}
             <div className="flex justify-end mb-2">
@@ -186,6 +199,7 @@ const ProductsCard = ({ product,  onMouseEnter,
 
                 <button
                     onClick={(e) => {
+                        handleClick();
                         e.stopPropagation();
                         addToBasket({
                             id: product.id,
@@ -196,11 +210,17 @@ const ProductsCard = ({ product,  onMouseEnter,
                             image: product.image,
                             inStock: product.inStock
                         });
+
                     }}
-                    className="w-full py-2 text-sm sm:text-base bg-renk1 text-white rounded-md transition-transform transform hover:scale-105"
+                    className="w-full addToCartBtn py-2 text-sm sm:text-base bg-renk1 text-white rounded-md relative overflow-hidden"
                 >
-                    Sepete Ekle
+                    <BsCartFill className="cart absolute"/>
+                   
+                    <span>Sepete Ekle</span>
                 </button>
+
+
+
             </div>
         </div>
     );

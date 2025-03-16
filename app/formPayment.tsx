@@ -138,6 +138,12 @@ const FormPayment = () => {
               value={cvc}
               onChange={(e) => setCvc(e.target.value)}
             />
+            <div className="flex items-center"><span><img width={61} className=' rounded-xl px-2 p-2' src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="" /></span>
+            <span><img width={61} className=' rounded-xl px-2 p-2' src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/1200px-Visa_Inc._logo.svg.png" alt="" /></span>
+            <span><img width={61} className=' rounded-xl px-2 p-2' src="https://www.svgrepo.com/show/328122/paypal.svg" alt="" /></span>
+            <span><img width={61} className=' rounded-xl px-2 p-2' src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Maestro_2016.svg/300px-Maestro_2016.svg.png" alt="" /></span>
+            <span><img width={61} className=' rounded-xl px-2 p-2' src="https://www.svgrepo.com/show/328122/paypal.svg" alt="" /></span>
+            <span><img width={61} className=' rounded-xl px-2 p-2' src="https://image.troyodeme.com/troy-logo-14.png" alt="" /></span></div>
             <button
               className='bg-renk1 mt-2 text-white py-3 rounded-xl'
               onClick={handlePayment}

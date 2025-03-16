@@ -1,31 +1,390 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
   }
-.mybackground{
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mybackground {
   background-image: url("https://lightcastlepartners.com/wp-content/uploads/2023/05/digital-payment-feature.webp");
   background-repeat: no-repeat;
   background-size: cover;
 }
+
 .mySwiper {
   width: 100%;
   padding: 10px 0;
   height: 400px;
 }
 
-.swiper-button-prev, .swiper-button-next {
-  color: black; /* Navigasyon oklarının rengi */
+.swiper-button-prev,
+.swiper-button-next {
+  color: black;
+  /* Navigasyon oklarının rengi */
 }
 
 .swiper-pagination {
   position: relative;
   bottom: 10px;
 }
+
+.container {
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+  width: 768px;
+  max-width: 100%;
+  min-height: 480px;
+}
+
+.container p {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.3px;
+  margin: 20px 0;
+}
+
+.container span {
+  font-size: 12px;
+}
+
+.container a {
+  color: #333;
+  font-size: 13px;
+  text-decoration: none;
+  margin: 15px 0 10px;
+}
+
+.container button {
+  color: #fff;
+  font-size: 12px;
+  padding: 10px 45px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.container button.hidden {
+  background-color: transparent;
+  border-color: #fff;
+}
+
+.container form {
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 40px;
+  height: 100%;
+}
+
+.container input {
+  background-color: #eee;
+  border: none;
+  margin: 8px 0;
+  padding: 10px 15px;
+  font-size: 13px;
+  border-radius: 8px;
+  width: 100%;
+  outline: none;
+}
+
+.form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.6s ease-in-out;
+}
+
+.sign-in {
+  left: 0;
+  width: 50%;
+  z-index: 2;
+}
+
+.container.active .sign-in {
+  transform: translateX(100%);
+  z-index: -10;
+}
+
+.sign-up {
+  left: 0;
+  width: 50%;
+  opacity: 0;
+  z-index: 1;
+}
+
+.container.active .sign-up {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+  animation: move 0.6s;
+}
+
+@keyframes move {
+
+  0%,
+  49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
+
+.toggle-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.6s ease-in-out;
+  border-radius: 150px 0 0 100px;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.container.active .toggle-container {
+  transform: translateX(-100%);
+  border-radius: 0 150px 100px 0;
+  /* Ekleyin: */
+  pointer-events: auto;
+}
+
+
+.toggle {
+  background-color: #df0000;
+  height: 100%;
+  background: linear-gradient(to right, #df0000, #df0000);
+  color: #fff;
+  position: relative;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: all 0.6s ease-in-out;
+}
+
+.container.active .toggle {
+  transform: translateX(50%);
+}
+
+.toggle-panel {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 30px;
+  text-align: center;
+  top: 0;
+  transform: translateX(0);
+  transition: all 0.6s ease-in-out;
+}
+
+.toggle-left {
+  transform: translateX(-200%);
+}
+
+.container.active .toggle-left {
+  transform: translateX(0);
+}
+
+.toggle-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.container.active .toggle-right {
+  transform: translateX(200%);
+}
+
+.bgimg {
+  background: url("https://images.pexels.com/photos/5239883/pexels-photo-5239883.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2");
+  background-size: cover;
+
+}
+
+.addToCartBtn {
+  /* Başlangıç değerleri */
+  --text-x: 0;
+  --text-o: 1;
+  --background-scale: 0;
+  position: relative;
+
+  transition: transform 0.3s;
+}
+
+/* Buton içindeki metin */
+.addToCartBtn span {
+  display: block;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--text-color, #fff);
+  opacity: var(--text-o);
+  transform: translateX(var(--text-x));
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* İkonlar */
+.addToCartBtn .computer,
+.addToCartBtn .cart {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* Sepet ikonu başlangıçta */
+.addToCartBtn .cart {
+  left: -40px;
+  font-size: 18px;
+  opacity: 0;
+}
+
+/* Bilgisayar ikonu başlangıçta
+   (Başlangıçta ikonun konumunu isterseniz biraz sola koyabilirsiniz) */
+.addToCartBtn .computer {
+  top:-10px;
+  left: 50%;
+  opacity: 1;
+  z-index: 20;
+}
+
+/* Arka plan pseudo-elementi */
+.addToCartBtn::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 5px;
+  background: var(--background, #df0000);
+  transform: scaleX(var(--background-scale));
+  transform-origin: left;
+  transition: transform 0.3s, background 0.3s;
+  z-index: 0;
+}
+
+/* Hover durumunda animasyon değerleri ve buton bounce animasyonu */
+.addToCartBtn:hover {
+  transform: scale(1.05); /* Genel büyüme */
+  --text-x: 20px;       /* Metin sağa kayıyor */
+  --text-o: 0;          /* Metin opaklığı azalıyor */
+  --background-scale: 1; /* Arka plan genişliyor */
+
+  /* Buton bounce: ikon çıkarken buton hafif esneyip geri döner */
+  
+}
+
+/* Sepet ikonu animasyonu */
+.addToCartBtn:hover .cart {
+  animation: slideRightAndRotate 1.5s forwards;
+  opacity: 1;
+}
+
+/* Bilgisayar ikonu artık pop-up animasyonu ile hareket edecek */
+.addToCartBtn:hover .computer {
+  animation: popUpComputer 1.5s forwards;
+  opacity: 1;
+}
+
+/* Sepete Eklendi Yazısı (önceki kodunuzdan) */
+.addedText {
+  position: absolute;
+  left: -200px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  opacity: 0;
+  white-space: nowrap;
+  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+  pointer-events: none;
+}
+
+/* Butona tıklanınca çalıştırılan metin animasyonu */
+@keyframes slideText {
+  0% {
+    transform: translate(-200px, -50%);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(50px, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(150px, -50%);
+    opacity: 1;
+  }
+}
+.animate-text {
+  animation: slideText 1.5s forwards;
+}
+
+/* Sepet (cart) ikonu animasyonu: önceden tanımlı */
+@keyframes slideRightAndRotate {
+  0% {
+    transform: translate(0, -50%) ;
+  }
+  50% {
+    transform: translate(128px, -40%) ;
+  }
+  60% {
+    transform: translate(128px, -40%) ;
+  }
+  100% {
+    transform: translate(300px, -40%) ;
+  }
+}
+
+/* Yeni: Bilgisayar ikonu pop-up animasyonu */
+@keyframes popUpComputer {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-30px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(1);
+    opacity: 1;
+  }
+}
+
 

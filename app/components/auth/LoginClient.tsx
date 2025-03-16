@@ -9,10 +9,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
 import { HashLoader } from "react-spinners";
-
-import AuthContainer from "../containers/AuthContainer";
-import Heading from "../General/Heading";
 import Input from "../General/Input";
+import AuthContainer from "../containers/AuthContainer";
 import Button from "../General/Button";
 
 interface AuthProps {
@@ -20,43 +18,77 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ currentUser }) => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [expandRed, setExpandRed] = useState(false);
-  // loadingType: "credentials" | "google" | null
+  const [isActive, setIsActive] = useState(false);
   const [loadingType, setLoadingType] = useState<"credentials" | "google" | null>(null);
-  const [isVisible, setIsVisible] = useState(true);
+
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FieldValues>();
+
 
   /**
-   * Kayıt Ol <-> Giriş Yap geçişi
+   * Kayıt Ol
    */
-  const toggle = () => {
-    setExpandRed(true);
-    setIsVisible(false);
+  const handleRegister: SubmitHandler<FieldValues> = async (data) => {
+    setLoadingType("credentials");
+    try {
+      // Make sure we're sending all required fields properly
+      const registrationData = {
+        name: data.name,
+        surname: data.surname,
+        email: data.email,
+        password: data.password,
+      };
 
-    setTimeout(() => {
-      setIsSignUp(!isSignUp);
-      setExpandRed(false);
+      // Log the data being sent (for development/debugging)
+      console.log("Sending registration data:", registrationData);
 
-      setTimeout(() => {
-        setIsVisible(true);
-      }, 100);
-    }, 800);
+      // Send the registration request
+      const response = await axios.post("/api/register", registrationData);
+
+      // Check if the registration was successful
+      if (response.data) {
+        toast.success("Kullanıcı Oluşturuldu!");
+
+        // Kayıt sonrası otomatik giriş
+        const callback = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+
+        if (callback?.ok) {
+          router.push("/cart");
+          router.refresh();
+          toast.success("Giriş yapma başarılı!");
+          resetRegister();
+        } else if (callback?.error) {
+          toast.error(callback.error);
+        }
+      }
+    } catch (error: any) {
+      // Improved error handling with more specific messages
+      console.error("Kayıt sırasında hata oluştu:", error);
+
+      // Display specific error message from API if available
+      if (error.response && error.response.data && error.response.data.error) {
+        toast.error(`Kayıt hatası: ${error.response.data.error}`);
+      } else {
+        toast.error("Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.");
+      }
+    } finally {
+      setLoadingType(null);
+    }
   };
 
-  // Giriş Yap (Credentials)
+  /**
+   * Giriş Yap
+   */
   const handleLogin: SubmitHandler<FieldValues> = async (data) => {
     setLoadingType("credentials");
     try {
       const callback = await signIn("credentials", {
-        ...data,
+        email: data.emailLogin,
+        password: data.passwordLogin,
         redirect: false,
       });
 
@@ -64,7 +96,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
         router.push("/cart");
         router.refresh();
         toast.success("Giriş yapma başarılı!");
-        reset();
+        resetLogin();
       } else if (callback?.error) {
         toast.error(callback.error);
       }
@@ -76,36 +108,9 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
     }
   };
 
-  // Kayıt Ol
-  const handleRegister: SubmitHandler<FieldValues> = async (data) => {
-    setLoadingType("credentials");
-    try {
-      await axios.post("/api/register", data);
-      toast.success("Kullanıcı Oluşturuldu!");
-
-      const callback = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (callback?.ok) {
-        router.push("/cart");
-        router.refresh();
-        toast.success("Giriş yapma başarılı!");
-        reset();
-      } else if (callback?.error) {
-        toast.error(callback.error);
-      }
-    } catch (error) {
-      console.error("Kayıt sırasında hata oluştu:", error);
-      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
-    } finally {
-      setLoadingType(null);
-    }
-  };
-
-  // Google ile Giriş/Kayıt
+  /**
+   * Google ile Giriş/Kayıt
+   */
   const handleGoogleSignIn = () => {
     setLoadingType("google");
     signIn("google").catch((error) => {
@@ -114,7 +119,22 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
       setLoadingType(null);
     });
   };
+  const {
+    register: registerLogin,
+    handleSubmit: handleSubmitLogin,
+    reset: resetLogin,
+    formState: { errors: errorsLogin },
+  } = useForm<FieldValues>();
 
+  const {
+    register: registerRegister,
+    handleSubmit: handleSubmitRegister,
+    reset: resetRegister,
+    formState: { errors: errorsRegister },
+  } = useForm<FieldValues>();
+  /**
+   * Eğer kullanıcı zaten giriş yapmışsa, cart sayfasına yönlendir
+   */
   useEffect(() => {
     if (currentUser) {
       router.push("/cart");
@@ -124,181 +144,163 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
   return (
     <AuthContainer>
-      <div className="min-h-screen w-full flex justify-center items-center px-4 py-8 overflow-y-auto">
+      <div className="bgimg min-h-screen w-full flex justify-center items-center px-4 py-8 overflow-y-auto">
         <div
-          className={`
-            relative w-full max-w-[1050px] min-h-[550px] flex flex-col md:flex-row
-            shadow-2xl rounded-md overflow-hidden
-            transform-gpu ring-2 ring-red-300/50
-            transition-all duration-[800ms] ease-in-out 
-            ${expandRed ? "bg-renk1 scale-102" : "bg-white scale-100"}
-          `}
+          className={`container ${isActive ? "active" : ""}`}
+          id="container"
+          style={{ width: "1000px", height: "500px" }}
         >
-          {isSignUp && isVisible && (
-            <div
-              className={`
-                w-full md:w-1/2 bg-renk1 text-white 
-                flex flex-col justify-center items-center p-6 
-                relative z-10 md:rounded-r-[2000px]
-                transition-all duration-700 ease-in-out
-              `}
-            >
-              <h1 className="text-3xl sm:text-4xl font-bold drop-shadow-lg text-center">
-                Tekrar Hoş Geldiniz!
-              </h1>
-              <p className="mt-2 text-sm sm:text-base text-white/90 text-center">
-                Zaten Bir Hesabınız Var Mı?
-              </p>
+          {/* Giriş Yap Formu */}
+          <div className="form-container sign-in">
+            <form id="signinform" autoComplete="true" onSubmit={handleSubmitLogin(handleLogin)}>
+              <h1>Giriş Yap</h1>
+              <Input
+                id="emailLogin"
+                type="email"
+                placeholder="E-Posta"
+                register={registerLogin}
+                errors={errorsLogin}
+                required
+              />
+              <Input
+                id="passwordLogin"
+                type="password"
+                placeholder="Parola"
+                register={registerLogin}
+                errors={errorsLogin}
+                required
+              />
+              <a href="/forgotPassword">Şifrenizi mi unuttunuz?</a>
               <button
-                onClick={toggle}
+                type="submit"
+                className="bg-renk1 mt-2"
                 disabled={loadingType !== null}
-                className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
-                  hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
-                  transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Giriş Yapın
+                {loadingType === "credentials" ? (
+                  <span className="flex items-center justify-center">
+                    <HashLoader size={20} color="#ffffff" />
+                    <span className="ml-2">İşleniyor...</span>
+                  </span>
+                ) : (
+                  "Giriş Yap"
+                )}
               </button>
-            </div>
-          )}
-
-          {isVisible && (
-            <div
-              className={`
-                w-full md:w-1/2 py-8 px-6 
-                transition-opacity duration-500 ease-in-out
-                ${!expandRed ? "opacity-100" : "opacity-90"}
-              `}
-            >
-              <Heading text={isSignUp ? "Kayıt Ol" : "Giriş Yap"} center={true} />
-              <form
-                onSubmit={
-                  isSignUp
-                    ? handleSubmit(handleRegister)
-                    : handleSubmit(handleLogin)
-                }
-                className="space-y-4 mt-6"
-              >
-                {isSignUp && (
-                  <>
-                    <Input
-                      placeholder="Ad"
-                      type="text"
-                      id="name"
-                      register={register}
-                      errors={errors}
-                      required
-                    />
-                    <Input
-                      placeholder="Soyad"
-                      type="text"
-                      id="surname"
-                      register={register}
-                      errors={errors}
-                      required
-                    />
-                  </>
-                )}
-
-                <Input
-                  placeholder="E-Posta"
-                  type="email"
-                  id="email"
-                  register={register}
-                  errors={errors}
-                  required
-                />
-                <Input
-                  placeholder="Parola"
-                  type="password"
-                  id="password"
-                  register={register}
-                  errors={errors}
-                  required
-                />
-
-                {!isSignUp && (
-                  <div
-                    onClick={() => {
-                      router.push("/forgotPassword");
-                    }}
-                    className="text-right text-xs text-gray-500 mb-2 cursor-pointer"
-                  >
-                    <button
-                      type="button"
-                      className="hover:underline focus:outline-none"
-                    >
-                      Şifrenizi mi unuttunuz?
-                    </button>
-                  </div>
-                )}
-
-                {/* Credentials Butonu */}
+              <span className="flex justify-center mt-2">Ya Da</span>
+              <span>
                 <Button
-                  onClick={
-                    isSignUp
-                      ? handleSubmit(handleRegister)
-                      : handleSubmit(handleLogin)
-                  }
-                  disabled={loadingType !== null}
-                >
-                  <span>{isSignUp ? "Kayıt Ol" : "Giriş Yap"}</span>
-                  {loadingType === "credentials" && (
-                    <span className="ml-2">
-                      <HashLoader size={20} color="#3489eb" />
-                    </span>
-                  )}
-                </Button>
-              </form>
-
-              <div className="text-center my-4 text-gray-400">Ya da</div>
-              <div className="flex items-center justify-center">
-                <Button 
                   icon={FcGoogle}
                   outline
                   onClick={handleGoogleSignIn}
                   disabled={loadingType !== null}
                 >
-                  <span className="ml-1">
-                    {isSignUp
-                      ? "Google ile Kayıt Ol"
-                      : "Google ile Giriş Yap"}
-                  </span>
+                  <span className="text-black ml-1">Google İle Giriş Yap</span>
                   {loadingType === "google" && (
                     <span className="ml-2">
                       <HashLoader size={20} color="#3489eb" />
                     </span>
                   )}
                 </Button>
+              </span>
+            </form>
+          </div>
+
+          {/* Kayıt Ol Formu */}
+          <div className="form-container sign-up">
+            <form id="signupform" onSubmit={handleSubmitRegister(handleRegister)}>
+              <h1>Hesap Oluştur</h1>
+              <Input
+                id="name"
+                type="text"
+                placeholder="İsim"
+                register={registerRegister}
+                errors={errorsRegister}
+                required
+              />
+              <Input
+
+                id="surname"
+                type="text"
+                placeholder="Soyad"
+                register={registerRegister}
+                errors={errorsRegister}
+                required
+              />
+              <Input
+                id="email"
+                type="email"
+                placeholder="E-Posta"
+                register={registerRegister}
+                errors={errorsRegister}
+                required
+              />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Parola"
+                register={registerRegister}
+                errors={errorsRegister}
+                required
+              />
+              <button
+                type="submit"
+                className="bg-renk1"
+                disabled={loadingType !== null}
+              >
+                {loadingType === "credentials" ? (
+                  <span className="flex items-center justify-center">
+                    <HashLoader size={20} color="#ffffff" />
+                    <span className="ml-2">İşleniyor...</span>
+                  </span>
+                ) : (
+                  "Kayıt Ol"
+                )}
+              </button>
+              <span className="flex justify-center mt-2">Ya Da</span>
+              <span>
+                <Button
+                  icon={FcGoogle}
+                  outline
+                  onClick={handleGoogleSignIn}
+                  disabled={loadingType !== null}
+                >
+                  <span className="text-black ml-1">Google İle Kayıt Ol</span>
+                  {loadingType === "google" && (
+                    <span className="ml-2">
+                      <HashLoader size={20} color="#3489eb" />
+                    </span>
+                  )}
+                </Button>
+              </span>
+            </form>
+          </div>
+
+          {/* Sağ/Sol Panel Geçişleri */}
+          <div className="toggle-container">
+            <div className="toggle">
+              <div className="toggle-panel toggle-left">
+                <h1><b>Tekrar Hoş Geldiniz!</b></h1>
+                <p>Zaten bir hesabınız var mı? Hemen giriş yapın!</p>
+                <button
+                  className="border border-white"
+                  onClick={() => setIsActive(false)}
+                  id="login"
+                >
+                  Giriş Yap
+                </button>
+              </div>
+              <div className="toggle-panel toggle-right">
+                <h1><b>Hoş Geldiniz!</b></h1>
+                <p>Hesabınız yok mu? Hemen bir tane oluşturun!</p>
+                <button
+                  className="border border-white"
+                  onClick={() => setIsActive(true)}
+                  id="register"
+                >
+                  Kayıt Ol
+                </button>
               </div>
             </div>
-          )}
-
-          {!isSignUp && isVisible && (
-            <div
-              className={`
-                w-full md:w-1/2 bg-renk1 text-white 
-                flex flex-col justify-center items-center p-6 
-                relative z-10 md:rounded-l-[2000px]
-                transition-all duration-700 ease-in-out 
-              `}
-            >
-              <h1 className="text-3xl sm:text-4xl font-bold drop-shadow-lg text-center">
-                Hoş Geldiniz!
-              </h1>
-              <p className="mt-2 text-sm sm:text-base text-white/90 text-center">
-                Hesabınız yok mu?
-              </p>
-              <button
-                onClick={toggle}
-                disabled={loadingType !== null}
-                className="mt-5 px-5 py-2 border-2 border-white text-white rounded-md 
-                  hover:bg-white hover:text-red-500 hover:scale-105 active:scale-95 
-                  transition disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                Kayıt Olun
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </AuthContainer>

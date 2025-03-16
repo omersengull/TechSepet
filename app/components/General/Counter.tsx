@@ -1,3 +1,4 @@
+import { FaCircleMinus, FaCirclePlus } from "react-icons/fa6"
 import { CardProductProps } from "../detail/DetailClient"
 import React from "react"
 interface CounterProps {
@@ -9,9 +10,9 @@ const Counter: React.FC<CounterProps> = ({ cardProduct, increaseFunc, decreaseFu
     return (
         <div className="cursor-pointer flex flex-row items-center">
             Miktar
-            <div className="border ml-2 rounded-md px-3 py-1" onClick={decreaseFunc}>-</div>
-            <div className="border  rounded-md px-3 py-1">{cardProduct.quantity}</div>
-            <div className="border  rounded-md px-3 py-1" onClick={increaseFunc}>+</div>
+            <FaCircleMinus className="text-xl ml-2 mr-2" onClick={decreaseFunc}/>
+            <div >{cardProduct.quantity}</div>
+            <FaCirclePlus className="ml-2 text-xl" onClick={increaseFunc}/>
         </div>
     )
 }
