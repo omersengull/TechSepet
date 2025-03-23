@@ -162,7 +162,7 @@ const CartClient = () => {
                     <div className="flex-col md:w-2/3 md:mr-16">
                         {cartPrdcts.map(prd => (
                             <div onClick={()=>{handleCardClick(prd.id)}} key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none cursor-pointer rounded-xl">
-                                <div className="flex-col">
+                                <div className="flex-col min-w-40">
                                     <Image alt="" src={prd.image} width={150} height={150} />
                                 </div>
                                 <div className="flex flex-col space-y-2">

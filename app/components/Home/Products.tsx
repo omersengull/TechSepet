@@ -22,8 +22,6 @@ export interface Product {
   discountActive?: boolean;
 }
 
-const ITEMS_PER_SLIDE = 5; // Her slaytta gösterilecek ürün sayısı
-
 // Ürünleri gruplara ayırmak için yardımcı fonksiyon
 const groupProducts = (products: Product[], itemsPerSlide: number): Product[][] => {
   const groups: Product[][] = [];
@@ -50,9 +48,34 @@ const FeaturedProductsDualSlider: React.FC = () => {
   const [currentBestSellerSlide, setCurrentBestSellerSlide] = useState<number>(0);
   const [currentFavouriteSlide, setCurrentFavouriteSlide] = useState<number>(0);
 
+  // Responsive: her slaytta gösterilecek ürün sayısı
+  const [itemsPerSlide, setItemsPerSlide] = useState<number>(5);
+  useEffect(() => {
+    const updateItemsPerSlide = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerSlide(1);
+      } else if (window.innerWidth < 768) {
+        setItemsPerSlide(2);
+      } else if (window.innerWidth < 1024) {
+        setItemsPerSlide(3);
+      } else if (window.innerWidth < 1280) {
+        setItemsPerSlide(4);
+      } else {
+        setItemsPerSlide(5);
+      }
+    };
+    updateItemsPerSlide();
+    window.addEventListener("resize", updateItemsPerSlide);
+    return () => window.removeEventListener("resize", updateItemsPerSlide);
+  }, []);
+
   // Hover için zamanlayıcı referansları
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Mobil kaydırma (swipe) için referanslar
+  const bestSellerTouchStartXRef = useRef<number | null>(null);
+  const favouriteTouchStartXRef = useRef<number | null>(null);
 
   // Modal açma/kapama işlemleri
   const handleMouseEnter = (product: Product) => {
@@ -91,20 +114,64 @@ const FeaturedProductsDualSlider: React.FC = () => {
     }, 500);
   };
 
-  // API'den en çok satılan ürünleri çek
-  // FeaturedProductsDualSlider bileşeninde
- // Frontend: components/FeaturedProductsDualSlider.tsx
-useEffect(() => {
-  const fetchBestSelling = async () => {
-    try {
-      const response = await axios.get("/api/order");
-      setBestSellingProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching best sellers:", error);
+  // Best seller slider için touch event handler’ları
+  const handleBestSellerTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    bestSellerTouchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleBestSellerTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (bestSellerTouchStartXRef.current !== null) {
+      const diff = e.changedTouches[0].clientX - bestSellerTouchStartXRef.current;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) {
+          setCurrentBestSellerSlide((prev) =>
+            (prev + 1) % groupedBestSellers.length
+          );
+        } else {
+          setCurrentBestSellerSlide((prev) =>
+            (prev - 1 + groupedBestSellers.length) % groupedBestSellers.length
+          );
+        }
+      }
+      bestSellerTouchStartXRef.current = null;
     }
   };
-  fetchBestSelling();
-}, []);
+
+  // Favori slider için touch event handler’ları
+  const handleFavouriteTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    favouriteTouchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleFavouriteTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (favouriteTouchStartXRef.current !== null) {
+      const diff = e.changedTouches[0].clientX - favouriteTouchStartXRef.current;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) {
+          setCurrentFavouriteSlide((prev) =>
+            (prev + 1) % groupedFavourites.length
+          );
+        } else {
+          setCurrentFavouriteSlide((prev) =>
+            (prev - 1 + groupedFavourites.length) % groupedFavourites.length
+          );
+        }
+      }
+      favouriteTouchStartXRef.current = null;
+    }
+  };
+
+  // API'den en çok satılan ürünleri çek
+  useEffect(() => {
+    const fetchBestSelling = async () => {
+      try {
+        const response = await axios.get("/api/order");
+        setBestSellingProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching best sellers:", error);
+      }
+    };
+    fetchBestSelling();
+  }, []);
 
   // API'den en çok favorilenen ürünleri çek
   useEffect(() => {
@@ -121,14 +188,14 @@ useEffect(() => {
   }, []);
 
   // Slider için ürünleri gruplara ayır
-  const groupedBestSellers: Product[][] = groupProducts(bestSellingProducts, ITEMS_PER_SLIDE);
-  const groupedFavourites: Product[][] = groupProducts(favouriteProducts, ITEMS_PER_SLIDE);
+  const groupedBestSellers: Product[][] = groupProducts(bestSellingProducts, itemsPerSlide);
+  const groupedFavourites: Product[][] = groupProducts(favouriteProducts, itemsPerSlide);
 
   // Slider otomatik geçiş (en çok satılanlar)
   useEffect(() => {
     if (groupedBestSellers.length === 0) return;
     const slideInterval = setInterval(() => {
-      setCurrentBestSellerSlide(prev => (prev + 1) % groupedBestSellers.length);
+      setCurrentBestSellerSlide((prev) => (prev + 1) % groupedBestSellers.length);
     }, 3000);
     return () => clearInterval(slideInterval);
   }, [groupedBestSellers]);
@@ -137,7 +204,7 @@ useEffect(() => {
   useEffect(() => {
     if (groupedFavourites.length === 0) return;
     const slideInterval = setInterval(() => {
-      setCurrentFavouriteSlide(prev => (prev + 1) % groupedFavourites.length);
+      setCurrentFavouriteSlide((prev) => (prev + 1) % groupedFavourites.length);
     }, 3000);
     return () => clearInterval(slideInterval);
   }, [groupedFavourites]);
@@ -169,34 +236,41 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden w-full pb-12">
+        <div
+          className="relative overflow-hidden w-full pb-12"
+          onTouchStart={handleBestSellerTouchStart}
+          onTouchEnd={handleBestSellerTouchEnd}
+        >
           <div
             className="flex transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${currentBestSellerSlide * 100}%)` }}
           >
             {groupedBestSellers.length === 0
               ? Array.from({ length: 3 }).map((_, groupIndex) => (
-                <div key={groupIndex} className="min-w-full flex gap-4">
-                  {Array.from({ length: ITEMS_PER_SLIDE }).map((__, subIndex) => (
-                    <div key={subIndex} className="w-full">
-                      <SkeletonCardProducts />
-                    </div>
-                  ))}
-                </div>
-              ))
+                  <div key={groupIndex} className="min-w-full flex gap-4">
+                    {Array.from({ length: itemsPerSlide }).map((__, subIndex) => (
+                      <div key={subIndex} style={{ flex: `0 0 ${100 / itemsPerSlide}%` }}>
+                        <SkeletonCardProducts />
+                      </div>
+                    ))}
+                  </div>
+                ))
               : groupedBestSellers.map((group, groupIndex) => (
-                <div key={groupIndex} className="min-w-full flex gap-4">
-                  {group.map((prd, index) => (
-                    <div key={prd.id || index} className="w-1/5">
-                      <ProductsCard
-                        onMouseEnter={() => handleMouseEnter(prd)}
-                        onMouseLeave={handleMouseLeave}
-                        product={prd}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ))}
+                  <div key={groupIndex} className="min-w-full flex gap-4">
+                    {group.map((prd, index) => (
+                      <div
+                        key={`${prd.id}-${index}`}
+                        style={{ flex: `0 0 ${100 / itemsPerSlide}%` }}
+                      >
+                        <ProductsCard
+                          onMouseEnter={() => handleMouseEnter(prd)}
+                          onMouseLeave={handleMouseLeave}
+                          product={prd}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
           </div>
           {/* Dot Navigasyonu */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
@@ -204,8 +278,9 @@ useEffect(() => {
               <div
                 key={index}
                 onClick={() => setCurrentBestSellerSlide(index)}
-                className={`w-3 h-3 rounded-full cursor-pointer ${index === currentBestSellerSlide ? "bg-white" : "bg-gray-400"
-                  }`}
+                className={`w-3 h-3 rounded-full cursor-pointer ${
+                  index === currentBestSellerSlide ? "bg-white" : "bg-gray-400"
+                }`}
               />
             ))}
           </div>
@@ -221,35 +296,41 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden w-full pb-12">
+        <div
+          className="relative overflow-hidden w-full pb-12"
+          onTouchStart={handleFavouriteTouchStart}
+          onTouchEnd={handleFavouriteTouchEnd}
+        >
           <div
             className="flex transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${currentFavouriteSlide * 100}%)` }}
           >
             {groupedFavourites.length === 0
               ? Array.from({ length: 3 }).map((_, groupIndex) => (
-                <div key={groupIndex} className="min-w-full flex gap-4">
-                  {Array.from({ length: ITEMS_PER_SLIDE }).map((__, subIndex) => (
-                    <div key={subIndex} className="w-full">
-                      <SkeletonCardProducts />
-                    </div>
-                  ))}
-                </div>
-              ))
+                  <div key={groupIndex} className="min-w-full flex gap-4">
+                    {Array.from({ length: itemsPerSlide }).map((__, subIndex) => (
+                      <div key={subIndex} style={{ flex: `0 0 ${100 / itemsPerSlide}%` }}>
+                        <SkeletonCardProducts />
+                      </div>
+                    ))}
+                  </div>
+                ))
               : groupedFavourites.map((group, groupIndex) => (
-                <div key={groupIndex} className="min-w-full flex gap-4">
-                  {group.map((prd, index) => (
-                    <div key={`${prd.id}-${index}`} className="w-1/5">
-                      <ProductsCard
-                        onMouseEnter={() => handleMouseEnter(prd)}
-                        onMouseLeave={handleMouseLeave}
-                        product={prd}
-                      />
-                    </div>
-                  ))}
-
-                </div>
-              ))}
+                  <div key={groupIndex} className="min-w-full flex gap-4">
+                    {group.map((prd, index) => (
+                      <div
+                        key={`${prd.id}-${index}`}
+                        style={{ flex: `0 0 ${100 / itemsPerSlide}%` }}
+                      >
+                        <ProductsCard
+                          onMouseEnter={() => handleMouseEnter(prd)}
+                          onMouseLeave={handleMouseLeave}
+                          product={prd}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
           </div>
           {/* Dot Navigasyonu */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
@@ -257,8 +338,9 @@ useEffect(() => {
               <div
                 key={index}
                 onClick={() => setCurrentFavouriteSlide(index)}
-                className={`w-3 h-3 rounded-full cursor-pointer ${index === currentFavouriteSlide ? "bg-white" : "bg-gray-400"
-                  }`}
+                className={`w-3 h-3 rounded-full cursor-pointer ${
+                  index === currentFavouriteSlide ? "bg-white" : "bg-gray-400"
+                }`}
               />
             ))}
           </div>
