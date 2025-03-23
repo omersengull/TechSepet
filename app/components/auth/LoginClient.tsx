@@ -146,8 +146,8 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
     <AuthContainer>
       <div className="bgimg min-h-screen w-full flex justify-center items-center px-4 py-8 overflow-y-auto">
         <div
-          className={`container ${isActive ? "active" : ""}`}
-          id="container"
+          className={`container1 ${isActive ? "active" : ""}`}
+          id="container1"
           style={{ width: "1000px", height: "500px" }}
         >
           {/* Giriş Yap Formu */}

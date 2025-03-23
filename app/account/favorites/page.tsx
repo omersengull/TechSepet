@@ -26,7 +26,7 @@ function Page() {
       if (!session?.user?.id) return;
   
       try {
-        const response = await fetch(`/api/favorites?userId=${session.user.id}`);
+        const response = await fetch(`/api/myFavorites?userId=${session.user.id}`);
         if (!response.ok) {
           throw new Error("Favoriler alınamadı");
         }
@@ -44,7 +44,7 @@ function Page() {
     getFavorites();
   }, [session, status]);
   
-  if (loading) return <p>Favoriler yükleniyor...</p>;
+  if (loading) return <p className="min-h-screen">Favoriler yükleniyor...</p>;
 
   return (
     <div className="p-4">

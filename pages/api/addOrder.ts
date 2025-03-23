@@ -29,7 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         userId,
         addressId,
-        items: JSON.stringify(items),
+        items: Array.isArray(items) 
+      ? JSON.stringify(items) 
+      : JSON.stringify([items]),
         totalPrice: parseFloat(totalPrice),
         addressInfo: { // ✅ Adres bilgilerini JSON olarak kaydediyoruz
           title: address.title,

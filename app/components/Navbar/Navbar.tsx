@@ -109,7 +109,7 @@ const Navbar = () => {
 
                     <a
                         href="/dsearch"
-                        className="rounded-xl flex flex-row items-center cursor-pointer border-white border-2 md:px-6 px-3 md:py-3 sm:py-2 xs:py-1"
+                        className=" flex managesearch rounded-xl flex-row border-none outline-none items-center cursor-pointer border-2 px-6 py-3 "
                     >
                         <MdManageSearch className="mr-1" /> <span className="font-bold">Detaylı Arama</span>
                     </a>

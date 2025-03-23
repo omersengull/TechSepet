@@ -218,9 +218,9 @@ const OrdersPage = () => {
     const fetchOrders = async () => {
       try {
         // Eğer geçerli kullanıcı varsa API çağrısına userId parametresini ekliyoruz
-        let url = "/api/orders";
+        let url = "/api/myOrders";
         if (currentUser && currentUser.id) {
-          url = `/api/orders?userId=${currentUser.id}`;
+          url = `/api/myOrders?userId=${currentUser.id}`;
         }
         const response = await axios.get(url);
         console.log("API'den gelen siparişler:", response.data);

@@ -35,7 +35,7 @@
   bottom: 10px;
 }
 
-.container {
+.container1 {
   background-color: #fff;
   border-radius: 30px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
@@ -46,25 +46,25 @@
   min-height: 480px;
 }
 
-.container p {
+.container1 p {
   font-size: 14px;
   line-height: 20px;
   letter-spacing: 0.3px;
   margin: 20px 0;
 }
 
-.container span {
+.container1 span {
   font-size: 12px;
 }
 
-.container a {
+.container1 a {
   color: #333;
   font-size: 13px;
   text-decoration: none;
   margin: 15px 0 10px;
 }
 
-.container button {
+.container1 button {
   color: #fff;
   font-size: 12px;
   padding: 10px 45px;
@@ -76,12 +76,12 @@
   cursor: pointer;
 }
 
-.container button.hidden {
+.container1 button.hidden {
   background-color: transparent;
   border-color: #fff;
 }
 
-.container form {
+.container1 form {
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -91,7 +91,7 @@
   height: 100%;
 }
 
-.container input {
+.container1 input {
   background-color: #eee;
   border: none;
   margin: 8px 0;
@@ -115,7 +115,7 @@
   z-index: 2;
 }
 
-.container.active .sign-in {
+.container1.active .sign-in {
   transform: translateX(100%);
   z-index: -10;
 }
@@ -127,7 +127,7 @@
   z-index: 1;
 }
 
-.container.active .sign-up {
+.container1.active .sign-up {
   transform: translateX(100%);
   opacity: 1;
   z-index: 5;
@@ -163,7 +163,7 @@
   pointer-events: auto;
 }
 
-.container.active .toggle-container {
+.container1.active .toggle-container {
   transform: translateX(-100%);
   border-radius: 0 150px 100px 0;
   /* Ekleyin: */
@@ -184,7 +184,7 @@
   transition: all 0.6s ease-in-out;
 }
 
-.container.active .toggle {
+.container1.active .toggle {
   transform: translateX(50%);
 }
 
@@ -207,7 +207,7 @@
   transform: translateX(-200%);
 }
 
-.container.active .toggle-left {
+.container1.active .toggle-left {
   transform: translateX(0);
 }
 
@@ -216,7 +216,7 @@
   transform: translateX(0);
 }
 
-.container.active .toggle-right {
+.container1.active .toggle-right {
   transform: translateX(200%);
 }
 
@@ -386,5 +386,12 @@
     opacity: 1;
   }
 }
+.managesearch{
+  background-color: #b91c1c;
+  transition: background-color 0.3s ease;
+}
 
-
+.managesearch:hover{
+  background-color: #7c1515;
+  
+}

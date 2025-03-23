@@ -144,8 +144,8 @@ const Page = () => {
   }
 
   return (
-    <div className="container lg:h-screen text-sm md:text-lg ">
-      <div className="flex flex-col items-center">
+    <div className=" text-sm md:text-lg">
+      <div className="flex flex-col items-center mx-auto my-auto justify-center">
         <h1 className="text-2xl mb-4 mt-4">Kullanıcı Bilgilerim</h1>
         <h2 className="text-lg text-center text-slate-500 mb-4 mt-4">
           Bilgilerinizi burada düzenleyebilir ve güncelleyebilirsiniz.
