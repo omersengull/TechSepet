@@ -5,7 +5,7 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
 import { HashLoader } from "react-spinners";
@@ -22,7 +22,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
   const [loadingType, setLoadingType] = useState<"credentials" | "google" | null>(null);
 
   const router = useRouter();
-
+  const { update } = useSession();
 
 
   /**
@@ -47,6 +47,7 @@ const Auth: React.FC<AuthProps> = ({ currentUser }) => {
 
       // Check if the registration was successful
       if (response.data) {
+        await update();
         toast.success("Kullanıcı Oluşturuldu!");
 
         // Kayıt sonrası otomatik giriş
@@ -101,9 +102,11 @@ useEffect(() => {
       });
 
       if (callback?.ok) {
+        await update();
         router.push("/cart");
         router.refresh();
         toast.success("Giriş yapma başarılı!");
+        
         resetLogin();
       } else if (callback?.error) {
         toast.error(callback.error);
@@ -113,6 +116,9 @@ useEffect(() => {
       toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setLoadingType(null);
+      setTimeout(() => {
+        window.location.reload(); // Sayfa yenileme
+      }, 500);
     }
   };
 

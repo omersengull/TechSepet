@@ -63,7 +63,7 @@ export async function getCurrentUser() {
             createdAt: currentUser.createdAt?.toISOString(),
             image:currentUser.image?.toString() || null,
             updatedAt: currentUser.updatedAt?.toISOString(),
-            emailVerified: currentUser.emailVerified || null,
+            emailVerified: currentUser.emailVerified?.toISOString() || null,
         };
     } catch (error) {
         console.error("Kullanıcı alınamadı:", error);
