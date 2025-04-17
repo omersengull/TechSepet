@@ -72,8 +72,34 @@ const DetailClient = ({ product }: { product: any }) => {
     fetchUser();
   }, []);
 
+
+
   useEffect(() => {
-    setTimeout(() => {
+    if (!product?.id) return;  // product.id boş geliyorsa, işlem yapmıyoruz
+
+    setIsLoading(true);  // Yükleniyor durumu başlatılır
+    fetch(`/api/recommend/${product.id}`)  // URL'yi güncelledik
+      .then((res) => res.json())  // JSON formatında veri alıyoruz
+      .then((data) => {
+        setRecommendedProducts(data.recommendedProducts);  // API'den gelen önerilen ürünleri setliyoruz
+        setIsLoading(false);  // Yükleniyor durumunu bitiriyoruz
+      })
+      .catch((err) => {
+        console.error("Öneriler alınırken hata oluştu:", err);  // Hata durumunu logluyoruz
+        setIsLoading(false);  // Yükleniyor durumunu bitiriyoruz
+      });
+  }, [product.id]);  // product.id değiştiğinde, useEffect tekrar çalışacak
+
+
+  useEffect(() => {
+    const reviewingProductId = localStorage.getItem("reviewingProduct");
+
+    // Derecelendirme butonuna basıldığında kaydedilen durumu kontrol et
+    if (reviewingProductId && reviewingProductId === product.id) {
+      setIsReviewing(true);
+      localStorage.removeItem("reviewingProduct");
+
+      // Şart sağlandığında sayfanın aşağı kaymasını sağla
       if (detailsRef.current) {
         detailsRef.current.scrollIntoView({
           behavior: "smooth",
@@ -81,27 +107,9 @@ const DetailClient = ({ product }: { product: any }) => {
           inline: "nearest",
         });
       }
-    }, 500);
-  }, []);
-
-  useEffect(() => {
-    setIsLoading(true);
-    fetch(`/api/recommendations?productId=${product.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setRecommendedProducts(data.recommendedProducts);
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
-  }, [product.id]);
-
-  useEffect(() => {
-    const reviewingProductId = localStorage.getItem("reviewingProduct");
-    if (reviewingProductId && reviewingProductId === product.id) {
-      setIsReviewing(true);
-      localStorage.removeItem("reviewingProduct");
     }
   }, [product.id]);
+
 
   const userHasReviewed = user
     ? reviews.some((review: any) => review.userId === user.id.toString())
@@ -215,12 +223,29 @@ const DetailClient = ({ product }: { product: any }) => {
       ? reviews.reduce((acc, review) => acc + Number(review.rating), 0) / reviews.length
       : 0;
 
+  // renderProductFeatures fonksiyonunda yapılacak değişiklikler
   const renderProductFeatures = () => {
+    
+    // 1. API'den gelen specifications verisini kontrol et
+    console.log("Ürün özellikleri:", product.specifications);
+
     if (product.specifications && product.specifications.length > 0) {
-      const uniqueSpecifications = product.specifications.filter(
-        (spec: any, index: number, self: any[]) =>
-          index === self.findIndex((s) => s.specification.name === spec.specification.name)
-      );
+      const uniqueSpecs = product.specifications.reduce((acc: any[], spec: any) => {
+        // Eski hatalı kontrol:
+        // if (!acc.find(s => s.specification.name === spec.specification.name)) {
+
+        // Yeni düzenlenmiş kontrol:
+        const exists = acc.some(item =>
+          item.specification?.name === spec.specification?.name &&
+          item.value === spec.value
+        );
+        if (!exists) acc.push(spec);
+        return acc;
+      }, []);
+
+      // 3. Eşsiz özellikleri logla
+      console.log("Eşsiz özellikler:", uniqueSpecs);
+
       return (
         <div className="mt-5 border border-gray-300 dark:border-white rounded-md">
           <div
@@ -238,14 +263,22 @@ const DetailClient = ({ product }: { product: any }) => {
             <div className="px-4 py-2 bg-white">
               <table className="w-full text-sm border-t border-gray-200">
                 <tbody>
-                  {uniqueSpecifications.map((spec: any) => (
-                    <tr key={spec.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="font-semibold py-2 px-2 text-gray-700 w-1/2">
-                        {spec.specification.name}
-                      </td>
-                      <td className="py-2 px-2 text-gray-900">{spec.value}</td>
-                    </tr>
-                  ))}
+                  {uniqueSpecs.map((spec: any) => {
+                    // Null check ekleyelim
+                    const specName = spec.specification?.name || "Bilinmeyen Özellik";
+                    const specValue = spec.value || "Belirtilmemiş";
+
+                    return (
+                      <tr key={`${specName}-${specValue}`}>
+                        <td className="font-semibold py-2 px-2 text-gray-700 w-1/2">
+                          {specName}
+                        </td>
+                        <td className="py-2 px-2 text-gray-900">
+                          {specValue}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -253,7 +286,7 @@ const DetailClient = ({ product }: { product: any }) => {
         </div>
       );
     }
-    return <div>Bu ürüne ait özellik bulunmamaktadır.</div>;
+    return <div className="mt-5">Bu ürüne ait teknik özellik bulunmamaktadır.</div>;
   };
 
   // Seçilen sort seçeneğine göre yorumları sıralıyoruz.

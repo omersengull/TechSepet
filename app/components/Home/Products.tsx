@@ -4,7 +4,7 @@ import ProductsCard from "./ProductsCard";
 import axios from "axios";
 import SkeletonCardProducts from "@/app/skeleton/skeletonCardProducts";
 import { MdInfoOutline } from "react-icons/md";
-import Modal from "../Modal";
+
 
 // Ürün tipi tanımı
 export interface Product {
@@ -100,19 +100,7 @@ const FeaturedProductsDualSlider: React.FC = () => {
     }, 500);
   };
 
-  const handleModalMouseEnter = () => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-  };
 
-  const handleModalMouseLeave = () => {
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsModalOpen(false);
-      setSelectedProduct(null);
-    }, 500);
-  };
 
   // Best seller slider için touch event handler’ları
   const handleBestSellerTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -347,23 +335,7 @@ const FeaturedProductsDualSlider: React.FC = () => {
         </div>
       </div>
 
-      {/* Ortak Modal */}
-      {isModalOpen && selectedProduct && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedProduct(null);
-          }}
-          onMouseEnter={handleModalMouseEnter}
-          onMouseLeave={handleModalMouseLeave}
-          productImage={selectedProduct.image}
-          productName={selectedProduct.name}
-          productDescription={selectedProduct.description}
-          price={selectedProduct.price}
-          reviews={selectedProduct.reviews || []}
-        />
-      )}
+      
     </div>
   );
 };

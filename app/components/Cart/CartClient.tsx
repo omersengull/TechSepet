@@ -35,6 +35,7 @@ const CartClient = () => {
     }, []);
 
     // currentUser değiştiğinde adresleri tekrar çekiyoruz.
+    // currentUser değiştiğinde adresleri tekrar çekiyoruz.
     useEffect(() => {
         if (!currentUser) return;
         const fetchAddresses = async () => {
@@ -44,16 +45,13 @@ const CartClient = () => {
                 setAddresses(response.data.addresses);
             } catch (error) {
                 console.error("Adresler yüklenirken hata oluştu:", error);
+            } finally {
+                // API çağrısı tamamlandığında loading'i kapatıyoruz.
+                setLoading(false);
             }
         };
 
         fetchAddresses();
-
-        const timeout = setTimeout(() => {
-            setLoading(false);
-        }, 16000); // 16 saniye sonra loading false olacak
-
-        return () => clearTimeout(timeout);
     }, [currentUser]);
 
     useEffect(() => {
@@ -162,10 +160,10 @@ const CartClient = () => {
                     <div className="flex-col md:w-2/3 md:mr-16">
                         {cartPrdcts.map(prd => (
                             <div onClick={()=>{handleCardClick(prd.id)}} key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none cursor-pointer rounded-xl">
-                                <div className="flex-col min-w-40">
+                                <div className="flex-col md:min-w-40 min-w-24">
                                     <Image alt="" src={prd.image} width={150} height={150} />
                                 </div>
-                                <div className="flex flex-col space-y-2">
+                                <div className="flex flex-col md:text-md text-sm space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold">{prd.description}</span>
                                     </div>

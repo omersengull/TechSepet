@@ -4,12 +4,13 @@ import Logo from "./Logo";
 import User from "./User";
 import ShoppingCart from "./ShoppingCart";
 import Search from "./Search";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import { useSpinner } from "@/app/spinner/SpinnerContext";
 import Spinner from "@/app/spinner/Spinner";
 import { MdManageSearch } from "react-icons/md";
 import type { User as PrismaUser } from "@prisma/client";
+
 
 
 
@@ -30,15 +31,15 @@ type SafeUser = {
     birthday: Date | null;
     resetToken: string | null;  // Opsiyonel hale getir
     resetTokenExpiry: Date | null;
-    verificationTokenExpiry:Date | null;
-    verificationToken:string | null;
+    verificationTokenExpiry: Date | null;
+    verificationToken: string | null;
 };
 
 const Navbar = () => {
     const { setIsLoading, isLoading } = useSpinner();
     const router = useRouter();
     const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
-
+    const pathname = usePathname(); // Mevcut yolu izliyoruz
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -58,10 +59,10 @@ const Navbar = () => {
                         surname: user.surname || "Default Surname",
                         phone: user.phone,
                         birthday: user.birthday ? new Date(user.birthday) : null,
-                        resetToken:user.resetToken,
-                        resetTokenExpiry:user.resetTokenExpiry,
-                        verificationTokenExpiry:user.verificationTokenExpiry,
-                        verificationToken:user.verificationToken,
+                        resetToken: user.resetToken,
+                        resetTokenExpiry: user.resetTokenExpiry,
+                        verificationTokenExpiry: user.verificationTokenExpiry,
+                        verificationToken: user.verificationToken,
                     };
                     setCurrentUser(transformedUser);
                 } else {
@@ -78,20 +79,14 @@ const Navbar = () => {
 
     const handleRouteCart = () => {
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            router.push("/cart");
-        }, 2000);
+        router.push("/cart");
+
     };
 
-    const handleRouteMain = () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            router.push("/");
-        }, 2000);
-    };
-
+   
+    useEffect(() => {
+        setIsLoading(false);
+    }, [pathname, setIsLoading]);
     return (
         <>
             {isLoading && (
@@ -102,9 +97,9 @@ const Navbar = () => {
             <div className="flex flex-col bg-renk1 h-auto px-4 lg:px-16 text-white ">
                 <div className="flex flex-row h-[80px] justify-between items-center gap-3">
                     <div className="flex flex-row items-center md:gap-3">
-                        <div className="mr-3 lg:mr-7 cursor-pointer" onClick={handleRouteMain}>
+                        <a href="/" className="mr-3 lg:mr-7 cursor-pointer" >
                             <Logo />
-                        </div>
+                        </a>
                     </div>
 
                     <a
@@ -125,13 +120,13 @@ const Navbar = () => {
                         <div className="mr-3 cursor-pointer" onClick={handleRouteCart}>
                             <ShoppingCart />
                         </div>
-                        
+
                     </div>
                 </div>
 
                 <div className="sm:hidden mb-6 flex ">
                     <div className="w-full" ><Search /></div>
-                   
+
 
 
                 </div>

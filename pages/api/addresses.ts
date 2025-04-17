@@ -44,6 +44,7 @@ export default async function handler(req, res) {
     }
 
     try {
+
       const addresses = await prisma.address.findMany({
         where: { userId },
         select: {  // ✅ id'nin dönmesi için eklendi
@@ -55,6 +56,7 @@ export default async function handler(req, res) {
           postalCode: true,
         },
       });
+     
 
       return res.status(200).json({ success: true, addresses });
     } catch (error) {

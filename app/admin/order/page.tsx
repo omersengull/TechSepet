@@ -45,32 +45,30 @@ const OrderComponent = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">Order List</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Siparişler Listesi</h1>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       <div className="flex flex-col gap-6">
         {orders.map((order) => {
           let parsedItems: Item[] = [];
           if (order.items) {
-            console.log("Order Items (Raw):", order.items);
-            try {
-              const firstParse = JSON.parse(order.items);
-              if (typeof firstParse === "string") {
-                parsedItems = JSON.parse(firstParse);
-              } else if (Array.isArray(firstParse)) {
-                parsedItems = firstParse;
+            // Eğer order.items zaten bir array ise, parse işlemine gerek yok:
+            if (Array.isArray(order.items)) {
+              parsedItems = order.items;
+            } 
+            // Eğer stringse, JSON.parse işlemi yap:
+            else if (typeof order.items === "string") {
+              try {
+                const parsed = JSON.parse(order.items);
+                // Eğer parsed değeri array ise ata, değilse boş dizi ata:
+                parsedItems = Array.isArray(parsed) ? parsed : [];
+              } catch (error) {
+                console.error("Error parsing items for Order ID:", order.id, error);
+                parsedItems = [];
               }
-              console.log("Parsed Items for Order:", parsedItems);
-            } catch (error) {
-              console.error(
-                "Error parsing items for Order ID:",
-                order.id,
-                "Raw Items:",
-                order.items,
-                error
-              );
-              parsedItems = [];
             }
           }
+          
+          
 
           return (
             <div

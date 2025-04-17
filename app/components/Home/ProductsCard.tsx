@@ -9,7 +9,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { PiHeartStraightLight, PiHeartStraightFill } from "react-icons/pi";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
-import Modal from "@/app/components/Modal";
 import { BsCartFill } from "react-icons/bs";
 import { MdLaptopChromebook } from "react-icons/md";
 import { BsCartCheckFill } from "react-icons/bs";
@@ -60,9 +59,7 @@ const ProductsCard = ({ product, onMouseEnter,
         fetchReviews();
     }, [product.id]);
 
-    const handleCardClick = () => {
-        router.push(`/product/${product.id}`);
-    };
+   
 
     useEffect(() => {
         let isMounted = true;
@@ -163,7 +160,7 @@ const ProductsCard = ({ product, onMouseEnter,
             </div>
 
             {/* Ürün Kartı */}
-            <div onClick={handleCardClick} className="cursor-pointer flex flex-col items-center flex-grow">
+            <a href={`/product/${product.id}`} className="cursor-pointer flex flex-col items-center flex-grow">
                 <div className="relative w-full h-[160px] flex items-center justify-center">
                     <Image
                         src={product.image}
@@ -177,7 +174,7 @@ const ProductsCard = ({ product, onMouseEnter,
                 <div className="text-center mt-3 flex flex-col flex-grow">
                     <div className="font-semibold text-sm sm:text-base">{TextClip(product.name)}</div>
                 </div>
-            </div>
+            </a>
 
             {/* Rating, Fiyat ve Sepete Ekle Butonu */}
             <div className="flex flex-col justify-end mt-auto">

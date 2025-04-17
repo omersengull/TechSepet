@@ -31,34 +31,43 @@ export default async function handler(req, res) {
 
     allOrders.forEach((order) => {
       try {
-        let products: string[] = [];
-
-        console.log("🔥 Adım 2 - Orijinal `items` Verisi:", order.items);
-
-        if (typeof order.items === "string") {
-          const firstParse = JSON.parse(order.items);
-          console.log("✅ İlk Parse Sonucu:", firstParse);
-
-          if (typeof firstParse === "string") {
-            products = JSON.parse(firstParse).map((p: any) => p.id || p.productId);
-          } else if (Array.isArray(firstParse)) {
-            products = firstParse.map((p: any) => p.id || p.productId);
-          }
-        }
-
-        console.log("✅ Adım 2 - Siparişteki Ürünler:", products);
-
-        // Eğer bu siparişte `productId` varsa, birlikte alınan ürünleri sayaçta güncelle
-        if (products.includes(productId)) {
-          products.forEach((product) => {
-            if (product !== productId && typeof product === "string" && product.length > 0) {
-              if (!productCount[product]) {
-                productCount[product] = 0;
-              }
-              productCount[product]++;
+        if (!order.items) return;
+        const parsedItems = JSON.parse(order.items);
+        let products: string[] = []; // Dizinin öğe türünü string olarak tanımladık
+        parsedItems.forEach((itemString: string) => {
+          const items = JSON.parse(itemString);
+          items.forEach((item: any) => {
+            if (item.id && item.id !== productId) {
+              products.push(item.id);
             }
           });
+        });
+        products.forEach((id) => {
+          productCount[id] = (productCount[id] || 0) + 1;
+        });
+        console.log("🔥 Adım 2 - Orijinal `items` Verisi:", order.items);
+        
+        // İlk parse işlemi yapılır
+        if (typeof order.items === "string") {
+          try {
+            // İç içe JSON parse işlemini tek bir defa yapalım
+            const firstParse = JSON.parse(order.items);
+            console.log("✅ İlk Parse Sonucu:", firstParse);
+        
+            // 'firstParse' bir dizi olduğu için bu diziye ürün id'sini ekleyelim
+            firstParse.forEach((item: { id: string }) => {
+              products.push(item.id);  // Her ürünün ID'sini ekliyoruz
+            });
+        
+          } catch (error) {
+            console.error("❌ JSON Parse Hatası:", error);
+          }
         }
+        
+        console.log("✅ Adım 2 - Siparişteki Ürünler:", products);
+        
+
+
       } catch (error) {
         console.error("❌ String Parse Hatası:", error);
       }

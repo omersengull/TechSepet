@@ -2,6 +2,7 @@
 import DetailClient from '@/app/components/detail/DetailClient';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { HashLoader } from 'react-spinners';
 
 type DetailProps = {
     productId?: string;
@@ -25,7 +26,11 @@ const Detail = ({ params }: { params: DetailProps }) => {
         fetchProduct();
     }, [productId]);
 
-    if (!product) return <div>Loading...</div>;
+    if (!product) return (
+        <div className='min-h-screen flex justify-center items-center'>
+          <HashLoader color='#2563eb' />
+        </div>
+      );
 
     return (
         <div>

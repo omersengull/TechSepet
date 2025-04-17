@@ -7,52 +7,58 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 const Slider: React.FC = () => {
     
-    const heroSlides = [
-        {
-            id: 1,
-            title: 'Apple Watch Series 9 GPS',
-            description: 'Akıllı yaşamın yeni standardı',
-            price: '14.999 TL',
-            image: 'https://public.readdy.ai/ai/img_res/c60a2770db1eb126928ef6941a63ec85.jpg'
-        },
-        
-        {
-            id: 3,
-            title: 'Apple AirPods 4',
-            description: 'Aktif Gürültü Engellemeli Premium Kulaklık',
-            price: '10.199 TL',
-            image: 'https://public.readdy.ai/ai/img_res/2fcf94046ba0342d80a4347e568b6bff.jpg'
-        },
-        {
-            id: 4,
-            title: 'Sony PlayStation 5 Digital Edition',
-            description: 'Yeni nesil oyun deneyimi',
-            price: '19.999 TL',
-            image: 'https://public.readdy.ai/ai/img_res/990495a0802a28ab22ed17c1464c739e.jpg'
-        },
-        {
-            id: 5,
-            title: 'Huawei Watch Fit 3',
-            description: 'Akıllı yaşam asistanınız',
-            price: '4.999 TL',
-            image: 'https://public.readdy.ai/ai/img_res/06fe4788c905ae3348a8fa0450383df0.jpg'
-        },
-       
-        {
-            id: 7,
-            title: 'Canon EOS 250D',
-            description: '18-55mm IS STM Kit Lens',
-            price: '24.999 TL',
-            image: 'https://public.readdy.ai/ai/img_res/0546f39c1e2abda3a51aae030bc299de.jpg'
-        },
-        {
-            id: 8,
-            title: 'Samsung 55Q60D',
-            description: '55" 4K QLED Smart TV',
-            price: '39.999 TL',
-            image: 'https://public.readdy.ai/ai/img_res/2918dc3462759644a6e45cdbecf5263c.jpg'
-        }
-    ];
+  const heroSlides = [
+    {
+        id: 1,
+        title: 'VIVO X200 PRO',
+        description: 'Yüksek performanslı ve akıllı yaşam teknolojileriyle donatılmış bir telefon.',
+        price: '45.000 TL',
+        image: 'https://n.sinaimg.cn/spider20241024/120/w1440h1080/20241024/29e8-d770d143b869d0eb82063adb525c3c85.jpg'
+    },
+    {
+        id: 2,
+        title: 'Apple AirPods 4',
+        description: 'Aktif gürültü engelleme özelliğiyle mükemmel ses deneyimi sunan premium kulaklık.',
+        price: '10.199 TL',
+        image: 'https://images.macrumors.com/article-new/2023/08/AirPods-Fourth-Generation-Feature-Red.jpg'
+    },
+    {
+        id: 3,
+        title: 'Samsung Galaxy S24 Ultra',
+        description: 'Gelişmiş kamera teknolojileri ve premium özelliklerle donatılmış üst seviye akıllı telefon.',
+        price: '40.000 TL',
+        image: 'https://www.inside-digital.de/img/samsung-galaxy-s24-ultra-alle-farben.webp?class=1200x900'
+    },
+    {
+        id: 4,
+        title: 'Sony PlayStation 5 Digital Edition',
+        description: 'Yeni nesil oyun deneyimi ve yüksek performansla oyun tutkunlarına özel.',
+        price: '30.000 TL',
+        image: 'https://gizmeek.com/content/images/ps5.jpg'
+    },
+    {
+        id: 5,
+        title: 'Apple Watch Series 9',
+        description: 'Akıllı yaşam asistanı, sağlıklı yaşam takibi ve şıklığı bir arada sunan saat.',
+        price: '14.999 TL',
+        image: 'https://www.dignited.com/wp-content/uploads/2023/09/Apple-Watch-Series-9-Colors-2048x1280.png'
+    },
+    {
+        id: 6,
+        title: 'Apple iPhone 15',
+        description: 'Yeni iPhone deneyimiyle üstün performans ve gelişmiş özellikler.',
+        price: '46.110 TL',
+        image: 'https://media.techietech.tech/2023/09/iPhone-15-and-iPhone-15-Plus-launched.jpg'
+    },
+    {
+        id: 7,
+        title: 'Samsung Galaxy S25+',
+        description: 'Süper AMOLED ekran ve güçlü kamera özellikleriyle ileri düzey akıllı telefon.',
+        price: '40.000 TL',
+        image: 'https://img.odcdn.com.br/wp-content/uploads/2025/01/008-family-galaxy-s25ultra-titaniumsilverblue-s25plus-navy-s25-icyblue-1920x1080.jpg'
+    }
+];
+
     return (
         <div className="w-screen bg-gray-50">
         <div className="w-full px-16 py-8">
