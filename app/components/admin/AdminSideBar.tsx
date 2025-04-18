@@ -23,20 +23,12 @@ const AdminSideBar = () => {
 
   return (
     <div className="relative">
-      {/* Toggle Butonu - Sağ üst köşede */}
-      <div className="absolute top-5 right-5 z-50">
-        <div
-          onClick={handleToggleMenu}
-          className="flex cursor-pointer items-center text-3xl text-black"
-        >
-          {show ? <IoIosCloseCircle /> : <GiHamburgerMenu />}
-        </div>
-      </div>
+     
 
       {/* Yukarıdan Aşağı Açılan (Yatay) Menü */}
       <div
-        className={`w-full bg-renk2 border-b p-4 transform transition-transform duration-500 ease-in-out ${
-          show ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+        className={`w-full bg-renk2 border-b  p-4 transform transition-transform duration-500 ease-in-out
+         
         }`}
       >
         <div className="flex justify-center space-x-8">

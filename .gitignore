@@ -56,3 +56,4 @@ pids
 
 # Google Service Account Key (Eklenmesi gerekiyor!)
 service-account-key.json
+google-credentials.json

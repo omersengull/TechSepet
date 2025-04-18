@@ -14,19 +14,8 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { getCategorySpecifications } from "@/app/services/specifications";
 
-const categorySpecifications = {
-  phone: ["RAM", "Depolama", "Ekran Boyutu", "Pil Kapasitesi", "Kamera Çözünürlüğü", "İşlemci", "Renk", "Ağırlık", "Bağlantı Tipi", "Hızlı Şarj Desteği"],
-  laptop: ["RAM", "Depolama", "İşlemci", "Ekran Boyutu", "Batarya Kapasitesi", "Grafik Kartı", "Ağırlık", "Bağlantı Tipi", "Soğutma Sistemi", "İşletim Sistemi"],
-  smartwatch: ["Ekran Boyutu", "Batarya Süresi", "Su Geçirmezlik", "Bağlantı Tipi", "Ağırlık", "GPS", "Adım Sayar", "Kalp Atış Hızı İzleme"],
-  earphone: ["Bluetooth Sürümü", "Pil Ömrü", "Frekans Aralığı", "Bağlantı Tipi", "Gürültü Engelleme", "Mikrofon", "Suya Dayanıklılık", "Kablo Uzunluğu"],
-  monitor: ["Ekran Boyutu", "Çözünürlük", "Yenileme Hızı", "Tepki Süresi", "Bağlantı Tipi", "Panel Türü", "Kontrast Oranı", "Görüntüleme Açısı"],
-  keyboard: ["Bağlantı Tipi", "Tuş Türü", "Aydınlatma", "Mekanik", "Tuş Düzeni", "Makro Desteği", "Multimedya Tuşları", "Ergonomi"],
-  mouse: ["Bağlantı Tipi", "DPI", "Aydınlatma", "Ergonomi", "Tuş Sayısı", "Pil Ömrü", "Sensör Tipi", "Kaydırma Tekerleği"],
-  television: ["Ekran Boyutu", "Çözünürlük", "HDR Desteği", "Bağlantı Tipi", "Ses Çıkış Gücü", "Smart TV Özelliği", "Yenileme Hızı", "Görüntü Teknolojisi"],
-  gameconsole: ["Depolama", "Desteklenen Oyunlar", "Bağlantı Tipi", "Grafik Gücü", "RAM", "Kontrol Cihazı Desteği", "İnternet Bağlantısı", "Multimedya Desteği"],
-  camera: ["Megapiksel", "Lens Tipi", "ISO Aralığı", "Video Çözünürlüğü", "Ağırlık", "Pil Ömrü", "Odak Uzaklığı", "Dijital Zoom", "Optik Zoom", "Görüntü Sabitleme"]
-};
 
 const CreateForm = () => {
   const router = useRouter();
@@ -34,16 +23,16 @@ const CreateForm = () => {
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
   const categoryList = [
-    { name: "Telefon", value: "phone", icon: GiSmartphone },
-    { name: "Akıllı Saat", value: "smartwatch", icon: BsSmartwatch },
-    { name: "Laptop", value: "laptop", icon: MdComputer },
-    { name: "Kulaklık", value: "earphone", icon: SlEarphones },
-    { name: "Monitör", value: "monitor", icon: FaDesktop },
-    { name: "Klavye", value: "keyboard", icon: GiKeyboard },
-    { name: "Mouse", value: "mouse", icon: GiMouse },
-    { name: "Televizyon", value: "television", icon: FaTv },
-    { name: "Oyun Konsolu", value: "gameconsole", icon: GiGameConsole },
-    { name: "Kamera", value: "camera", icon: FaCamera },
+    { name: "Telefon", value: "phone", icon: GiSmartphone, id: "67a48e71b1ab64bb402dcc7c" },
+    { name: "Akıllı Saat", value: "smartwatch", icon: BsSmartwatch, id: "67a48e71b1ab64bb402dcc7d" },
+    { name: "Laptop", value: "laptop", icon: MdComputer, id: "67a48e71b1ab64bb402dcc7e" },
+    { name: "Kulaklık", value: "earphone", icon: SlEarphones, id: "67a48e71b1ab64bb402dcc7f" },
+    { name: "Monitör", value: "monitor", icon: FaDesktop, id: "67a48e71b1ab64bb402dcc80" },
+    { name: "Klavye", value: "keyboard", icon: GiKeyboard, id: "67a48e71b1ab64bb402dcc81" },
+    { name: "Mouse", value: "mouse", icon: GiMouse, id: "67a48e71b1ab64bb402dcc82" },
+    { name: "Televizyon", value: "television", icon: FaTv, id: "67a48e71b1ab64bb402dcc83" },
+    { name: "Oyun Konsolu", value: "gameconsole", icon: GiGameConsole, id: "67a48e71b1ab64bb402dcc84" },
+    { name: "Kamera", value: "camera", icon: FaCamera, id: "67a48e71b1ab64bb402dcc85" },
   ];
 
   const {
@@ -67,14 +56,27 @@ const CreateForm = () => {
   const category = watch("category");
 
   useEffect(() => {
-    if (category && categorySpecifications[category]) {
-      setSpecifications(
-        categorySpecifications[category].map((key) => ({ key, value: "" }))
-      );
-    } else {
-      setSpecifications([]);
-    }
+    const loadSpecifications = async () => {
+      if (!category) return;
+
+      // Seçilen kategoriyi bul
+      const selectedCategory = categoryList.find(cat => cat.value === category);
+
+      if (selectedCategory?.id) {
+        try {
+          // API'den özellikleri çek
+          const specs = await getCategorySpecifications(selectedCategory.id) as string[];
+          const uniqueSpecs = Array.from(new Set(specs));
+          setSpecifications(uniqueSpecs.map(key => ({ key, value: "" })));
+        } catch (error) {
+          toast.error("Özellikler yüklenemedi");
+        }
+      }
+    };
+
+    loadSpecifications();
   }, [category]);
+
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (!img) {
@@ -97,7 +99,12 @@ const CreateForm = () => {
         const newData = {
           ...data,
           image: imageUrl,
-          specifications: specifications.filter((spec) => spec.key && spec.value),
+          specifications: specifications
+            .filter(spec => spec.key && spec.value)
+            .map(spec => ({
+              specificationName: spec.key, // Specification name gönder
+              value: spec.value
+            }))
         };
 
         await axios.post("/api/product", newData);
@@ -189,13 +196,24 @@ const CreateForm = () => {
 
         <h3 className="font-semibold mb-2">Ürün Özellikleri</h3>
         {specifications.map((spec, index) => (
-          <div key={index} className="flex space-x-2 mb-2">
+          <div key={index} className="flex gap-2 mb-2">
             <input
               type="text"
-              placeholder={spec.key}
+              className="border p-2 flex-1 rounded"
+              placeholder="Özellik adı (Örn: RAM)"
+              value={spec.key}
+              onChange={e => {
+                const newSpecs = [...specifications];
+                newSpecs[index].key = e.target.value;
+                setSpecifications(newSpecs);
+              }}
+            />
+            <input
+              type="text"
+              className="border p-2 flex-1 rounded"
+              placeholder="Değer"
               value={spec.value}
-              onChange={(e) => handleSpecChange(index, e.target.value)}
-              className="border p-2 w-full"
+              onChange={e => handleSpecChange(index, e.target.value)}
             />
           </div>
         ))}

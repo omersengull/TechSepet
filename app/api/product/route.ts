@@ -1,13 +1,13 @@
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 import prisma from "@/libs/prismadb";
 import { NextResponse } from "next/server";
-
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser();
 
-    // Kullanıcı doğrulama
+    // Yetki kontrolü
     if (!currentUser || currentUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
     }
@@ -15,18 +15,25 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, description, brand, category, price, inStock, image, specifications } = body;
 
-    // Zorunlu alanlar kontrolü
+    // Zorunlu alanların kontrolü
     if (!name || !brand || !category || !price || inStock === undefined || !image) {
       return NextResponse.json({ error: "Eksik alanlar var" }, { status: 400 });
     }
 
-    // Ürün oluştur
+    // Kategoriyi bul veya oluştur
+    const categoryRecord = await prisma.category.upsert({
+      where: { name: category },
+      create: { name: category },
+      update: {},
+    });
+
+    // Ürünü oluştur
     const product = await prisma.product.create({
       data: {
         name,
         description,
         brand,
-        category,
+        category: { connect: { id: categoryRecord.id } },
         price: parseFloat(price),
         inStock,
         image,
@@ -34,22 +41,41 @@ export async function POST(request: Request) {
       },
     });
 
-    // Ürüne özellikler ekleme
-    if (specifications && specifications.length > 0) {
-      await prisma.productSpecification.createMany({
-        data: specifications.map((spec: { specificationId: string; value: string }) => ({
-          productId: product.id,
-          specificationId: spec.specificationId,
-          value: spec.value,
-        })),
-      });
+    // Özellikleri ekle (transaction ile)
+    if (specifications?.length > 0) {
+      await prisma.$transaction(
+        specifications.map((spec) => 
+          prisma.productSpecification.create({
+            data: {
+              product: { connect: { id: product.id } },
+              specification: {
+                connectOrCreate: {
+                  where: {
+                    name_categoryId: {
+                      name: spec.specificationName,
+                      categoryId: categoryRecord.id
+                    }
+                  },
+                  create: {
+                    name: spec.specificationName,
+                    category: { connect: { id: categoryRecord.id } }
+                  }
+                }
+              },
+              value: spec.value
+            }
+          }) // Return işlemi otomatik
+        )
+      );
     }
 
-    console.log("Ürün ve özellikler oluşturuldu:", product);
-    return NextResponse.json(product, { status: 201 }); // 201: Created
+    return NextResponse.json(product, { status: 201 });
   } catch (error: any) {
-    console.error("Ürün oluşturulurken hata oluştu:", error);
-    return NextResponse.json({ error: error.message || "Bir hata oluştu" }, { status: 500 });
+    console.error("Hata:", error);
+    return NextResponse.json(
+      { error: error.message || "Dahili sunucu hatası" },
+      { status: 500 }
+    );
   }
 }
 
@@ -59,16 +85,16 @@ export async function GET() {
     const products = await prisma.product.findMany({
       include: {
         reviews: true,
-        category:true,
+        category: true,
         specifications: {
           include: {
             specification: true, // Özellik isimlerini de döndür
-            
+
           },
         },
       },
     });
-   
+
     return NextResponse.json(products, {
       headers: {
         "Content-Type": "application/json",

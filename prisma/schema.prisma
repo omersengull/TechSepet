@@ -53,7 +53,7 @@ model Product {
 
 model Category {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
+  name           String          @unique
   products       Product[]
   specifications Specification[]
 }
@@ -64,7 +64,7 @@ model Specification {
   category              Category               @relation(fields: [categoryId], references: [id])
   categoryId            String                 @db.ObjectId
   productSpecifications ProductSpecification[]
-
+ @@unique([name, categoryId], name: "name_categoryId")
 }
 
 model ProductSpecification {
@@ -73,7 +73,8 @@ model ProductSpecification {
   productId       String        @db.ObjectId
   specification   Specification @relation(fields: [specificationId], references: [id])
   specificationId String        @db.ObjectId
-  value           String // Örnek: "128 GB", "Kırmızı", "6.1 inç"
+  value           String 
+  @@unique([productId, specificationId], name: "product_specification_unique")
 }
 
 model Review {
