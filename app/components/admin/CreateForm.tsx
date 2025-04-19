@@ -23,16 +23,16 @@ const CreateForm = () => {
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
   const categoryList = [
-    { name: "Telefon", value: "phone", icon: GiSmartphone, id: "67a48e71b1ab64bb402dcc7c" },
-    { name: "Akıllı Saat", value: "smartwatch", icon: BsSmartwatch, id: "67a48e71b1ab64bb402dcc7d" },
-    { name: "Laptop", value: "laptop", icon: MdComputer, id: "67a48e71b1ab64bb402dcc7e" },
-    { name: "Kulaklık", value: "earphone", icon: SlEarphones, id: "67a48e71b1ab64bb402dcc7f" },
+    { name: "Telefon", value: "phone", icon: GiSmartphone, id: "67aa2abfcd8fcdc1f5411288" },
+    { name: "Akıllı Saat", value: "smartwatch", icon: BsSmartwatch, id: "67aa2abfcd8fcdc1f5411289" },
+    { name: "Laptop", value: "laptop", icon: MdComputer, id: "67c453eda03bf12d7bb8e66b" },
+    { name: "Kulaklık", value: "earphone", icon: SlEarphones, id: "67aa2abfcd8fcdc1f541128b" },
     { name: "Monitör", value: "monitor", icon: FaDesktop, id: "67a48e71b1ab64bb402dcc80" },
-    { name: "Klavye", value: "keyboard", icon: GiKeyboard, id: "67a48e71b1ab64bb402dcc81" },
-    { name: "Mouse", value: "mouse", icon: GiMouse, id: "67a48e71b1ab64bb402dcc82" },
-    { name: "Televizyon", value: "television", icon: FaTv, id: "67a48e71b1ab64bb402dcc83" },
-    { name: "Oyun Konsolu", value: "gameconsole", icon: GiGameConsole, id: "67a48e71b1ab64bb402dcc84" },
-    { name: "Kamera", value: "camera", icon: FaCamera, id: "67a48e71b1ab64bb402dcc85" },
+    { name: "Klavye", value: "keyboard", icon: GiKeyboard, id: "67cd7a8bbc0b76b4442462fd" },
+    { name: "Mouse", value: "mouse", icon: GiMouse, id: "67cd7a8bbc0b76b4442462fe" },
+    { name: "Televizyon", value: "television", icon: FaTv, id: "67aa2abfcd8fcdc1f541128f" },
+    { name: "Oyun Konsolu", value: "gameconsole", icon: GiGameConsole, id: "67d2a6c9d8a049cb46d4291e" },
+    { name: "Kamera", value: "camera", icon: FaCamera, id: "67aa2abfcd8fcdc1f5411291" },
   ];
 
   const {
