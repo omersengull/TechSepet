@@ -59,15 +59,13 @@ const CreateForm = () => {
     const loadSpecifications = async () => {
       if (!category) return;
 
-      // Seçilen kategoriyi bul
-      const selectedCategory = categoryList.find(cat => cat.value === category);
+      // Kategoriyi ID'ye göre bul
+      const selectedCategory = categoryList.find(cat => cat.id === category);
 
       if (selectedCategory?.id) {
         try {
-          // API'den özellikleri çek
           const specs = await getCategorySpecifications(selectedCategory.id) as string[];
-          const uniqueSpecs = Array.from(new Set(specs));
-          setSpecifications(uniqueSpecs.map(key => ({ key, value: "" })));
+          setSpecifications(specs.map(key => ({ key, value: "" })));
         } catch (error) {
           toast.error("Özellikler yüklenemedi");
         }
@@ -96,13 +94,14 @@ const CreateForm = () => {
         });
 
         const imageUrl = response.data.url;
+        
         const newData = {
           ...data,
           image: imageUrl,
           specifications: specifications
             .filter(spec => spec.key && spec.value)
             .map(spec => ({
-              specificationName: spec.key, // Specification name gönder
+              specificationName: spec.key, // Backend'in beklediği alan
               value: spec.value
             }))
         };
@@ -186,8 +185,8 @@ const CreateForm = () => {
               key={i}
               icon={cat.icon}
               text={cat.name}
-              onClick={() => setCustomValue("category", cat.value)}
-              selected={category === cat.value}
+              onClick={() => setCustomValue("category", cat.id)} // ID gönderiliyor
+              selected={category === cat.id} // ID'ye göre kontrol
             />
           ))}
         </div>

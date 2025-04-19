@@ -15,18 +15,23 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, description, brand, category, price, inStock, image, specifications } = body;
 
-    // Zorunlu alanların kontrolü
+    // Zorunlu alanların kontrolüconsole.log("Gelen istek gövdesi:", body);
     if (!name || !brand || !category || !price || inStock === undefined || !image) {
+      console.error("Eksik alanlar:", { name, brand, category, price, inStock, image });
       return NextResponse.json({ error: "Eksik alanlar var" }, { status: 400 });
     }
+    
 
     // Kategoriyi bul veya oluştur
-    const categoryRecord = await prisma.category.upsert({
-      where: { name: category },
-      create: { name: category },
-      update: {},
+    const categoryRecord = await prisma.category.findUnique({
+      where: { id: category },
     });
-
+    if (!categoryRecord) {
+      return NextResponse.json({ error: "Geçersiz kategori ID'si" }, { status: 400 });
+    } const priceNumber = parseFloat(price);
+    if (isNaN(priceNumber)) {
+      return NextResponse.json({ error: "Geçersiz fiyat formatı" }, { status: 400 });
+    }
     // Ürünü oluştur
     const product = await prisma.product.create({
       data: {
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
         description,
         brand,
         category: { connect: { id: categoryRecord.id } },
-        price: parseFloat(price),
+        price: priceNumber,
         inStock,
         image,
         createdAt: new Date(),
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
     // Özellikleri ekle (transaction ile)
     if (specifications?.length > 0) {
       await prisma.$transaction(
-        specifications.map((spec) => 
+        specifications.map((spec) =>
           prisma.productSpecification.create({
             data: {
               product: { connect: { id: product.id } },
