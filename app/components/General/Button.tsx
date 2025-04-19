@@ -2,7 +2,7 @@ import React from 'react';
 import { IconType } from 'react-icons';
 
 type ButtonProps = {
-  text?: string; // artık opsiyonel, children kullanılabilir
+  text?: string| React.ReactNode; // artık opsiyonel, children kullanılabilir
   disabled?: boolean;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   small?: boolean;

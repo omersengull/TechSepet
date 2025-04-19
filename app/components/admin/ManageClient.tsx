@@ -64,15 +64,15 @@ const ManageClient: React.FC<ManageClientProps> = ({ products }) => {
         },
     ];
 
-    const handleDelete = useCallback(async (id: string, image: string) => {
+    const handleDelete = useCallback(async (productId: string, imageUrl: string) => {
         toast.loading("Silme işlemi için bekleyin...");
 
         try {
             // API üzerinden resmi sil
-            await axios.post("/api/delete-image", { image });
+            await axios.post("/api/delete-image", { imageUrl });
 
             // Ürünü veritabanından sil
-            await axios.delete(`/api/product/${id}`);
+            await axios.delete(`/api/product/${productId}`);
             toast.success("Silme işlemi başarılı");
             router.refresh();
         } catch (error) {

@@ -15,10 +15,12 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { getCategorySpecifications } from "@/app/services/specifications";
+import { HashLoader } from "react-spinners";
 
 
 const CreateForm = () => {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false); // Yeni state
   const [img, setImg] = useState<File | null>(null);
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
@@ -58,10 +60,10 @@ const CreateForm = () => {
   useEffect(() => {
     const loadSpecifications = async () => {
       if (!category) return;
-  
+
       // Kategoriyi ID'ye göre bul
       const selectedCategory = categoryList.find(cat => cat.id === category);
-  
+
       if (selectedCategory?.id) {
         try {
           const specs = await getCategorySpecifications(selectedCategory.id) as string[];
@@ -71,13 +73,15 @@ const CreateForm = () => {
         }
       }
     };
-  
+
     loadSpecifications();
   }, [category]);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    setIsSubmitting(true);
     if (!img) {
       toast.error("Lütfen bir görsel seçin");
+      setIsSubmitting(false);
       return;
     }
 
@@ -93,7 +97,7 @@ const CreateForm = () => {
         });
 
         const imageUrl = response.data.url;
-        
+
         const newData = {
           ...data,
           image: imageUrl,
@@ -111,6 +115,9 @@ const CreateForm = () => {
       } catch (error) {
         console.error("Hata:", error);
         toast.error("Ürün eklenirken bir hata oluştu.");
+      }
+      finally {
+        setIsSubmitting(false);
       }
     };
     reader.readAsDataURL(img);
@@ -195,7 +202,7 @@ const CreateForm = () => {
         <h3 className="font-semibold mb-2">Ürün Özellikleri</h3>
         {specifications.map((spec, index) => (
           <div key={index} className="flex gap-2 mb-2">
-            <input
+            <input readOnly
               type="text"
               className="border p-2 flex-1 rounded"
               placeholder="Özellik adı (Örn: RAM)"
@@ -216,7 +223,17 @@ const CreateForm = () => {
           </div>
         ))}
 
-        <Button text="Ürün Oluştur" onClick={handleSubmit(onSubmit)} />
+        <Button
+          text={
+            isSubmitting ? (
+              <HashLoader size={20} color="#fff" />
+            ) : (
+              "Ürün Oluştur"
+            )
+          }
+          onClick={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        />
       </div>
     </div>
   );
