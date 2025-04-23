@@ -16,6 +16,8 @@ import axios from "axios";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 
 const CartClient = () => {
+    const [isBrowser, setIsBrowser] = useState(false);
+
     // Hook'tan gelen cartPrdcts her zaman array olarak kullanılsın
     const {
         cartPrdcts: rawCartPrdcts,
@@ -38,8 +40,16 @@ const CartClient = () => {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [currentStocks, setCurrentStocks] = useState<{ [key: string]: number }>({});
 
+    // Tarayıcı ortamını kontrol et
+    useEffect(() => {
+        setIsBrowser(true);
+    }, []);
+
     // Stok bilgilerini çekme
     useEffect(() => {
+        // Tarayıcıda olup olmadığını kontrol et
+        if (!isBrowser) return;
+
         const fetchCurrentStocks = async () => {
             setStocksLoading(true);
             const stockData: { [key: string]: number } = {};
@@ -61,20 +71,23 @@ const CartClient = () => {
         } else {
             setStocksLoading(false);
         }
-    }, [cartPrdcts]);
+    }, [cartPrdcts, isBrowser]);
 
     // Kullanıcı bilgisi
     useEffect(() => {
+        if (!isBrowser) return;
+        
         const fetchUser = async () => {
             const user = await getCurrentUser();
             setCurrentUser(user);
         };
         fetchUser();
-    }, []);
+    }, [isBrowser]);
 
     const [couponCode, setCouponCode] = useState('');
     useEffect(() => {
-        if (!currentUser) return;
+        if (!isBrowser || !currentUser) return;
+        
         const fetchAddresses = async () => {
             try {
                 const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
@@ -86,12 +99,18 @@ const CartClient = () => {
             }
         };
         fetchAddresses();
-    }, [currentUser]);
+    }, [currentUser, isBrowser]);
 
     // Ödeme yönlendirme durumu
     const [isRedirecting, setIsRedirecting] = useState(false);
     const handlePayment = () => {
-        const storedAddress = localStorage.getItem('selectedAddressId');
+        if (!isBrowser) return;
+        
+        // localStorage'a güvenli erişim
+        const storedAddress = typeof window !== 'undefined' 
+            ? localStorage.getItem('selectedAddressId') 
+            : null;
+            
         if (!storedAddress || !isFormChecked) {
             toast.error("Lütfen adres seçin ve formu onaylayın");
             return;
@@ -102,38 +121,56 @@ const CartClient = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const togglePopup = () => { setIsOpen(!isOpen); };
-    const [selectedAddress, setSelectedAddress] = useState<string | null>(() => {
-        return localStorage.getItem('selectedAddressId');
-    });
+    
+    // useState işlevini güvenli şekilde kullan
+    const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+    
+    // localStorage'a erişim sadece tarayıcıda ve useEffect içinde yapılmalı
     useEffect(() => {
-        const savedAddress = localStorage.getItem('selectedAddressId');
-        if (savedAddress) setSelectedAddress(savedAddress);
-    }, []);
+        if (typeof window !== 'undefined') {
+            const savedAddress = localStorage.getItem('selectedAddressId');
+            if (savedAddress) setSelectedAddress(savedAddress);
+        }
+    }, [isBrowser]);
 
     const [isFormChecked, setIsFormChecked] = useState(false);
 
     // Miktar artırma
     const increaseFunc = (productId: string) => {
+        if (!isBrowser) return;
+        
         setCartPrdcts(prevCart => {
             const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity < 10
                     ? { ...prd, quantity: prd.quantity + 1 }
                     : prd
             );
-            localStorage.setItem('Cart', JSON.stringify(updatedCart));
+            
+            // localStorage'a güvenli erişim
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('Cart', JSON.stringify(updatedCart));
+            }
+            
             return updatedCart;
         });
     };
 
     // Miktar azaltma
     const decreaseFunc = (productId: string) => {
+        if (!isBrowser) return;
+        
         setCartPrdcts(prevCart => {
             const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity > 1
                     ? { ...prd, quantity: prd.quantity - 1 }
                     : prd
             );
-            localStorage.setItem('Cart', JSON.stringify(updatedCart));
+            
+            // localStorage'a güvenli erişim
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('Cart', JSON.stringify(updatedCart));
+            }
+            
             return updatedCart;
         });
     };
@@ -141,6 +178,8 @@ const CartClient = () => {
     // Kupon bilgisi
     const [discountInfo, setDiscountInfo] = useState<{ amount: number; type: 'PERCENTAGE' | 'FIXED'; value: number }>({ amount: 0, type: 'FIXED', value: 0 });
     const handleCouponApply = async () => {
+        if (!isBrowser) return;
+        
         try {
             const response = await fetch('/api/validate-coupon', {
                 method: 'POST',
@@ -157,6 +196,15 @@ const CartClient = () => {
             toast.error(error.message);
         }
     };
+
+    // Eğer sunucu tarafında render ediliyorsa basit bir yükleniyor göster
+    if (!isBrowser) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">Yükleniyor...</div>
+            </div>
+        );
+    }
 
     if (cartPrdcts.length === 0) {
         return (
@@ -267,7 +315,11 @@ const CartClient = () => {
                                                 checked={selectedAddress === address.id}
                                                 onChange={() => {
                                                     setSelectedAddress(address.id);
-                                                    localStorage.setItem('selectedAddressId', address.id);
+                                                    
+                                                    // localStorage'a güvenli erişim
+                                                    if (typeof window !== 'undefined') {
+                                                        localStorage.setItem('selectedAddressId', address.id);
+                                                    }
                                                 }}
                                             />
                                             <span className="font-bold mr-1">{address.title} </span>
