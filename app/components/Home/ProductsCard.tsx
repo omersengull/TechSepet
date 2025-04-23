@@ -59,7 +59,7 @@ const ProductsCard = ({ product, onMouseEnter,
         fetchReviews();
     }, [product.id]);
 
-   
+
 
     useEffect(() => {
         let isMounted = true;
@@ -134,11 +134,11 @@ const ProductsCard = ({ product, onMouseEnter,
     const [isPopped, setIsPopped] = useState(false);
 
     const handleClick = () => {
-      setIsPopped(true);
-  
-      setTimeout(() => {
-        setIsPopped(false);
-      }, 1000); // 1 saniye sonra ikonu geri sıfırla
+        setIsPopped(true);
+
+        setTimeout(() => {
+            setIsPopped(false);
+        }, 1000); // 1 saniye sonra ikonu geri sıfırla
     };
     return (
         <div onMouseEnter={onMouseEnter}
@@ -196,8 +196,9 @@ const ProductsCard = ({ product, onMouseEnter,
 
                 <button
                     onClick={(e) => {
-                        handleClick();
                         e.stopPropagation();
+
+                        // 1. handleClick'i kaldırın veya addToBasket ile birleştirin
                         addToBasket({
                             id: product.id,
                             name: product.name,
@@ -205,14 +206,12 @@ const ProductsCard = ({ product, onMouseEnter,
                             price: product.price,
                             quantity: 1,
                             image: product.image,
-                            inStock: product.inStock
+                            stock:product.stock
                         });
-
                     }}
                     className="w-full addToCartBtn py-2 text-sm sm:text-base bg-renk1 text-white rounded-md relative overflow-hidden"
                 >
-                    <BsCartFill className="cart absolute"/>
-                   
+                    <BsCartFill className="cart absolute" />
                     <span>Sepete Ekle</span>
                 </button>
 

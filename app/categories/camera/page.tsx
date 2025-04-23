@@ -1,25 +1,46 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Heading from "@/app/components/General/Heading";
-import { ProductsData } from "@/app/utils/ProductsData";
 import ProductsCard from "@/app/components/Home/ProductsCard";
 
-const Page = () => {
-  const [hoveredProduct, setHoveredProduct] = useState<any>(null);
+interface Product {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  category: string;
+  // Gerekli diğer alanlar varsa ekleyebilirsin
+}
 
-  const handleMouseEnter = (product: any) => {
+const Page = () => {
+  const [hoveredProduct, setHoveredProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/product");
+        const data = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Ürünleri çekerken hata oluştu:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleMouseEnter = (product: Product) => {
     setHoveredProduct(product);
     console.log("Ürün üzerine gelindi:", product);
-    // İsteğe bağlı: Burada modal açma gibi işlemler yapılabilir.
   };
 
   const handleMouseLeave = () => {
     setHoveredProduct(null);
     console.log("Ürün üzerinden çıkıldı.");
-    // İsteğe bağlı: Modal kapatma işlemleri yapılabilir.
   };
 
-  const filteredProducts = ProductsData.filter((prd) => prd.category === "Kamera");
+  const filteredProducts = products.filter((prd) => prd.category === "Kamera");
 
   return (
     <div>

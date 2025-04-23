@@ -8,11 +8,13 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React from "react";
+type ProductWithCategory = Product & {
+    category?: { name: string };
+  };
 
-interface ManageClientProps {
-    products: Product[];
-}
-
+  interface ManageClientProps {
+    products: ProductWithCategory[];
+  }
 const ManageClient: React.FC<ManageClientProps> = ({ products }) => {
     const router = useRouter();
     let rows: any = [];
@@ -23,7 +25,7 @@ const ManageClient: React.FC<ManageClientProps> = ({ products }) => {
                 name: product.name,
                 price: product.price,
                 brand: product.brand,
-                inStock: product.inStock,
+                category: product.category?.name || "Kategori Yok",
                 image: product.image,
             };
         });
@@ -75,9 +77,11 @@ const ManageClient: React.FC<ManageClientProps> = ({ products }) => {
             await axios.delete(`/api/product/${productId}`);
             toast.success("Silme işlemi başarılı");
             router.refresh();
-        } catch (error) {
-            console.error("Silme hatası:", error);
-            toast.error("Silme işlemi sırasında bir hata oluştu.");
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message;
+            toast.error(`Silme hatası: ${errorMessage}`);
+        } finally {
+            toast.dismiss();
         }
     }, [router]);
 

@@ -8,7 +8,9 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+
   return (
+  
     <SessionProvider>
       <ThemeProvider>
         <SpinnerProvider>
@@ -25,5 +27,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         </SpinnerProvider>
       </ThemeProvider>
     </SessionProvider>
+
   );
 }

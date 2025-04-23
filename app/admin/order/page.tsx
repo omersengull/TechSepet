@@ -5,10 +5,10 @@ import React, { useEffect, useState } from "react";
 interface Item {
   id: string;
   name: string;
-  description: string;
   price: number;
   quantity: number;
   image: string;
+  description: string;
   inStock: boolean;
 }
 
@@ -17,7 +17,7 @@ interface Order {
   userId: string;
   items: string; // JSON string
   totalPrice: number;
-  createdAt: string; // ISO 8601 formatında tarih
+  createdAt: string;
 }
 
 const OrderComponent = () => {
@@ -42,6 +42,31 @@ const OrderComponent = () => {
 
     fetchOrders();
   }, []);
+  const parseOrderItems = (itemsData: any): Item[] => {
+    try {
+      // İlk katmanı parse et: "[\"[{\\"...}\"]" -> ["{\\"...}"]
+      
+      if (typeof itemsData === 'string') {
+        itemsData = JSON.parse(itemsData);
+      }
+      if (!Array.isArray(itemsData)) {
+        itemsData = [itemsData];
+      }
+      return itemsData.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        description: item.description || "",
+        inStock: item.inStock !== false
+      }));
+  
+    } catch (error) {
+      console.error("Outer parse error:", error);
+      return [];
+    }
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -49,26 +74,11 @@ const OrderComponent = () => {
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       <div className="flex flex-col gap-6">
         {orders.map((order) => {
-          let parsedItems: Item[] = [];
-          if (order.items) {
-            // Eğer order.items zaten bir array ise, parse işlemine gerek yok:
-            if (Array.isArray(order.items)) {
-              parsedItems = order.items;
-            } 
-            // Eğer stringse, JSON.parse işlemi yap:
-            else if (typeof order.items === "string") {
-              try {
-                const parsed = JSON.parse(order.items);
-                // Eğer parsed değeri array ise ata, değilse boş dizi ata:
-                parsedItems = Array.isArray(parsed) ? parsed : [];
-              } catch (error) {
-                console.error("Error parsing items for Order ID:", order.id, error);
-                parsedItems = [];
-              }
-            }
-          }
-          
-          
+          const parsedItems = parseOrderItems(order.items);
+
+
+
+
 
           return (
             <div
@@ -76,20 +86,31 @@ const OrderComponent = () => {
               className="rounded-xl border border-renk1 w-full flex flex-col md:flex-row p-4 shadow-md hover:shadow-lg transition-shadow"
             >
               {/* Sipariş ve Müşteri Bilgisi */}
-              <div className="md:w-1/4 mb-4 md:mb-0">
-                <div className="font-semibold text-lg mb-2">Sipariş No: {order.id}</div>
-                <div className="text-sm text-gray-600">Müşteri No: {order.userId}</div>
-              </div>
-              {/* Ürün Listesi */}
               <div className="md:w-1/2 mb-4 md:mb-0">
                 <strong className="block text-lg mb-2">Ürünler:</strong>
-                {Array.isArray(parsedItems) && parsedItems.length > 0 ? (
+                {parsedItems.length > 0 ? (
                   <ul className="space-y-2">
                     {parsedItems.map((item, index) => (
-                      <li key={index} className="p-2 border border-gray-200 rounded-md">
-                        <div className="text-md font-medium">{item.name}</div>
-                        <div className="text-sm">Fiyat: {priceClip(item.price)} ₺</div>
-                        <div className="text-sm">Adet: {item.quantity}</div>
+                      <li
+                        key={item.id ? item.id : `fallback-${index}`}
+                        className="p-2 border border-gray-200 rounded-md"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/default-product.png";
+                            }}
+                          />
+                          <div>
+                            <div className="text-md font-medium">{item.name}</div>
+                            <div className="text-sm">
+                              Fiyat: {priceClip(item.price)} ₺ × {item.quantity} adet
+                            </div>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>

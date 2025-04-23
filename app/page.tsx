@@ -8,12 +8,12 @@ export default function Home() {
 
   return (
     <SessionProvider>
-      
-        <Slider/>
+
+      <Slider />
       <Products />
-     
-      
-      
+
+
+
     </SessionProvider>
   );
 }

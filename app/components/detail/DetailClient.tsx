@@ -32,7 +32,7 @@ export type CardProductProps = {
   price: string;
   quantity: number;
   image: string;
-  inStock: boolean;
+  stock: number;
 };
 
 interface User {
@@ -189,7 +189,43 @@ const DetailClient = ({ product }: { product: any }) => {
     };
     fetchReviews();
   }, [product.id]);
+  const [currentProduct, setCurrentProduct] = useState(product);
 
+  useEffect(() => {
+    const fetchStock = async () => {
+      try {
+        const res = await fetch(`/api/product/${product.id}`);
+        const data = await res.json();
+        setCurrentProduct(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Stok durumu güncellenirken hata:", error);
+        setLoading(false);
+      }
+    };
+
+    // İlk stok verisini çek
+    fetchStock();
+
+    // 5 saniyede bir güncelleme için interval
+    const interval = setInterval(fetchStock, 5000);
+
+    return () => clearInterval(interval);
+  }, [product.id]);
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/product/${product.id}`);
+        const data = await res.json();
+        setCurrentProduct(data);
+      } catch (error) {
+        console.error("Stok durumu güncellenirken hata:", error);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [product.id]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { addToBasket } = useCart();
   const [isFeaturesVisible, setIsFeaturesVisible] = useState(false);
@@ -205,7 +241,7 @@ const DetailClient = ({ product }: { product: any }) => {
     price: product.price,
     quantity: 1,
     image: product.image,
-    inStock: product.inStock,
+    stock: product.stock,
   });
 
   const increaseFunc = () => {
@@ -225,7 +261,7 @@ const DetailClient = ({ product }: { product: any }) => {
 
   // renderProductFeatures fonksiyonunda yapılacak değişiklikler
   const renderProductFeatures = () => {
-    
+
     // 1. API'den gelen specifications verisini kontrol et
     console.log("Ürün özellikleri:", product.specifications);
 
@@ -328,12 +364,18 @@ const DetailClient = ({ product }: { product: any }) => {
           <div className="flex mr-10 mt-10 flex-col md:w-2/6 w-full ">
             <div className="font-bold text-5xl">₺ {priceClip(product.price)}</div>
             <div className="mt-6 mb-6 text-xl">
-              Stok Durumu :{" "}
-              {product.inStock ? (
-                <span className="text-green-500 ml-1">Ürün Stokta Mevcut</span>
-              ) : (
-                <span className="text-red-500">Ürün Stokta Yok</span>
-              )}
+              <div className="flex items-center mt-4">
+                <span className="text-gray-600 mr-2">Stok durumu:</span>
+                {loading ? (
+                  <div className="w-40 h-5 bg-gray-300 animate-pulse rounded"></div>
+                ) : currentProduct?.stock > 0 ? (
+                  <span className="text-green-500 font-semibold">
+                    Stokta mevcut
+                  </span>
+                ) : (
+                  <span className="text-red-500 font-semibold">Stokta yok</span>
+                )}
+              </div>{/*  */}
             </div>
             <div className="mb-7">
               <Counter cardProduct={cardProduct} increaseFunc={increaseFunc} decreaseFunc={decreaseFunc} />

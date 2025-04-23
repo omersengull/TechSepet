@@ -18,7 +18,7 @@ const ProductRecommendationCard = ({ productId, product }: { productId: any, pro
             price: product.price,
             quantity: 1,
             image: product.image,
-            inStock: product.inStock
+            stock:product.stock,
         });
     const productRating =
         product?.reviews?.reduce((acc: number, item: any) => acc + item.rating, 0) /

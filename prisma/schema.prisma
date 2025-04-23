@@ -39,7 +39,6 @@ model Product {
   id             String                 @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   description    String?
-  inStock        Boolean
   image          String
   price          Float
   brand          String
@@ -49,6 +48,23 @@ model Product {
   specifications ProductSpecification[]
   reviews        Review[] // EKLENDİ: Ürünün yorumları
   favoritedBy    Favorite[]
+  stock       Int     @default(0)
+}
+
+model Coupon {
+   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  code          String   @unique
+  discountType  String   @default("FIXED")
+  discountValue Float
+  maxDiscount   Float?
+  validFrom     DateTime @default(now())
+  validUntil    DateTime
+  isSingleUse   Boolean  @default(false)
+  usedCount     Int      @default(0)
+  isActive      Boolean  @default(true)
+  // İli
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Category {
@@ -64,7 +80,8 @@ model Specification {
   category              Category               @relation(fields: [categoryId], references: [id])
   categoryId            String                 @db.ObjectId
   productSpecifications ProductSpecification[]
- @@unique([name, categoryId], name: "name_categoryId")
+
+  @@unique([name, categoryId], name: "name_categoryId")
 }
 
 model ProductSpecification {
@@ -73,7 +90,8 @@ model ProductSpecification {
   productId       String        @db.ObjectId
   specification   Specification @relation(fields: [specificationId], references: [id])
   specificationId String        @db.ObjectId
-  value           String 
+  value           String
+
   @@unique([productId, specificationId], name: "product_specification_unique")
 }
 
@@ -111,7 +129,7 @@ model User {
   resetToken              String? // Şifre sıfırlama token'ı
   resetTokenExpiry        DateTime?
   verificationToken       String? // Doğrulama token'ı, isteğe bağlı
-  verificationTokenExpiry DateTime? // Token geçerlilik süresi, isteğe bağlı
+  verificationTokenExpiry DateTime? // Token geçerlilik süresi, isteğe bağl
 }
 
 model Favorite {

@@ -1,12 +1,20 @@
 "use client"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import React from 'react'
 import Heading from '@/app/components/General/Heading'
-import { ProductsData } from '@/app/utils/ProductsData'
 import ProductsCard from '@/app/components/Home/ProductsCard'
+
+interface Product {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  category: string;
+
+}
 const page = () => {
     const [hoveredProduct, setHoveredProduct] = useState<any>(null);
-    
+      const [products, setProducts] = useState<Product[]>([]);
       const handleMouseEnter = (product: any) => {
         setHoveredProduct(product);
         console.log("Ürün üzerine gelindi:", product);
@@ -18,7 +26,20 @@ const page = () => {
         console.log("Ürün üzerinden çıkıldı.");
         // İsteğe bağlı: Modal kapatma işlemleri yapılabilir.
       };
-    const filteredProducts = ProductsData.filter(prd => prd.category === "Kulaklık")
+      useEffect(() => {
+          const fetchProducts = async () => {
+            try {
+              const res = await fetch("/api/product");
+              const data = await res.json();
+              setProducts(data);
+            } catch (error) {
+              console.error("Ürünleri çekerken hata oluştu:", error);
+            }
+          };
+      
+          fetchProducts();
+        }, []);
+    const filteredProducts =products.filter(prd => prd.category === "Kulaklık")
     return (
         <div>
             <Heading text='Kulaklıklar' />

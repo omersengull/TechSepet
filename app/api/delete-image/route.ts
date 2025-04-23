@@ -15,17 +15,23 @@ export async function POST(request: Request) {
     const { imageUrl } = await request.json();
     
     // URL'den dosya adını çıkar (örnek: "https://storage.googleapis.com/techsepet1/images/Adsız.png")
-    const fileName = imageUrl.split("/images/")[1]; // "Adsız.png"
+    const fileNamePart = imageUrl.split("/images/")[1]?.split("?")[0]; // "Adsız.png"
 
-    if (!fileName) {
+    if (!fileNamePart) {
       return NextResponse.json(
         { error: "Geçersiz dosya adı" },
         { status: 400 }
       );
     }
-
+    const fileName = decodeURIComponent(fileNamePart);
     const file = bucket.file(`images/${fileName}`);
-    await file.delete();
+    await file.delete().catch(error => {
+      if (error.code === 404) {
+        console.log("Dosya zaten silinmiş, devam ediliyor");
+        return; // 404 hatasını görmezden gel
+      }
+      throw error;
+    });;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

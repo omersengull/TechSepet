@@ -10,17 +10,19 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
         specifications: {
           include: {
-            specification: true,  // ✅ Özellik adını da alıyoruz
+            specification: true, 
           },
         },
         reviews: true,
+        category:true
       },
     });
     console.log("Product Data:", product);
     if (!product) {
       return NextResponse.json({ error: "Ürün bulunamadı." }, { status: 404 });
     }
-
+    const headers = new Headers();
+    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     return NextResponse.json(product);
   } catch (error) {
     console.error("Hata:", error);
@@ -30,6 +32,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   // Kullanıcı doğrulama
   const currentUser = await getCurrentUser();
+
+  
   if (!currentUser) {
     return new NextResponse("Kullanıcı oturum açmamış.", { status: 401 });
   }
@@ -38,31 +42,50 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 
   // Parametre kontrolü
-  if (!params || !params.id) {
+  if (!params?.id) {
     return new NextResponse("Geçersiz parametre.", { status: 400 });
   }
 
   try {
-    const product = await prisma.$transaction(async (tx) => {
-      // 1. Resmi Google Cloud'dan sil
-      if (product.image) {
-        await axios.post("/api/delete-image", { imageUrl: product.image });
+    await prisma.$transaction(async (tx) => {
+      // 1. Ürünü bul
+      const product = await tx.product.findUnique({
+        where: { id: params.id },
+      });
+
+      if (!product) {
+        throw new Error("Ürün bulunamadı");
       }
 
-      // 2. Ürün özelliklerini sil
+      // 2. Resmi sil (varsa)
+      if (product.image) {
+        const baseUrl=process.env.NEXTAUTH_URL || "http://localhost:3000";
+        await axios.post(`${baseUrl}/api/delete-image`, { imageUrl: product.image });
+      }
+
+      // 3. İlişkili özellikleri sil
       await tx.productSpecification.deleteMany({
         where: { productId: params.id },
       });
 
-      // 3. Ürünü sil
-      return await tx.product.delete({
+      // 4. Ürünü sil
+      await tx.product.delete({
         where: { id: params.id },
       });
     });
-
-    return NextResponse.json(product);
-  } catch (error) {
-    // Veritabanı hatası
-    return new NextResponse("Ürün silinemedi", { status: 500 });
+    
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("DELETE Hatası:", error);
+  
+    let errorMessage = "Ürün silinemedi";
+    if (error instanceof Error) {
+      errorMessage += `: ${error.message}`;
+    }
+    
+    return new NextResponse(errorMessage, { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' } // JSON response için
+    });
   }
 }

@@ -51,7 +51,7 @@ const CreateForm = () => {
       category: "",
       price: "",
       img: "",
-      inStock: false,
+      stock: "",
     },
   });
 
@@ -179,10 +179,12 @@ const CreateForm = () => {
           errors={errors}
           required
         />
-        <CheckBox
+        <Input
+        type="number"
+        errors={errors}
           register={register}
-          id="inStock"
-          label="Ürün stokta mevcut mu?"
+          id="stock"
+          placeholder="Ürün Stoğu"
         />
 
         <div className="flex flex-wrap gap-3 my-3">

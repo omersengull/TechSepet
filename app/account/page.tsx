@@ -25,7 +25,7 @@ const Page = () => {
           emailVerified: fetchedUser.emailVerified,
           hashedPassword: "", // Hassas veriler boş bırakıldı
           verificationToken:fetchedUser.verificationToken,
-          verificationTokenExpiry:fetchedUser.verificationTokenExpiry
+          verificationTokenExpiry:fetchedUser.verificationTokenExpiry,
         });
       }
     };

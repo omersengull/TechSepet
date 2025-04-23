@@ -16,16 +16,54 @@ import axios from "axios";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
 
 const CartClient = () => {
+    // Hook'tan gelen cartPrdcts her zaman array olarak kullanılsın
+    const {
+        cartPrdcts: rawCartPrdcts,
+        setCartPrdcts,
+        deleteCart,
+        deleteThisPrdct
+    } = useCart();
+    // Null veya undefined durumlarında boş dizi
+    const cartPrdcts = rawCartPrdcts ?? [];
+
+    const [couponError, setCouponError] = useState('');
     const router = useRouter();
-    const handleCardClick = (id) => {
+    const handleCardClick = (id: string) => {
         router.push(`/product/${id}`);
     };
 
-    const [addresses, setAddresses] = useState([]);
+    const [addresses, setAddresses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [stocksLoading, setStocksLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [currentStocks, setCurrentStocks] = useState<{ [key: string]: number }>({});
 
-    // Kullanıcıyı çekiyoruz.
+    // Stok bilgilerini çekme
+    useEffect(() => {
+        const fetchCurrentStocks = async () => {
+            setStocksLoading(true);
+            const stockData: { [key: string]: number } = {};
+            for (const product of cartPrdcts) {
+                try {
+                    const response = await axios.get(`/api/product/${product.id}`);
+                    stockData[product.id] = response.data.stock;
+                } catch (error) {
+                    console.error("Stok bilgisi alınamadı:", error);
+                    stockData[product.id] = 0;
+                }
+            }
+            setCurrentStocks(stockData);
+            setStocksLoading(false);
+        };
+
+        if (cartPrdcts.length > 0) {
+            fetchCurrentStocks();
+        } else {
+            setStocksLoading(false);
+        }
+    }, [cartPrdcts]);
+
+    // Kullanıcı bilgisi
     useEffect(() => {
         const fetchUser = async () => {
             const user = await getCurrentUser();
@@ -34,53 +72,50 @@ const CartClient = () => {
         fetchUser();
     }, []);
 
-    // currentUser değiştiğinde adresleri tekrar çekiyoruz.
-    // currentUser değiştiğinde adresleri tekrar çekiyoruz.
+    const [couponCode, setCouponCode] = useState('');
     useEffect(() => {
         if (!currentUser) return;
         const fetchAddresses = async () => {
             try {
                 const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
-                console.log("API'den dönen adresler:", response.data.addresses);
                 setAddresses(response.data.addresses);
             } catch (error) {
                 console.error("Adresler yüklenirken hata oluştu:", error);
             } finally {
-                // API çağrısı tamamlandığında loading'i kapatıyoruz.
                 setLoading(false);
             }
         };
-
         fetchAddresses();
     }, [currentUser]);
 
-    useEffect(() => {
-        console.log("setAddresses sonrası güncel değer:", addresses);
-        console.log("addresses bir dizi mi?:", Array.isArray(addresses));
-    }, [addresses]);
-
-    // Spinner için ek state
+    // Ödeme yönlendirme durumu
     const [isRedirecting, setIsRedirecting] = useState(false);
     const handlePayment = () => {
-        if (selectedAddress && isFormChecked) {  // ✅ Ek kontrol
-            setIsRedirecting(true);
-            // 3 saniyelik gecikmeden sonra yönlendirme
-            setTimeout(() => {
-                router.push('/payment');
-            }, 3000);
+        const storedAddress = localStorage.getItem('selectedAddressId');
+        if (!storedAddress || !isFormChecked) {
+            toast.error("Lütfen adres seçin ve formu onaylayın");
+            return;
         }
-    }
+        setIsRedirecting(true);
+        router.push(`/payment?address=${encodeURIComponent(storedAddress)}&ts=${Date.now()}`);
+    };
+
     const [isOpen, setIsOpen] = useState(false);
     const togglePopup = () => { setIsOpen(!isOpen); };
-    const [chc, SwapChc] = useState(false)
-    const [selectedAddress, setSelectedAddress] = useState(null); // ✅ Seçili adres için state
-    const [isFormChecked, setIsFormChecked] = useState(false);
-    const { cartPrdcts, setCartPrdcts, deleteCart, deleteThisPrdct } = useCart();
+    const [selectedAddress, setSelectedAddress] = useState<string | null>(() => {
+        return localStorage.getItem('selectedAddressId');
+    });
+    useEffect(() => {
+        const savedAddress = localStorage.getItem('selectedAddressId');
+        if (savedAddress) setSelectedAddress(savedAddress);
+    }, []);
 
+    const [isFormChecked, setIsFormChecked] = useState(false);
+
+    // Miktar artırma
     const increaseFunc = (productId: string) => {
         setCartPrdcts(prevCart => {
-            if (!prevCart) return [];
-            const updatedCart = prevCart.map(prd =>
+            const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity < 10
                     ? { ...prd, quantity: prd.quantity + 1 }
                     : prd
@@ -90,10 +125,10 @@ const CartClient = () => {
         });
     };
 
+    // Miktar azaltma
     const decreaseFunc = (productId: string) => {
         setCartPrdcts(prevCart => {
-            if (!prevCart) return [];
-            const updatedCart = prevCart.map(prd =>
+            const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity > 1
                     ? { ...prd, quantity: prd.quantity - 1 }
                     : prd
@@ -103,29 +138,46 @@ const CartClient = () => {
         });
     };
 
-    if (!cartPrdcts || cartPrdcts.length === 0) {
+    // Kupon bilgisi
+    const [discountInfo, setDiscountInfo] = useState<{ amount: number; type: 'PERCENTAGE' | 'FIXED'; value: number }>({ amount: 0, type: 'FIXED', value: 0 });
+    const handleCouponApply = async () => {
+        try {
+            const response = await fetch('/api/validate-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: couponCode, totalAmount: totalPrice })
+            });
+            const data = await response.json();
+            if (data.discount <= 0) throw new Error("Geçersiz indirim tutarı");
+            if (!response.ok) throw new Error(data.error);
+            setDiscountInfo({ amount: data.discount, type: data.discountType, value: data.discountValue });
+        } catch (error: any) {
+            console.error('Kupon uygulama hatası:', error);
+            setDiscountInfo({ amount: 0, type: 'FIXED', value: 0 });
+            toast.error(error.message);
+        }
+    };
+
+    if (cartPrdcts.length === 0) {
         return (
             <div className="flex flex-col items-center min-h-screen">
                 <div className="mt-24">
-                    <img src="https://media.istockphoto.com/id/1353254084/vector/1401-i012-025-p-m001-c20-woman-accessories.jpg?s=612x612&w=0&k=20&c=Fqp5ckKD3HMmcybXsRlsNqD55rQrF1xu0uPdia2MAPQ=" alt="" width={150} />
+                    <img src="https://media.istockphoto.com/id/1353254084/vector/1401-i012-025-p-m001-c20-woman-accessories.jpg" alt="" width={150} />
                 </div>
-                <div className="font-bold text-2xl mb-5">
-                    Sepete Ekle
-                </div>
+                <div className="font-bold text-2xl mb-5">Sepete Ekle</div>
                 <div className="mb-8">Alışveriş sepetinizde hiç ürün yok.</div>
-                <button className="bg-renk1 text-white px-28 py-4 rounded-xl" onClick={() => { router.push('/') }} >Alışverişe devam et </button>
+                <button className="bg-renk1 text-white px-28 py-4 rounded-xl" onClick={() => router.push('/')}>Alışverişe devam et</button>
             </div>
         );
     }
 
+    // Toplam hesaplama
     let totalPrice = 0;
-    cartPrdcts.forEach(prd => {
-        totalPrice += Number(prd.price) * prd.quantity;
-    });
-
+    cartPrdcts.forEach(prd => { totalPrice += Number(prd.price) * prd.quantity; });
     return (
         <div className="min-h-screen">
             {/* Yönlendirme sırasında gösterilecek spinner ve mesaj */}
+            
             {isRedirecting && (
                 <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
                     <div className="animate-spin border-4 border-t-4 border-gray-200 rounded-full w-16 h-16"></div>
@@ -159,7 +211,7 @@ const CartClient = () => {
                 <div className="flex flex-col md:flex-row justify-center mx-8 md:mx-32">
                     <div className="flex-col md:w-2/3 md:mr-16">
                         {cartPrdcts.map(prd => (
-                            <div onClick={()=>{handleCardClick(prd.id)}} key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none cursor-pointer rounded-xl">
+                            <div onClick={() => { handleCardClick(prd.id) }} key={prd.id} className="flex flex-row items-center space-x-4 mb-4 border p-8 outline-none cursor-pointer rounded-xl">
                                 <div className="flex-col md:min-w-40 min-w-24">
                                     <Image alt="" src={prd.image} width={150} height={150} />
                                 </div>
@@ -172,14 +224,16 @@ const CartClient = () => {
                                         <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-2xl ml-16" />
                                     </div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
-                                    {prd.inStock ? (
-                                        <div className="flex items-center">
-                                            <span className="w-[10px] h-[10px] mr-2 bg-green-600 rounded-full"></span>
+                                    {stocksLoading ? (
+                                        <div className="animate-pulse h-4 bg-gray-300 rounded w-20 my-1" />
+                                    ) : currentStocks[prd.id] > 0 ? (
+                                        <div className="flex items-center text-green-600">
+                                            <span className="w-2 h-2 mr-2 bg-green-600 rounded-full" />
                                             Stokta var
                                         </div>
                                     ) : (
-                                        <div className="flex items-center">
-                                            <span className="w-[10px] h-[10px] mr-2 bg-red-600 rounded-full"></span>
+                                        <div className="flex items-center text-red-600">
+                                            <span className="w-2 h-2 mr-2 bg-red-600 rounded-full" />
                                             Stokta yok
                                         </div>
                                     )}
@@ -210,7 +264,7 @@ const CartClient = () => {
                                                 className="mr-2"
                                                 type="radio"
                                                 name="selectedAddress"
-                                                value={address.id}
+                                                checked={selectedAddress === address.id}
                                                 onChange={() => {
                                                     setSelectedAddress(address.id);
                                                     localStorage.setItem('selectedAddressId', address.id);
@@ -221,19 +275,50 @@ const CartClient = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <div>Adres bulunamadı</div>
+                                    <div>Adres bulunamadı.Adres eklemek için <a className="hover:text-blue-500" href="/account/addresses"> buraya</a> tıklayınız</div>
                                 )}
                             </div>
                         </div>
-
+                        <div className="rounded-xl border outline-none bg-gray-100 flex flex-col py-4 px-5 text-lg mb-5">
+                            <div className="flex justify-between items-center">
+                                <label htmlFor="couponCode" className="font-bold mb-2">İndirim Kuponu</label>
+                                <button
+                                    className="text-sm bg-renk1 text-white px-7 py-3 rounded-lg"
+                                    onClick={handleCouponApply}
+                                >
+                                    Uygula
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                id="couponCode"
+                                placeholder="Kupon kodunuzu giriniz"
+                                className="bg-transparent border-none focus:ring-0 p-0 text-base placeholder-gray-500"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            />
+                        </div>
                         <div className="rounded-xl border outline-none bg-gray-100 flex flex-col py-4 px-5 text-lg">
                             <div className="font-bold">Özet</div>
-                            <div className="text-xs mt-1 mb-4">İndirim kodları ödeme adımında eklenebilir.</div>
+
                             <hr />
                             <div className="mt-5 flex justify-between">
                                 <div>Ara Toplam</div>
                                 <div className="font-bold">₺ {priceClip(totalPrice)}</div>
                             </div>
+
+                            {discountInfo.amount > 0 && (
+                                <div className="mt-2 flex justify-between text-green-600">
+                                    <div>
+                                        İndirim ({discountInfo.type === 'PERCENTAGE'
+                                            ? `${discountInfo.value}%`
+                                            : `₺${priceClip(discountInfo.value)}`}
+                                        )
+                                    </div>
+                                    <div className="font-bold">-₺ {priceClip(discountInfo.amount)}</div>
+                                </div>
+                            )}
+
                             <div className="mt-5 mb-5 flex flex-row items-center">
                                 <span className="mr-1">Kargo</span>
                                 <div onClick={togglePopup} className="cursor-pointer">
@@ -248,7 +333,10 @@ const CartClient = () => {
                                 <div className="flex flex-row justify-between">
                                     <div className="font-bold">Toplam</div>
                                     <div className="font-bold">
-                                        {totalPrice > 1000 ? `₺ ${priceClip(totalPrice)}` : `₺ ${(totalPrice) + 39}`}
+                                        {totalPrice > 1000
+                                            ? `₺ ${priceClip(totalPrice - discountInfo.amount)}`
+                                            : `₺ ${priceClip((totalPrice + 39) - discountInfo.amount)}`
+                                        }
                                     </div>
                                 </div>
                                 <div className="text-sm">KDV Dahildir</div>

@@ -13,11 +13,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, brand, category, price, inStock, image, specifications } = body;
+    const { name, description, brand, category, price, stock, image, specifications } = body;
 
     // Zorunlu alanların kontrolüconsole.log("Gelen istek gövdesi:", body);
-    if (!name || !brand || !category || !price || inStock === undefined || !image) {
-      console.error("Eksik alanlar:", { name, brand, category, price, inStock, image });
+    if (!name || !brand || !category || !price || stock === undefined || !image) {
+      console.error("Eksik alanlar:", { name, brand, category, price, stock, image });
       return NextResponse.json({ error: "Eksik alanlar var" }, { status: 400 });
     }
     
@@ -38,9 +38,9 @@ export async function POST(request: Request) {
         name,
         description,
         brand,
+        stock: Number(stock),
         category: { connect: { id: categoryRecord.id } },
         price: priceNumber,
-        inStock,
         image,
         createdAt: new Date(),
       },
@@ -88,16 +88,23 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
-      include: {
-        reviews: true,
+      select: { // ✅ Tüm alanları select içinde belirtin
+        stock: true,
+        id: true,
+        name: true,
+        description: true,
+        brand: true,
+        price: true,
+        image: true,
         category: true,
+        reviews: true,
         specifications: {
-          include: {
-            specification: true, // Özellik isimlerini de döndür
-
-          },
-        },
-      },
+          select: {
+            specification: true,
+            value: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(products, {

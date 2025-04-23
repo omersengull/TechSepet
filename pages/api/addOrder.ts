@@ -1,6 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from "@/libs/prismadb";
 
+interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  amount: number;
+  image: string;
+}
+
+interface ProcessedItem extends OrderItem {
+  originalStock: number;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
@@ -8,59 +20,143 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { userId, addressId, items, totalPrice } = req.body;
+    const { userId, addressId, items: rawItems } = req.body;
 
-    // Eksik alanları kontrol et
-    if (!userId || !addressId || !items || !totalPrice) {
-      return res.status(400).json({ success: false, message: "Eksik alanlar var." });
+    if (!userId || !addressId || !rawItems) {
+      return res.status(400).json({
+        success: false,
+        message: "Eksik alanlar: userId, addressId, items"
+      });
     }
 
-    // Adres bilgilerini veritabanından çekiyoruz
+    let processedItems: ProcessedItem[] = [];
+    let calculatedTotal = 0;
+
+    try {
+      const initialItems = typeof rawItems === 'string' ? JSON.parse(rawItems) : rawItems;
+      
+      if (!Array.isArray(initialItems)) {
+        throw new Error("Ürün listesi dizi formatında olmalı");
+      }
+
+      // 1. Aşama: Stok Kontrolü ve Veri İşleme
+      processedItems = await Promise.all(
+        initialItems.map(async (item: any) => {
+          if (!item?.productId || !item?.amount) {
+            throw new Error("Geçersiz ürün formatı");
+          }
+
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+            select: { 
+              id: true, 
+              name: true, 
+              price: true, 
+              stock: true, 
+              image: true
+            }
+          });
+
+          if (!product) {
+            throw new Error(`Ürün bulunamadı: ${item.productId}`);
+          }
+
+          if (product.stock < item.amount) {
+            throw new Error(`Yetersiz stok: ${product.name}`);
+          }
+
+          return {
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            amount: item.amount,
+            image: product.image,
+            originalStock: product.stock
+          };
+        })
+      );
+
+      calculatedTotal = processedItems.reduce((sum, item) => sum + (item.price * item.amount), 0);
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: "Geçersiz veri",
+        error: error.message
+      });
+    }
+
     const address = await prisma.address.findUnique({
-      where: { id: addressId },
+      where: { id: addressId }
     });
 
     if (!address) {
-      return res.status(404).json({ success: false, message: "Adres bulunamadı." });
+      return res.status(404).json({
+        success: false,
+        message: "Adres bulunamadı"
+      });
     }
 
-    // Siparişi oluşturuyoruz
-    const newOrder = await prisma.order.create({
-      data: {
-        userId,
-        addressId,
-        items: Array.isArray(items) 
-      ? JSON.stringify(items) 
-      : JSON.stringify([items]),
-        totalPrice: parseFloat(totalPrice),
-        addressInfo: { // ✅ Adres bilgilerini JSON olarak kaydediyoruz
-          title: address.title,
-          address: address.address,
-          city: address.city,
-          postalCode: address.postalCode,
-          
-        },
-      } as any, // TypeScript tipi bypass etmek için
-    });
+    const transaction = await prisma.$transaction(async (prisma) => {
+      // Stok Güncellemeleri
+      await Promise.all(
+        processedItems.map(async (item) => {
+          const updated = await prisma.product.update({
+            where: { 
+              id: item.productId
+            },
+            data: {
+              stock: { decrement: item.amount },
+             
+            }
+          });
 
-    // Kullanıcı ve adres bilgilerini ayrıca çekiyoruz
-    const orderWithDetails = await prisma.order.findUnique({
-      where: { id: newOrder.id },
-      include: {
-        user: true,   // Kullanıcı bilgilerini getir
-      },
-    });
+          if (updated.stock < 0) {
+            throw new Error(`Yetersiz stok: ${item.name}`);
+          }
+        })
+      );
+
+      // Sipariş Oluşturma
+      return prisma.order.create({
+        data: {
+          userId,
+          addressId,
+          items: JSON.stringify(processedItems.map(item => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price,
+            amount: item.amount,
+            image: item.image
+          }))),
+          totalPrice: calculatedTotal,
+          addressInfo: {
+            title: address.title,
+            address: address.address,
+            city: address.city,
+            postalCode: address.postalCode
+          }
+        },
+        include: {
+          user: true,
+          address: true
+        }
+      });
+    }, { timeout: 10000 });
 
     return res.status(201).json({
       success: true,
       order: {
-        ...orderWithDetails,
-        address, // ✅ Adres bilgisi manuel olarak ekleniyor
-      },
+        ...transaction,
+        items: processedItems,
+        address: transaction.address
+      }
     });
 
-  } catch (error) {
-    console.error('Sipariş eklenirken hata oluştu:', error);
-    return res.status(500).json({ success: false, message: 'Sipariş eklenemedi.', error: error.message });
+  } catch (error: any) {
+    console.error('Hata:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Beklenmeyen hata'
+    });
   }
 }
