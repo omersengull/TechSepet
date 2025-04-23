@@ -1,5 +1,5 @@
 // app/api/myOrders/route.ts (App Router örneği)
-// veya pages/api/myOrders.ts (Pages Router örneği)
+export const dynamic = "force-dynamic";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server"; // App Router kullanıyorsanız
 

@@ -6,6 +6,7 @@ import useCart from './hooks/useCart';
 import priceClip from './utils/priceClip';
 import { useSession } from "next-auth/react";
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js'; // Stripe için gerekli import
+import Document from 'next/document';
 import {
     CardNumberElement,
     CardExpiryElement,

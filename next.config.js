@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output:"standalone",
   staticPageGenerationTimeout:120,
   reactStrictMode: true,
   images: {
