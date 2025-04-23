@@ -13,6 +13,7 @@ import {
 } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
 type PaymentData = {
     userId: string;
@@ -20,6 +21,7 @@ type PaymentData = {
     totalPrice: number;
 };
 
+// Use dynamic import with ssr: false for the entire component
 const FormPayment = () => {
     const [addressId, setAddressId] = useState<string | null>(null);
     const { cartPrdcts, removeItemsFromCart, selectedAddressId } = useCart();
@@ -33,11 +35,11 @@ const FormPayment = () => {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isBrowser, setIsBrowser] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
-    // Tarayıcı ortamında olduğumuzu kontrol ediyoruz
+    // Use this instead of isBrowser to prevent hydration issues
     useEffect(() => {
-        setIsBrowser(true);
+        setIsMounted(true);
     }, []);
 
     useEffect(() => {
@@ -48,14 +50,16 @@ const FormPayment = () => {
     }, [status, router]);
 
     useEffect(() => {
+        if (!isMounted) return;
+
         let total = 0;
         cartPrdcts?.forEach(prd => {
             total += Number(prd.price) * prd.quantity;
         });
         setTotalPrice(total);
 
-        // ClientSecret'ı sadece tarayıcıda ve fiyat varsa al
-        if (isBrowser && total > 0) {
+        // Only fetch client secret on client-side and when total is available
+        if (total > 0) {
             const fetchClientSecret = async () => {
                 try {
                     const response = await fetch('/api/create-payment-intent', {
@@ -75,27 +79,21 @@ const FormPayment = () => {
 
             fetchClientSecret();
         }
-    }, [cartPrdcts, isBrowser]);
+    }, [cartPrdcts, isMounted]);
 
     useEffect(() => {
-        // Sadece tarayıcıda çalıştır
-        if (!isBrowser) return;
+        if (!isMounted) return;
 
-        // Oturum kontrolü
+        // Session check
         if (status === "unauthenticated") {
             toast.error("Ödeme yapmak için giriş yapmalısınız");
             router.push('/login');
             return;
         }
       
-        // Adres kontrolü
+        // Address check
         const urlAddressId = searchParams?.get('addressId');
-        
-        // localStorage'a sadece tarayıcıda eriş
-        const localAddressId = typeof window !== 'undefined' 
-            ? localStorage.getItem('selectedAddressId') 
-            : null;
-            
+        const localAddressId = localStorage.getItem('selectedAddressId');
         const finalAddressId = urlAddressId || localAddressId;
       
         if (!finalAddressId) {
@@ -105,26 +103,16 @@ const FormPayment = () => {
         }
       
         setAddressId(finalAddressId);
-        
-        // localStorage'a sadece tarayıcıda yaz
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('selectedAddressId', finalAddressId);
-        }
+        localStorage.setItem('selectedAddressId', finalAddressId);
       
-    }, [status, router, searchParams, isBrowser]);
+    }, [status, router, searchParams, isMounted]);
 
     useEffect(() => {
-        // Sadece tarayıcıda çalıştır
-        if (!isBrowser) return;
+        if (!isMounted) return;
 
         const checkAddress = () => {
-            // URL parametreleri ve localStorage erişimi sadece tarayıcıda yapılmalı
-            const urlParams = searchParams || new URLSearchParams('');
-            const urlAddressId = urlParams.get('addressId');
-            const storedAddressId = typeof window !== 'undefined' 
-                ? localStorage.getItem('selectedAddressId') 
-                : null;
-
+            const urlAddressId = searchParams?.get('addressId');
+            const storedAddressId = localStorage.getItem('selectedAddressId');
             const finalAddressId = urlAddressId || storedAddressId;
 
             if (!finalAddressId) {
@@ -137,7 +125,7 @@ const FormPayment = () => {
 
         const validAddressId = checkAddress();
         setAddressId(validAddressId);
-    }, [router, searchParams, isBrowser]);
+    }, [router, searchParams, isMounted]);
 
     useEffect(() => {
         const totalHesapla = () => {
@@ -152,8 +140,7 @@ const FormPayment = () => {
     }, [cartPrdcts]);
 
     useEffect(() => {
-        // Sadece tarayıcıda çalıştır ve gerekli veriler varsa
-        if (!isBrowser || !totalPrice || !session?.user?.id || !selectedAddressId) return;
+        if (!isMounted || !totalPrice || !session?.user?.id || !selectedAddressId) return;
 
         const clientSecretAl = async () => {
             try {
@@ -177,7 +164,7 @@ const FormPayment = () => {
         };
 
         clientSecretAl();
-    }, [totalPrice, session, selectedAddressId, isBrowser]);
+    }, [totalPrice, session, selectedAddressId, isMounted]);
 
     const handlePaymentSuccess = async (paymentData: PaymentData) => {
         if (!addressId || !userId) {
@@ -235,11 +222,7 @@ const FormPayment = () => {
             }
             
             const addressFromURL = searchParams?.get('address');
-            // localStorage'a güvenli erişim
-            const addressFromStorage = typeof window !== 'undefined' 
-                ? localStorage.getItem('selectedAddressId') 
-                : null;
-                
+            const addressFromStorage = localStorage.getItem('selectedAddressId');
             const finalAddress = addressFromURL || addressFromStorage;
             
             if (!finalAddress) {
@@ -294,8 +277,8 @@ const FormPayment = () => {
         }
     };
 
-    // Sunucu tarafı render sırasında sadece yükleniyor göster
-    if (!isBrowser) {
+    // Show loading or nothing during server-side rendering
+    if (!isMounted) {
         return <div className="h-screen flex items-center justify-center">Yükleniyor...</div>;
     }
 
@@ -384,4 +367,5 @@ const FormPayment = () => {
     );
 };
 
-export default FormPayment;
+// Export as a client-side only component using dynamic import
+export default dynamic(() => Promise.resolve(FormPayment), { ssr: false });
