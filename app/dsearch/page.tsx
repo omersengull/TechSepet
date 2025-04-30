@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import ProductsCard from "../components/Home/ProductsCard";
 import { Product } from "@prisma/client";
 import { ObjectId } from "bson";
-import { Product as PrismaProduct, Review } from "@prisma/client";
+import { Product as PrismaProduct, Review, Category as PrismaCategory } from "@prisma/client";
 interface Category {
   id: ObjectId;
   name: string;
 }
 export interface ProductWithReviews extends PrismaProduct {
-  reviews: Review[];    // Artık bu alanı ekledik
-  // soldCount?: number; // Başka alanlar da ekleyebilirsiniz
-  // rating?: number;
-  // vs...
+  reviews: Review[];
+  category: PrismaCategory;             // eklendi
+  specifications: {
+    specification: { name: string };    // eklendi
+    value: string;
+  }[];
 }
+
 const Page = () => {
   // Sıralama
   const [sortOption, setSortOption] = useState<string>(""); 
@@ -147,27 +150,21 @@ const Page = () => {
   })();
 
   // Kategori ObjectId
-  const selectedCategoryObjectId = products.find(
-    (product) =>
-      product.categoryId &&
-      product.categoryId.toString() ===
-        categories.find((cat) => cat.name === selectedCategory)?.id.toString()
-  )?.categoryId?.toString();
+  const selectedCategoryObjectId = categories
+  .find(cat => cat.name === selectedCategory)
+  ?.id
+  .toString();
 
-  // Kategoriye bağlı markalar
-  const availableBrands = Array.from(
-    new Set(
-      products
-        .filter(
-          (product: Product) =>
-            product.categoryId &&
-            selectedCategoryObjectId &&
-            product.categoryId.toString() === selectedCategoryObjectId
-        )
-        .map((product: Product) => product.brand.toUpperCase())
-    )
-  );
-
+// filtrelenmiş markalar:
+const availableBrands = Array.from(
+  new Set(
+    products
+      .filter(product =>
+        product.category?.name.toLowerCase() === selectedCategory?.toLowerCase()
+      )
+      .map(product => product.brand.toUpperCase())
+  )
+);
   // Filtrelenmiş ürünler
   const filteredProducts = products.filter((product: any) => {
     const categoryName =
@@ -294,23 +291,26 @@ const finalProducts = [...filteredProducts].sort((a, b) => {
 
           {/* Marka Filtreleme */}
           <div className="mt-3">
-            <h2 className="text-lg font-bold mt-6 mb-4">Marka</h2>
-            {availableBrands.length > 0 ? (
-              availableBrands.map((brnd, index) => (
-                <label key={index} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(brnd)}
-                    onChange={() => handleBrandChange(brnd)}
-                    className="mr-2"
-                  />
-                  {brnd}
-                </label>
-              ))
-            ) : (
-              <p className="text-gray-500">Bu kategoride marka bulunamadı.</p>
-            )}
-          </div>
+  <h2 className="text-lg font-bold mt-6 mb-4">Marka</h2>
+  { !selectedCategory ? (
+      <p className="text-gray-500">Marka filtresi için lütfen bir kategori seçin.</p>
+    ) : availableBrands.length > 0 ? (
+      availableBrands.map((brnd, index) => (
+        <label key={index} className="flex items-center">
+          <input
+            type="checkbox"
+            checked={selectedBrands.includes(brnd)}
+            onChange={() => handleBrandChange(brnd)}
+            className="mr-2"
+          />
+          {brnd}
+        </label>
+      ))
+    ) : (
+      <p className="text-gray-500">Bu kategoride marka bulunamadı.</p>
+    )
+  }
+</div>
 
           {/* Özellik Filtreleme */}
           {selectedCategory &&

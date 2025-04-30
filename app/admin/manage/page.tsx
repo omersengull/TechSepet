@@ -1,28 +1,30 @@
-import { getCurrentUser } from '@/app/actions/getCurrentUser';
+// app/(admin)/manage/page.tsx
 import React from 'react';
-import getProducts from '@/app/actions/getProducts';
-import CreateForm from '@/app/components/admin/CreateForm';
+import prisma from '@/libs/prismadb';
+import { getCurrentUser } from '@/app/actions/getCurrentUser';
 import ManageClient from '@/app/components/admin/ManageClient';
-import AuthContainer from '@/app/components/containers/AuthContainer';
 import WarningText from '@/app/components/warningText';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 const Manage = async () => {
-    const products = await getProducts({ category: null });
-    const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    return <WarningText text="Bu sayfaya erişilemez" />;
+  }
 
-    if (!currentUser || currentUser.role !== "ADMIN") {
-        return (
-            <WarningText text='Bu sayfaya erişilemez' />
-        );
-    }
+  const products = await prisma.product.findMany({
+    include: {
+      category: { select: { name: true } }  // ← Burada ilişkiyi ekliyoruz
+    },
+    orderBy: { createdAt: 'desc' }
+  });
 
-    return (
-        <div className='w-full m-2'>
-            <ManageClient products={products} />
-        </div>
-    );
+  return (
+    <div className="w-full m-2">
+      <ManageClient products={products} />
+    </div>
+  );
 };
 
 export default Manage;

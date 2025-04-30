@@ -76,7 +76,7 @@ const CartClient = () => {
     // Kullanıcı bilgisi
     useEffect(() => {
         if (!isBrowser) return;
-        
+
         const fetchUser = async () => {
             const user = await getCurrentUser();
             setCurrentUser(user);
@@ -87,7 +87,7 @@ const CartClient = () => {
     const [couponCode, setCouponCode] = useState('');
     useEffect(() => {
         if (!isBrowser || !currentUser) return;
-        
+
         const fetchAddresses = async () => {
             try {
                 const response = await axios.get(`/api/addresses?userId=${currentUser.id}`);
@@ -105,12 +105,12 @@ const CartClient = () => {
     const [isRedirecting, setIsRedirecting] = useState(false);
     const handlePayment = () => {
         if (!isBrowser) return;
-        
+
         // localStorage'a güvenli erişim
-        const storedAddress = typeof window !== 'undefined' 
-            ? localStorage.getItem('selectedAddressId') 
+        const storedAddress = typeof window !== 'undefined'
+            ? localStorage.getItem('selectedAddressId')
             : null;
-            
+
         if (!storedAddress || !isFormChecked) {
             toast.error("Lütfen adres seçin ve formu onaylayın");
             return;
@@ -121,10 +121,10 @@ const CartClient = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const togglePopup = () => { setIsOpen(!isOpen); };
-    
+
     // useState işlevini güvenli şekilde kullan
     const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-    
+
     // localStorage'a erişim sadece tarayıcıda ve useEffect içinde yapılmalı
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -138,19 +138,19 @@ const CartClient = () => {
     // Miktar artırma
     const increaseFunc = (productId: string) => {
         if (!isBrowser) return;
-        
+
         setCartPrdcts(prevCart => {
             const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity < 10
                     ? { ...prd, quantity: prd.quantity + 1 }
                     : prd
             );
-            
+
             // localStorage'a güvenli erişim
             if (typeof window !== 'undefined') {
                 localStorage.setItem('Cart', JSON.stringify(updatedCart));
             }
-            
+
             return updatedCart;
         });
     };
@@ -158,19 +158,19 @@ const CartClient = () => {
     // Miktar azaltma
     const decreaseFunc = (productId: string) => {
         if (!isBrowser) return;
-        
+
         setCartPrdcts(prevCart => {
             const updatedCart = (prevCart ?? []).map(prd =>
                 prd.id === productId && prd.quantity > 1
                     ? { ...prd, quantity: prd.quantity - 1 }
                     : prd
             );
-            
+
             // localStorage'a güvenli erişim
             if (typeof window !== 'undefined') {
                 localStorage.setItem('Cart', JSON.stringify(updatedCart));
             }
-            
+
             return updatedCart;
         });
     };
@@ -179,7 +179,7 @@ const CartClient = () => {
     const [discountInfo, setDiscountInfo] = useState<{ amount: number; type: 'PERCENTAGE' | 'FIXED'; value: number }>({ amount: 0, type: 'FIXED', value: 0 });
     const handleCouponApply = async () => {
         if (!isBrowser) return;
-        
+
         try {
             const response = await fetch('/api/validate-coupon', {
                 method: 'POST',
@@ -225,7 +225,7 @@ const CartClient = () => {
     return (
         <div className="min-h-screen">
             {/* Yönlendirme sırasında gösterilecek spinner ve mesaj */}
-            
+
             {isRedirecting && (
                 <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
                     <div className="animate-spin border-4 border-t-4 border-gray-200 rounded-full w-16 h-16"></div>
@@ -269,7 +269,10 @@ const CartClient = () => {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
-                                        <RiDeleteBinFill onClick={() => deleteThisPrdct(prd)} className="cursor-pointer text-2xl ml-16" />
+                                        <RiDeleteBinFill onClick={(e) => {
+                                            e.stopPropagation();       // ← Tık olayının yukarı çıkmasını engeller
+                                            deleteThisPrdct(prd);      // Sepetten silme fonksiyonu
+                                        }} className="cursor-pointer text-2xl ml-16" />
                                     </div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
                                     {stocksLoading ? (
@@ -315,7 +318,7 @@ const CartClient = () => {
                                                 checked={selectedAddress === address.id}
                                                 onChange={() => {
                                                     setSelectedAddress(address.id);
-                                                    
+
                                                     // localStorage'a güvenli erişim
                                                     if (typeof window !== 'undefined') {
                                                         localStorage.setItem('selectedAddressId', address.id);

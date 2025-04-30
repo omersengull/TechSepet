@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React from "react";
 type ProductWithCategory = Product & {
-    category?: { name: string };
+    category?: { name: string } | null;
   };
 
   interface ManageClientProps {

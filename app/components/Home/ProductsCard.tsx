@@ -33,6 +33,26 @@ const ProductsCard = ({ product, onMouseEnter,
     const [productRatingLength, setProductRatingLength] = useState(0);
     const { data: session } = useSession();
     const { addToBasket } = useCart();
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    
+        toast.promise(
+          addToBasket({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            quantity: 1,
+            image: product.image,
+            stock:product.stock
+          }),
+          {
+            loading: "Sepete ekleniyor…",
+            success: "Ürün sepete eklendi!",
+            error: "Sepete eklenirken hata oluştu!"
+          }
+        );
+      };
     const router = useRouter();
     useEffect(() => {
         const fetchReviews = async () => {
@@ -195,20 +215,7 @@ const ProductsCard = ({ product, onMouseEnter,
                 </div>
 
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-
-                        // 1. handleClick'i kaldırın veya addToBasket ile birleştirin
-                        addToBasket({
-                            id: product.id,
-                            name: product.name,
-                            description: product.description,
-                            price: product.price,
-                            quantity: 1,
-                            image: product.image,
-                            stock:product.stock
-                        });
-                    }}
+                    onClick={handleAddToCart}
                     className="w-full addToCartBtn py-2 text-sm sm:text-base bg-renk1 text-white rounded-md relative overflow-hidden"
                 >
                     <BsCartFill className="cart absolute" />

@@ -98,6 +98,7 @@ export async function GET() {
         image: true,
         category: true,
         reviews: true,
+        categoryId:true,
         specifications: {
           select: {
             specification: true,

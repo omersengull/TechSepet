@@ -38,20 +38,9 @@ export const CartContextProvider = (props: Props) => {
     const [productCartQty, setProductCartQty] = useState(0);
     const [cartPrdcts, setCartPrdcts] = useState<CartProduct[] | null>(null);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-    const [lastAction, setLastAction] = useState<{type: string, productId?: string} | null>(null);
 
-    // Toast yönetimi için useEffect
-    useEffect(() => {
-        if (!lastAction) return;
 
-        const { type, productId } = lastAction;
-        if (type === 'add' && productId) {
-            toast.success("Ürün sepete eklendi", { id: productId });
-        } else if (type === 'increase' && productId) {
-            toast.success("Miktar artırıldı", { id: productId });
-        }
-        setLastAction(null);
-    }, [lastAction]);
+   
 
     // Sepet miktarını hesapla
     useEffect(() => {
@@ -75,7 +64,7 @@ export const CartContextProvider = (props: Props) => {
         };
         loadCart();
     }, []);
-
+    useEffect(() => { localStorage.setItem("Cart", JSON.stringify(cartPrdcts)); }, [cartPrdcts]);
     // Sepet değişikliklerini LocalStorage'a kaydet
     useEffect(() => {
         if (cartPrdcts !== null) {
@@ -115,19 +104,30 @@ export const CartContextProvider = (props: Props) => {
                 const existingItem = prevCart.find(p => p.id === product.id);
                 const newQuantity = (existingItem?.quantity || 0) + 1;
 
-                if (newQuantity > stock) {
-                    toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
-                    return prev;
-                }
-
-                const updatedCart = existingItem 
-                    ? prevCart.map(p => 
-                        p.id === product.id ? { ...p, quantity: newQuantity } : p
-                      )
-                    : [...prevCart, { ...product, quantity: 1 }];
-
-                setLastAction({ type: existingItem ? 'increase' : 'add', productId: product.id });
-                return updatedCart;
+                if (existingItem) {
+                    // 1) Yeni miktarı hesapla
+                    const newQuantity = existingItem.quantity + 1;
+                
+                    // 2) Stok kontrolü
+                    if (newQuantity > stock) {
+                      toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
+                      return prevCart;           // Önceki sepeti döndür
+                    }
+                
+                    // 3) Miktar artırıldı toast’ı
+               
+                
+                    // 4) Sepeti güncelle ve döndür
+                    return prevCart.map(p =>
+                      p.id === product.id ? { ...p, quantity: newQuantity } : p
+                    );
+                  } else {
+                    // Yeni ürün ekleniyorsa toast
+                  
+                
+                    // Yeni ürün objesini sepete ekle
+                    return [...prevCart, { ...product, quantity: 1 }];
+                  }
             });
         } catch (error) {
             toast.error("Stok durumu kontrol edilemedi");
