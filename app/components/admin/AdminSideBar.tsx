@@ -8,7 +8,8 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { MdDeleteForever, MdManageHistory } from "react-icons/md";
 import { BiSolidDiscount } from "react-icons/bi";
 import { AiOutlineStock } from "react-icons/ai";
-
+import { MdBackup } from "react-icons/md";
+import { HiDocumentReport } from "react-icons/hi";
 const AdminSideBar = () => {
   const pathName = usePathname();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -20,6 +21,8 @@ const AdminSideBar = () => {
     { name: "İndirim Kuponları", icon: BiSolidDiscount, url: "/admin/coupons" },
     { name: "Ürünleri Düzenle", icon: MdManageHistory, url: "/admin/organize" },
     { name: "Ürünleri Sil", icon: MdDeleteForever, url: "/admin/manage" },
+    { name: "Yedek", icon: MdBackup, url: "/admin/backup" },
+    { name: "Satış Rapor", icon: HiDocumentReport, url: "/admin/salesReport" },
   ];
 
   return (

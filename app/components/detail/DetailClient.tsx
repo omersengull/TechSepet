@@ -54,7 +54,26 @@ const DetailClient = ({ product }: { product: any }) => {
   const detailsRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<User>();
   const [sortOption, setSortOption] = useState(""); // Sort seçeneği için state
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
 
+    toast.promise(
+      addToBasket({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        quantity: cardProduct.quantity,
+        image: product.image,
+        stock:product.stock
+      }),
+      {
+        loading: "Sepete ekleniyor…",
+        success: "Ürün sepete eklendi!",
+        error: "Sepete eklenirken hata oluştu!"
+      }
+    );
+  };
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await getCurrentUser();
@@ -386,9 +405,7 @@ const DetailClient = ({ product }: { product: any }) => {
                 text="Sepete Ekle"
                 outline={false}
                 small={false}
-                onClick={() => {
-                  addToBasket(cardProduct);
-                }}
+                onClick={handleAddToCart}
               />
             </div>
           </div>

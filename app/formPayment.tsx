@@ -347,7 +347,7 @@ const FormPayment = () => {
                             onClick={handlePayment}
                             disabled={loading}
                         >
-                            ₺ {totalPrice > 1000 ? `${priceClip(totalPrice)}` : `${priceClip(totalPrice)} + 39`} Öde
+                             Ödeme Yap
                         </button>
                         <div className="flex items-center">
                             <span>

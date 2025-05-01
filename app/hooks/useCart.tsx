@@ -36,7 +36,7 @@ export const CartContextProvider = (props: Props) => {
     const router = useRouter();
     const [filteredProducts, setFilteredProducts] = useState<CardProductProps[]>([]);
     const [productCartQty, setProductCartQty] = useState(0);
-    const [cartPrdcts, setCartPrdcts] = useState<CartProduct[] | null>(null);
+    const [cartPrdcts, setCartPrdcts] = useState<CartProduct[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
 
@@ -53,14 +53,14 @@ export const CartContextProvider = (props: Props) => {
         const loadCart = async () => {
             const storedCart = localStorage.getItem("Cart");
             if (!storedCart) return;
-
+            let parsed: CartProduct[];
             try {
-                const parsedCart: CartProduct[] = JSON.parse(storedCart);
-                const validatedCart = await validateCartItems(parsedCart);
-                setCartPrdcts(validatedCart);
-            } catch (error) {
-                console.error("Sepet yüklenirken hata:", error);
-            }
+                parsed = JSON.parse(storedCart);     // parse hatası fırlarsa catch’e girer
+              } catch {
+                console.warn("Sepet parse hatası, boş diziyle devam ediliyor");
+                parsed = [];
+              }
+              setCartPrdcts(parsed);
         };
         loadCart();
     }, []);
@@ -73,6 +73,10 @@ export const CartContextProvider = (props: Props) => {
     }, [cartPrdcts]);
 
     const validateCartItems = async (cartItems: CartProduct[]) => {
+        if (!Array.isArray(cartItems)) {
+            console.warn("Geçersiz sepet verisi, boş dizi döndürülüyor:", cartItems);
+            return [];
+          }
         const validatedItems = await Promise.all(
             cartItems.map(async item => {
                 try {
@@ -98,35 +102,31 @@ export const CartContextProvider = (props: Props) => {
                 toast.error("Bu ürün stokta yok");
                 return;
             }
-
+            const addedQty = product.quantity;
             setCartPrdcts(prev => {
                 const prevCart = prev || [];
                 const existingItem = prevCart.find(p => p.id === product.id);
                 const newQuantity = (existingItem?.quantity || 0) + 1;
 
                 if (existingItem) {
-                    // 1) Yeni miktarı hesapla
-                    const newQuantity = existingItem.quantity + 1;
-                
-                    // 2) Stok kontrolü
+                    // Var olan ürüne ekleme
+                    const newQuantity = existingItem.quantity + addedQty;
                     if (newQuantity > stock) {
                       toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
-                      return prevCart;           // Önceki sepeti döndür
+                      return prevCart;
                     }
-                
-                    // 3) Miktar artırıldı toast’ı
-               
-                
-                    // 4) Sepeti güncelle ve döndür
+                  
                     return prevCart.map(p =>
                       p.id === product.id ? { ...p, quantity: newQuantity } : p
                     );
                   } else {
-                    // Yeni ürün ekleniyorsa toast
+                    // Yeni ürün ekleme
+                    if (addedQty > stock) {
+                      toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
+                      return prevCart;
+                    }
                   
-                
-                    // Yeni ürün objesini sepete ekle
-                    return [...prevCart, { ...product, quantity: 1 }];
+                    return [...prevCart, { ...product, quantity: addedQty }];
                   }
             });
         } catch (error) {
@@ -140,23 +140,21 @@ export const CartContextProvider = (props: Props) => {
             if (!res.ok) throw new Error("Ürün bilgisi alınamadı");
             const { stock } = await res.json();
 
-            setCartPrdcts(prev => {
-                if (!prev) return null;
-                
-                return prev.map(item => {
-                    if (item.id !== productId) return item;
-                    
-                    const newQuantity = operation === 'increase' 
-                        ? Math.min(item.quantity + 1, stock)
-                        : Math.max(item.quantity - 1, 1);
-
-                    if (operation === 'increase' && newQuantity === item.quantity) {
-                        toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
-                    }
-
-                    return { ...item, quantity: newQuantity };
-                });
-            });
+            setCartPrdcts(prev => 
+                prev.map(item => {
+                  if (item.id !== productId) return item;
+              
+                  const newQuantity = operation === 'increase'
+                    ? Math.min(item.quantity + 1, stock)
+                    : Math.max(item.quantity - 1, 1);
+              
+                  if (operation === 'increase' && newQuantity === item.quantity) {
+                    toast.error(`Maksimum ${stock} adet ekleyebilirsiniz`);
+                  }
+              
+                  return { ...item, quantity: newQuantity };
+                })
+              );
         } catch (error) {
             toast.error("Stok durumu güncellenemedi");
         }

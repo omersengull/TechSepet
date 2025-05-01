@@ -30,7 +30,7 @@ const Footer = () => {
                             <a href="#">İade Ve Değişim</a>
                         </li>
                         <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Sıkça Sorulan Sorular</a>
+                            <a href="/help">S.S.S. Ve Yardım</a>
                         </li>
 
                     </ul>
