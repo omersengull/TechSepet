@@ -98,15 +98,21 @@ const Navbar = () => {
                 <div className="flex flex-row h-[80px] justify-between items-center gap-3">
                     <div className="flex flex-row items-center md:gap-3">
                         <a href="/" className="mr-3 lg:mr-7 cursor-pointer" >
-                            <Logo />
+                        
+                        
+                        <Logo />
+                        
                         </a>
                     </div>
 
                     <a
                         href="/dsearch"
-                        className=" flex managesearch rounded-xl flex-row border-none outline-none items-center cursor-pointer border-2 px-6 py-3 "
+                        className="  hidden xl:flex managesearch rounded-xl flex-row border-none outline-none items-center cursor-pointer border-2 px-6 py-3 "
                     >
                         <MdManageSearch className="mr-1" /> <span className="font-bold">Detaylı Arama</span>
+                    </a>
+                    <a  href="/dsearch" className="xl:hidden block border-2 p-3 rounded-lg">
+                    <MdManageSearch className="text-lg"/>
                     </a>
 
                     <div className="hidden sm:block">
