@@ -59,41 +59,55 @@ const Slider: React.FC = () => {
     }
 ];
 
-    return (
-        <div className="w-screen bg-gray-50">
-        <div className="w-full px-16 py-8">
-          <Swiper
-            modules={[Pagination, Navigation, Autoplay]}
-            spaceBetween={0}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 5000 }}
-            className="w-full rounded-xl overflow-hidden"
-          >
-            {heroSlides.map((slide) => (
-              <SwiperSlide key={slide.id}>
-                <div className="relative h-[500px] w-full">
-                  <img
-                    src={slide.image}
-                    alt={slide.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent">
-                    <div className="h-full flex flex-col justify-center px-12 text-white w-full md:max-w-2xl">
-                      <h2 className="text-4xl font-bold mb-4">{slide.title}</h2>
-                      <p className="text-xl mb-6">{slide.description}</p>
-                      <p className="text-2xl font-semibold mb-8">{slide.price}</p>
-                      
-                    </div>
-                  </div>
+return (
+  <div className="w-screen bg-gray-50">
+    <div className="w-full px-4 md:px-16 py-8">
+      <Swiper
+        modules={[Pagination, Navigation, Autoplay]}
+        spaceBetween={0}
+        slidesPerView={1}
+        navigation={{
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        }}
+        pagination={{ 
+          clickable: true,
+          dynamicBullets: true 
+        }}
+        autoplay={{ delay: 5000 }}
+        className="w-full rounded-xl overflow-hidden"
+      >
+        {heroSlides.map((slide) => (
+          <SwiperSlide key={slide.id}>
+            <div className="relative h-[300px] md:h-[500px] w-full">
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/70 to-transparent">
+                <div className="h-full flex flex-col justify-end md:justify-center p-6 md:px-12 text-white">
+                  <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">
+                    {slide.title}
+                  </h2>
+                  <p className="text-sm md:text-xl mb-3 md:mb-6 line-clamp-2">
+                    {slide.description}
+                  </p>
+                  <p className="text-lg md:text-2xl font-semibold">
+                    {slide.price}
+                  </p>
                 </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-      </div>
-      
-    );
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+        
+        {/* Custom navigation buttons */}
+        <div className="swiper-button-next !h-8 !w-8 after:!text-xl md:!h-12 md:!w-12 md:after:!text-2xl"></div>
+        <div className="swiper-button-prev !h-8 !w-8 after:!text-xl md:!h-12 md:!w-12 md:after:!text-2xl"></div>
+      </Swiper>
+    </div>
+  </div>
+);
 };
 export default Slider;
