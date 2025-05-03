@@ -44,30 +44,39 @@ const OrderComponent = () => {
   }, []);
   const parseOrderItems = (itemsData: any): Item[] => {
     try {
-      // İlk katmanı parse et: "[\"[{\\"...}\"]" -> ["{\\"...}"]
-      
-      if (typeof itemsData === 'string') {
-        itemsData = JSON.parse(itemsData);
+      // 1. İlk katmanı parse et (dıştaki string'i array'e çevir)
+      let parsedData = typeof itemsData === 'string' 
+        ? JSON.parse(itemsData) 
+        : itemsData;
+  
+      // 2. Eğer array değilse (örneğin tek bir obje ise) array içine al
+      if (!Array.isArray(parsedData)) {
+        parsedData = [parsedData];
       }
-      if (!Array.isArray(itemsData)) {
-        itemsData = [itemsData];
-      }
-      return itemsData.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        description: item.description || "",
-        inStock: item.inStock !== false
-      }));
+  
+      // 3. Her bir item'ı kontrol et ve gerekiyorsa tekrar parse et
+      return parsedData.map((item: any) => {
+        // Eğer item hala string formatındaysa içini parse et
+        if (typeof item === 'string') {
+          item = JSON.parse(item);
+        }
+        
+        return {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.amount, // Bu artık doğru şekilde ulaşılabilir olacak
+          image: item.image,
+          description: item.description || "",
+          inStock: item.inStock !== false
+        };
+      });
   
     } catch (error) {
-      console.error("Outer parse error:", error);
+      console.error("Parse hatası:", error);
       return [];
     }
   };
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6 text-center">Siparişler Listesi</h1>
@@ -75,11 +84,6 @@ const OrderComponent = () => {
       <div className="flex flex-col gap-6">
         {orders.map((order) => {
           const parsedItems = parseOrderItems(order.items);
-
-
-
-
-
           return (
             <div
               key={order.id}

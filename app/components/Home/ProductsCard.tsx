@@ -55,8 +55,11 @@ const ProductsCard = ({ product, onMouseEnter,
       };
     const router = useRouter();
     useEffect(() => {
+
         const fetchReviews = async () => {
+            
             try {
+                
                 const response = await fetch(`/api/reviews?productId=${product.id}`);
                 const data = await response.json();
 
@@ -77,6 +80,7 @@ const ProductsCard = ({ product, onMouseEnter,
         };
 
         fetchReviews();
+      
     }, [product.id]);
 
 
@@ -210,7 +214,7 @@ const ProductsCard = ({ product, onMouseEnter,
                     <span className="ml-1 text-xs sm:text-sm text-gray-500">({productRatingLength})</span>
                 </div>
 
-                <div className="text-renk1 text-lg flex justify-center sm:text-xl font-semibold my-2">
+                <div className="text-black text-lg flex justify-center sm:text-xl font-semibold my-2">
                     {priceClip(product.price)} TL
                 </div>
 

@@ -38,7 +38,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "pages/api/admin/upload-slider.js"  ],
   "exclude": [
     "node_modules"
   ]
