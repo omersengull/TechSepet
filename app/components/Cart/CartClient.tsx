@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import Head from "next/head";
 import axios from "axios";
 import { getCurrentUser } from "@/app/actions/getCurrentUser";
+import { HashLoader } from "react-spinners";
 
 const CartClient = () => {
     const [isBrowser, setIsBrowser] = useState(false);
@@ -201,7 +202,7 @@ const CartClient = () => {
     if (!isBrowser) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">Yükleniyor...</div>
+                <div className="text-center flex min-h-screen justify-center items-center"><HashLoader color="#3498db" /></div>
             </div>
         );
     }
@@ -263,16 +264,21 @@ const CartClient = () => {
                                 <div className="flex-col md:min-w-40 min-w-24">
                                     <Image alt="" src={prd.image} width={150} height={150} />
                                 </div>
-                                <div className="flex flex-col md:text-md text-sm space-y-2">
+                                <div className="flex flex-col md:text-md text-sm space-y-2 w-full">
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold">{prd.description}</span>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-2xl font-bold">₺ {priceClip(Number(prd.price) * prd.quantity)}</div>
-                                        <RiDeleteBinFill onClick={(e) => {
-                                            e.stopPropagation();       // ← Tık olayının yukarı çıkmasını engeller
-                                            deleteThisPrdct(prd);      // Sepetten silme fonksiyonu
-                                        }} className="cursor-pointer text-2xl ml-16" />
+                                    <div className="flex items-center justify-between w-full">
+                                        <div className="text-2xl font-bold">
+                                            ₺ {priceClip(Number(prd.price) * prd.quantity)}
+                                        </div>
+                                        <RiDeleteBinFill
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteThisPrdct(prd);
+                                            }}
+                                            className="cursor-pointer text-2xl"
+                                        />
                                     </div>
                                     <div className="text-sm text-slate-500">Birim fiyatı ₺ {priceClip(prd.price)}</div>
                                     {stocksLoading ? (
