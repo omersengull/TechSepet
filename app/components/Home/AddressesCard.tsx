@@ -5,184 +5,52 @@ import { FaEdit } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
 import toast from 'react-hot-toast';
 import { Address } from '@prisma/client';
-
+interface AddressesCardProps {
+    addressObj: Address;
+    onDelete: (id: string) => void;
+    onEdit: (address: Address) => void;
+  }
 const AddressesCard = ({
-    address,
-    addressTitle,
-    postalCode,
-    city,
-    id,
+    addressObj,
     onDelete,
-    setShowModal,
-    showModal,
-    setAddress,
-    selectedCity,
-    setAddressTitle,
-    setSelectedCity,
-    setPostalCode,
-    setAddresses,
-}: {
-    selectedCity: string,
-    address: string;
-    addressTitle: string;
-    postalCode: string;
-    city: string,
-    showModal: boolean,
-    setShowModal: React.Dispatch<React.SetStateAction<boolean>>,
-    id: string;
-    onDelete: (id: string) => void,
-    setAddress: React.Dispatch<React.SetStateAction<string>>,
-    setAddressTitle: React.Dispatch<React.SetStateAction<string>>,
-    setSelectedCity: React.Dispatch<React.SetStateAction<string>>,
-    setPostalCode: React.Dispatch<React.SetStateAction<string>>,
-    setAddresses: React.Dispatch<React.SetStateAction<Address[]>>
-
-}) => {
-    console.log("Adres Kartı ID:", id);
-
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                setShowModal(false); // Dış tıklama algılandığında modal'ı kapat
-            }
-        };
-
-        if (showModal) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showModal, setShowModal]);
-
-    const deleteAddress = async (addressId: string) => {
-        console.log("Silinecek ID:", addressId);  // ID'yi kontrol etmek için eklendi
-        try {
-            const response = await fetch(`/api/addresses/${addressId}`, {
-                method: 'DELETE',
-            });
-    
-            if (typeof onDelete !== "function") {
-                console.error("onDelete fonksiyonu geçilmedi.");
-                return;
-            }
-    
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("API Hatası:", errorData);  // Daha fazla hata bilgisi için eklendi
-                throw new Error('Adres silinemedi.');
-            }
-    
-            onDelete(addressId);
-        } catch (error) {
-            console.error('Silme işlemi sırasında hata oluştu:', error);
-        }
-    };
-    
-    
-    const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
-
-    const editAddress = (address: Address) => {
-        setEditingAddressId(address.id);
-        setAddressTitle(address.title || "");
-        setSelectedCity(address.city || "");
-        setAddress(address.address || "");
-        setPostalCode(address.postalCode);
-        setShowModal(true);
-    };
-
-    const handleUpdateAddress = async () => {
-        if (!editingAddressId || !addressTitle || !selectedCity || !address || !postalCode) {
-            toast.error("Lütfen tüm alanları doldurun!");
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/addresses/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: editingAddressId,
-                    title: addressTitle,
-                    city: selectedCity,
-                    address,
-                    postalCode,
-                }),
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                toast.success("Adres başarıyla güncellendi!");
-                setAddresses((prev) =>
-                    prev.map((addr) =>
-                        addr.id === editingAddressId
-                            ? {
-                                ...addr,
-                                title: addressTitle,
-                                city: selectedCity,
-                                address,
-                                postalCode,
-                            }
-                            : addr
-                    )
-                );
-
-                setEditingAddressId(null);
-                setAddressTitle("");
-                setSelectedCity("");
-                setAddress("");
-                setPostalCode("");
-                setShowModal(false);
-            } else {
-                toast.error("Adres güncellenirken bir hata oluştu!");
-            }
-        } catch (error) {
-            console.error("Güncelleme hatası:", error);
-            toast.error("Sunucu hatası oluştu!");
-        }
-    };
-
+    onEdit,
+}:
+    AddressesCardProps
+) => {
+    const { id, title, address, city, postalCode, userId } = addressObj;
 
     return (
         <>
-            <div className="border-2 md:py-2 py-3 md:px-6 px-6 flex flex-row border-slate-500 justify-between rounded-xl">
-                <div className="md:mx-2 mx-2 flex flex-col">
-                    <h1 className="flex items-center">
-                        {addressTitle.toLowerCase() === "ev" ? (
-                            <IoHomeOutline className="mr-1" />
+            <div className="border-2 py-2 px-6 flex flex-row border-slate-500 justify-between rounded-xl mb-4">
+                <div className="flex flex-col flex-grow">
+                    <div className="flex items-center mb-2">
+                    {addressObj.title.toLowerCase() === "ev"? (
+                            <IoHomeOutline className="mr-1 text-lg" />
                         ) : (
-                            <HiOutlineOfficeBuilding className="mr-1" />
+                            <HiOutlineOfficeBuilding className="mr-1 text-lg" />
                         )}
-                        {addressTitle}
-                    </h1>
-                    <div className="text-slate-900">{address}</div>
-                    <div className="text-slate-500">
-                        {postalCode}, {city}
+                        <h3 className="font-semibold">{addressObj.title}</h3>
                     </div>
+                    <p className="text-gray-700">{addressObj.address}</p>
+                    <p className="text-gray-500 text-sm"> {addressObj.postalCode} {addressObj.city}</p>
                 </div>
-                <div className="flex text-xl mt-2 md:mr-1 mr-2 flex-col">
+
+                <div className="flex flex-col items-center ml-4">
                     <FaEdit
-                        onClick={() => editAddress({
-                            id,
-                            title: addressTitle,
-                            city,
-                            address,
-                            postalCode,
-                            userId: id, 
-                            createdAt: new Date(),
-                            updatedAt:new Date(),
-                        })}
-                        className="cursor-pointer text-yellow-500"
+                       onClick={() => onEdit(addressObj)}
+                        className="cursor-pointer text-yellow-600 hover:text-yellow-700 mb-2"
+                        size={20}
                     />
                     <AiFillDelete
-                        onClick={()=>{deleteAddress(id)}}
-                        className="cursor-pointer mt-4 text-red-500"
+                   onClick={() => onDelete(addressObj.id)}
+                        className="cursor-pointer text-red-600 hover:text-red-700"
+                        size={20}
                     />
                 </div>
-            </div>
 
+
+               
+            </div>
 
         </>
     );

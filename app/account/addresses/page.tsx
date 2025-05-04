@@ -7,7 +7,8 @@ import toast from "react-hot-toast";
 import AddressesCard from "@/app/components/Home/AddressesCard";
 import { Address } from "@prisma/client";
 import { SkeletonCard } from "@/app/skeleton/skeletonCard";
-
+import EditAddressModal from "@/app/components/EditAddressModal/page";
+import AddAddressModal from "@/app/components/Home/AddAddressModal";
 interface User {
   id: string;
   name: string | null;
@@ -35,13 +36,29 @@ const Page = () => {
   const [addressTitle, setAddressTitle] = useState("");
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
-
-  const handleDelete = (id: string) => {
-    setAddresses((prevAddresses) =>
-      prevAddresses.filter((address) => address.id !== id)
-    );
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/addresses/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Silme işlemi başarısız");
+      }
+      // Sunucuda da silindikten sonra state’i güncelle
+      setAddresses((prev) => prev.filter((a) => a.id !== id));
+      toast.success("Adres başarıyla silindi");
+    } catch (error: any) {
+      console.error("Silme hatası:", error);
+      toast.error(error.message || "Adres silinirken hata oluştu");
+    }
   };
 
+  const openEditModal = (address: Address) => {
+    setEditingAddress(address);
+  };
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -85,7 +102,7 @@ const Page = () => {
       console.error("Adresleri alırken hata oluştu:", err);
     }
   };
-  
+
 
 
   useEffect(() => {
@@ -174,66 +191,101 @@ const Page = () => {
     ]);
   }, []);
 
-  const handleAddAddress = async () => {
-    if (!addressTitle || !selectedCity || !address || !postalCode) {
+
+  const handleAddAddress = async (data: {
+    title: string;
+    city: string;
+    address: string;
+    postalCode: string;
+  }): Promise<void> => {
+    const { title, city, address, postalCode } = data;
+    if (!title || !city || !address || !postalCode) {
       toast.error("Lütfen tüm alanları doldurun!");
       return;
     }
-
     try {
-      const response = await fetch("/api/addresses", {
+      const res = await fetch("/api/addresses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user?.id || "", // Varsayılan değer ekle
-          title: addressTitle,
-          city: selectedCity,
-          address: address,
-          postalCode: postalCode,
-        }),
+        body: JSON.stringify({ userId: user?.id ?? "", title, city, address, postalCode }),
       });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("Adres başarıyla eklendi!");
-        setAddresses((prev) => [
-          ...prev,
-          {
-            id: data.id ?? "", 
-            userId: user?.id ?? "",
-            title: addressTitle || "Başlık Yok",
-            city: selectedCity || "Şehir Yok",
-            address: address || "Adres Yok",
-            postalCode: postalCode.toString(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]);
-        
-
-        setAddressTitle("");
-        setSelectedCity("");
-        setAddress("");
-        setPostalCode("");
-        setShowModal(false);
-      } else {
-        toast.error(data.message || "Adres eklenirken bir hata oluştu!");
-      }
-    } catch (err) {
-      console.error("Sunucu hatası:", err);
-      toast.error("Sunucu hatası oluştu!");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Hata");
+      setAddresses((prev) => [
+        ...prev,
+        { id: json.id, userId: user!.id, title, city, address, postalCode, createdAt: new Date(), updatedAt: new Date() },
+      ]);
+      toast.success("Adres eklendi");
+      setShowAddModal(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Adres eklenirken hata");
     }
   };
 
-  const handleOutsideClick = (event: MouseEvent) => {
-    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setShowModal(false);
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        setShowModal(false);
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
       document.removeEventListener("mousedown", handleOutsideClick);
     }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showModal]);
+  const handleUpdateAddress = async (updated: Address): Promise<void> => {
+    try {
+      const res = await fetch(`/api/addresses/${updated.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: updated.title,
+          city: updated.city,
+          address: updated.address,
+          postalCode: updated.postalCode,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Güncelleme başarısız");
+      }
+      // Başarılıysa local state’i güncelle
+      setAddresses((prev) =>
+        prev.map((a) => (a.id === updated.id ? { ...a, ...data } : a))
+      );
+      toast.success("Adres başarıyla güncellendi");
+      setEditingAddress(null);
+    } catch (error: any) {
+      console.error("Güncelleme hatası:", error);
+      toast.error(error.message || "Adres güncellenirken hata oluştu");
+    }
   };
+
 
   return (
     <div className="mx-auto p-4 min-h-screen">
+      {showAddModal && (
+        <AddAddressModal
+          cities={cities}
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddAddress}
+        />
+      )}
+      {editingAddress && (
+        <EditAddressModal
+          address={editingAddress}
+          cities={cities}
+          onClose={() => setEditingAddress(null)}
+          onSave={handleUpdateAddress}
+        />
+      )}
       <div className="flex flex-col items-center">
         <h1 className="text-2xl mb-4 text-center">
           Hoş geldiniz, {user?.name || "Misafir"}!
@@ -247,8 +299,7 @@ const Page = () => {
       <div className="flex flex-col items-center mt-6">
         <button
           onClick={() => {
-            setShowModal(true);
-            document.addEventListener("mousedown", handleOutsideClick);
+            setShowAddModal(true)
           }}
           className="border-2 border-renk1 text-renk1 rounded-xl flex items-center px-3 py-2"
         >
@@ -260,99 +311,25 @@ const Page = () => {
       <div>
         {addresses.length === 0
           ? Array.from({ length: 3 }).map((_, index) => (
-            <div className="md:w-1/3 mb-5 mt-5 mx-auto" key={index}>
+            <div className="md:w-1/3 mb-5 mt-5 mx-auto -z-10" key={index}>
               <SkeletonCard />
             </div>
           ))
           : addresses.map((addrss) => (
             <div className="md:w-1/3 mx-auto mb-5 mt-5" key={addrss.id}>
               <AddressesCard
-                 id={addrss.id}
-                address={addrss.address || ""}
-                setAddresses={setAddresses}
+                key={addrss.id}
+                addressObj={addrss}        
                 onDelete={handleDelete}
-                selectedCity={selectedCity}
-                addressTitle={addrss.title}
-                postalCode={addrss.postalCode || ""}
-                city={addrss.city || ""}
-                showModal={showModal}
-                setShowModal={setShowModal}
-                setAddress={setAddress}
-                setAddressTitle={setAddressTitle}
-                setSelectedCity={setSelectedCity}
-                setPostalCode={setPostalCode}
+                onEdit={openEditModal}
+
               />
 
             </div>
           ))}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
-          <div ref={popupRef} className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h2 className="text-xl mb-4 text-center font-bold">Yeni Adres Ekle</h2>
-            <input
-              type="text"
-              placeholder="Adres Başlığı"
-              value={addressTitle}
-              onChange={(e) => setAddressTitle(e.target.value)}
-              className="border rounded-lg px-3 py-2 mb-2 w-full"
-            />
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="border rounded-lg px-3 py-2 mb-2 w-full"
-            >
-              <option value="">Şehir Seçin</option>
-              {cities.map((city, index) => (
-                <option key={index} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="Adres"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="border rounded-lg px-3 py-2 mb-2 w-full"
-            />
-            <input
-              type="text"
-              placeholder="Posta Kodu"
-              maxLength={5}
-              value={postalCode}
-              onChange={(e) => {
-                if (/^[0-9]*$/.test(e.target.value)) {
-                  setPostalCode(e.target.value);
-                  setError("");
-                } else {
-                  setError("Posta koduna sadece sayı girebilirsiniz");
-                }
-              }}
-              className="border rounded-lg px-3 py-2 mb-2 w-full"
-            />
-            {error && <div className="text-red-500 mb-2">{error}</div>}
-            <div className="flex justify-between gap-2">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  document.removeEventListener("mousedown", handleOutsideClick);
-                }}
-                className="bg-red-500 text-white rounded-lg px-4 py-2"
-              >
-                Vazgeç
-              </button>
-              <button
-                onClick={handleAddAddress}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg"
-              >
-                Kaydet
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

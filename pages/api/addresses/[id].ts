@@ -9,7 +9,26 @@ export default async function handler(req, res) {
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ success: false, error: 'Geçerli bir ID sağlanmalıdır.' });
   }
-
+  if (req.method === 'PUT') {
+    try {
+      const { title, city, address, postalCode, userId } = req.body;
+      
+      const updatedAddress = await prisma.address.update({
+        where: { id: id as string },
+        data: {
+          title,
+          city,
+          address,
+          postalCode,
+          userId // İlişki için gerekli
+        }
+      });
+      
+      res.status(200).json(updatedAddress);
+    } catch (err) {
+      res.status(400).json({ message: err.message || 'Güncelleme başarısız' });
+    }
+  }
   if (req.method === 'DELETE') {
     try {
       // Veritabanından adresi silme
