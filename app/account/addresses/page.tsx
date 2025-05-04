@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import AddressesCard from "@/app/components/Home/AddressesCard";
 import { Address } from "@prisma/client";
 import { SkeletonCard } from "@/app/skeleton/skeletonCard";
-import EditAddressModal from "@/app/components/EditAddressModal/page";
+import EditAddressModal from "@/app/components/EditAddressModal";
 import AddAddressModal from "@/app/components/Home/AddAddressModal";
 interface User {
   id: string;
@@ -311,7 +311,7 @@ const Page = () => {
       <div>
         {addresses.length === 0
           ? Array.from({ length: 3 }).map((_, index) => (
-            <div className="md:w-1/3 mb-5 mt-5 mx-auto -z-10" key={index}>
+            <div className="md:w-1/3 mb-5 mt-5 mx-auto " key={index}>
               <SkeletonCard />
             </div>
           ))
