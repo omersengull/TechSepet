@@ -62,7 +62,7 @@ const FormPayment = () => {
         if (total > 0) {
             const fetchClientSecret = async () => {
                 try {
-                    const response = await fetch('/api/create-payment-intent', {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/create-payment-intent`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
