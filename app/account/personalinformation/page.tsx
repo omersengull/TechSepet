@@ -15,6 +15,7 @@ interface User {
   gender?: string;
   role?: string;
   addresses?: string | null;
+  emailVerified?: boolean;
 }
 
 // Güncellenebilir alanları tanımlıyoruz
@@ -27,6 +28,10 @@ const Page = () => {
   const [change, setChange] = useState(false);
   const [loading, setLoading] = useState(false);
   const handleEmailVerification = async () => {
+    if (currentUser?.emailVerified) {
+      toast.error("E-posta adresiniz zaten doğrulandı!");
+      return;
+    }
     try {
       setLoading(true);
       // API'ye POST isteği gönderiliyor.
@@ -49,7 +54,7 @@ const Page = () => {
       console.error("Doğrulama e-postası gönderilirken hata oluştu:", error);
     }
     // API çağrısı tamamlandıktan sonra modal açılıyor
-    finally{
+    finally {
       setLoading(false);
       toast.success("E-posta adresinize doğrulama linki gönderildi!");
     }
@@ -253,13 +258,22 @@ const Page = () => {
               onChange={handleInputChange}
             />
             <span
-              className="hover:underline text-blue-800 cursor-pointer flex items-center"
-              onClick={handleEmailVerification}
+              className={`${!currentUser?.emailVerified
+                  ? "hover:underline cursor-pointer"
+                  : "cursor-default"
+                } text-blue-800 flex items-center`}
+              onClick={!currentUser?.emailVerified ? handleEmailVerification : undefined}
             >
-              E-Posta adresini doğrula <span className="ml-1 ">{loading ? <FadeLoader  
-        height={8} 
-        width={3} 
-        margin={2} /> : null}</span>
+              {currentUser?.emailVerified ? (
+                "E-Posta zaten doğrulandı"
+              ) : (
+                <>
+                  E-Posta adresini doğrula
+                  <span className="ml-1">
+                    {loading && <FadeLoader height={8} width={3} margin={2} />}
+                  </span>
+                </>
+              )}
             </span>
             <button
               className={`w-full py-2 rounded-xl text-white mt-2 mb-20 ${change ? "bg-renk1" : "bg-slate-400 cursor-not-allowed"
