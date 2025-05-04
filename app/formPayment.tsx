@@ -37,7 +37,6 @@ const FormPayment = () => {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const userId = session?.user?.id;
 
     // First useEffect - Handle component mounting
     useEffect(() => {
@@ -51,7 +50,7 @@ const FormPayment = () => {
             setSessionStatus("loading");
         } else if (status === "authenticated") {
             setSessionStatus("authenticated");
-            console.log("Oturum yüklendi!", { duration: 2000 });
+           
         } else {
             setSessionStatus("unauthenticated");
             router.push('/login');
@@ -78,53 +77,82 @@ const FormPayment = () => {
         if (!isMounted) return;
 
         const checkAddress = () => {
-            const urlAddressId = searchParams?.get('addressId');
-            const storedAddressId = localStorage.getItem('selectedAddressId');
-            const finalAddressId = urlAddressId || storedAddressId;
-
-            if (!finalAddressId) {
-                toast.error("Lütfen önce bir adres seçin");
-                router.push('/cart');
+            try {
+                const urlAddressId = searchParams?.get('addressId');
+                const storedAddressId = localStorage.getItem('selectedAddressId');
+                const finalAddressId = urlAddressId || storedAddressId || selectedAddressId;
+    
+                if (!finalAddressId) {
+                    console.log("Adres bilgisi bulunamadı");
+                    // Don't immediately redirect, just record that address is missing
+                    return null;
+                }
+                console.log("Adres ID bulundu:", finalAddressId);
+                return finalAddressId;
+            } catch (error) {
+                console.error("Adres kontrolü sırasında hata:", error);
                 return null;
             }
-            return finalAddressId;
         };
 
         const validAddressId = checkAddress();
-        setAddressId(validAddressId);
-    }, [router, searchParams, isMounted]);
+        if (validAddressId) {
+            setAddressId(validAddressId);
+        }
+    }, [router, searchParams, isMounted, selectedAddressId]);
 
     // Fifth useEffect - Get client secret for payment
     useEffect(() => {
-        if (!isMounted || !totalPrice || !session?.user?.id || !selectedAddressId) return;
+        if (!isMounted) return;
+        if (!totalPrice) return;
+        
+        // Only proceed if we have cart products
+        if (!cartPrdcts || cartPrdcts.length === 0) return;
 
         const clientSecretAl = async () => {
             try {
+                // First try to get basic payment intent without user or address info
+                // This ensures we get a client secret even if user is not fully authenticated yet
                 const response = await fetch('/api/create-payment-intent', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         amount: totalPrice,
-                        userId: session.user.id,
-                        addressId: selectedAddressId
+                        // Send these if available but don't block if not
+                        userId: session?.user?.id || '',
+                        addressId: selectedAddressId || addressId || ''
                     }),
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) throw new Error(data.error || "Ödeme başlatılamadı");
 
-                setClientSecret(data.clientSecret);
+                if (data.clientSecret) {
+                    console.log("Client Secret alındı");
+                    setClientSecret(data.clientSecret);
+                } else {
+                    console.error("Client Secret alınamadı:", data);
+                    toast.error("Ödeme başlatılamadı: Client Secret alınamadı");
+                }
             } catch (error) {
+                console.error("Payment intent hatası:", error);
                 toast.error("Ödeme başlatılamadı");
             }
         };
 
         clientSecretAl();
-    }, [totalPrice, session, selectedAddressId, isMounted]);
+    }, [totalPrice, isMounted, cartPrdcts, session?.user?.id, selectedAddressId, addressId]);
 
     const handlePaymentSuccess = async (paymentData: PaymentData) => {
-        if (!addressId || !userId) {
-            toast.error("Eksik bilgi: Lütfen adres ve kullanıcı bilgilerini kontrol edin");
+        if (!paymentData.userId) {
+            toast.error("Eksik bilgi: Kullanıcı kimliği bulunamadı");
+            return;
+        }
+        
+        // Get valid addressId from either state or props
+        const finalAddressId = addressId || selectedAddressId;
+        if (!finalAddressId) {
+            toast.error("Eksik bilgi: Adres bilgisi bulunamadı");
             return;
         }
 
@@ -133,7 +161,8 @@ const FormPayment = () => {
             items = typeof paymentData.items === 'string'
                 ? JSON.parse(paymentData.items)
                 : paymentData.items;
-        } catch {
+        } catch (error) {
+            console.error("Ürün verileri ayrıştırılamadı:", error);
             toast.error("Geçersiz ürün verisi");
             return;
         }
@@ -143,8 +172,8 @@ const FormPayment = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    addressId,
-                    userId,
+                    addressId: finalAddressId,
+                    userId: paymentData.userId,
                     items: items.map((item: any) => ({
                         productId: item.id,
                         amount: item.quantity
@@ -152,13 +181,17 @@ const FormPayment = () => {
                 }),
             });
 
-            if (!response.ok) throw new Error(await response.text());
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
 
             removeItemsFromCart();
             toast.success("Sipariş başarıyla oluşturuldu!");
+            setPaymentSuccess(true);
             router.push("/account/orders");
         } catch (error: any) {
-            console.error('🚨 Hata:', error);
+            console.error('🚨 Sipariş oluşturma hatası:', error);
             toast.error(error.message || "Sipariş oluşturulamadı");
         }
     };
@@ -166,73 +199,123 @@ const FormPayment = () => {
     const handlePayment = async (event: React.FormEvent) => {
         try {
             event.preventDefault();
-
+            
+            // Check for stripe first - most important dependency
+            if (!stripe || !elements) {
+                console.error("Stripe veya Elements yüklenmedi");
+                toast.error("Ödeme sistemi yüklenemedi, lütfen sayfayı yenileyin");
+                return;
+            }
+            
+            // Check for other dependencies
+            if (!clientSecret) {
+                console.error("Client Secret yok:", {clientSecret});
+                toast.error("Ödeme başlatılamadı, lütfen sayfayı yenileyin");
+                return;
+            }
+            
+            // Now check user session
             if (!session?.user) {
                 toast.error("Oturumunuz sona ermiş. Lütfen yeniden giriş yapın");
                 return router.push('/login');
             }
-
+            
+            // Make sure we have a user ID
+            const currentUserId = session.user.id;
+            if (!currentUserId) {
+                toast.error("Kullanıcı kimliği bulunamadı");
+                return router.push('/login');
+            }
+    
+            // Make sure we have an address
             if (!addressId) {
-                toast.error("Lütfen adres seçin");
-                return router.push('/cart');
+                const addressFromURL = searchParams?.get('address');
+                const addressFromStorage = localStorage.getItem('selectedAddressId');
+                const finalAddress = addressId || addressFromURL || addressFromStorage || selectedAddressId;
+                
+                if (!finalAddress) {
+                    toast.error("Lütfen adres seçin");
+                    return router.push('/cart');
+                }
+                
+                setAddressId(finalAddress);
             }
-
-            const addressFromURL = searchParams?.get('address');
-            const addressFromStorage = localStorage.getItem('selectedAddressId');
-            const finalAddress = addressFromURL || addressFromStorage;
-
-            if (!finalAddress) {
-                throw new Error("Adres bilgisi eksik");
-            }
-
-            if (!stripe || !elements || !userId || !clientSecret) {
-                alert("Stripe yüklenemedi veya kullanıcı bilgisi eksik!");
-                return;
-            }
-
+    
             setLoading(true);
-
-            const cardNumberElement = elements.getElement(CardNumberElement);
-            if (!cardNumberElement) {
-                alert("Kart bilgileri eksik!");
+            console.log("Ödeme başlatılıyor...");
+            
+            try {
+                // Get card element
+                const cardNumberElement = elements.getElement(CardNumberElement);
+                if (!cardNumberElement) {
+                    toast.error("Kart bilgileri eksik!");
+                    console.error("Card element bulunamadı");
+                    setLoading(false);
+                    return;
+                }
+                
+                console.log("Ödeme yöntemi oluşturuluyor...");
+                // Create payment method
+                const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardNumberElement,
+                });
+    
+                if (pmError) {
+                    toast.error(`Ödeme yöntemi oluşturulurken hata: ${pmError.message}`);
+                    console.error("Payment method hatası:", pmError);
+                    setLoading(false);
+                    return;
+                }
+                
+                console.log("Ödeme onaylanıyor...");
+                // Confirm payment
+                const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: paymentMethod.id,
+                });
+                
+                if (confirmError) {
+                    toast.error(`Ödeme hatası: ${confirmError.message}`);
+                    console.error("Ödeme onaylama hatası:", confirmError);
+                    setLoading(false);
+                    return;
+                } 
+                
+                if (paymentIntent?.status === 'succeeded') {
+                    toast.success('Ödeme başarılı!');
+                    console.log("Ödeme başarılı:", paymentIntent);
+                    
+                    // Ensure we have a valid userId
+                    const safeUserId = session?.user?.id;
+                    if (!safeUserId) {
+                        toast.error("Kullanıcı kimliği bulunamadı, sipariş oluşturulamadı");
+                        setLoading(false);
+                        return;
+                    }
+                    
+                    const paymentData: PaymentData = {
+                        userId: safeUserId, // Fixed userId reference
+                        items: JSON.stringify(cartPrdcts),
+                        totalPrice,
+                    };
+                    await handlePaymentSuccess(paymentData);
+                    setLoading(false);
+                } else {
+                    toast.error("Ödeme durum bilgisi alınamadı");
+                    console.error("Beklenmeyen ödeme durumu:", paymentIntent?.status);
+                    setLoading(false);
+                }
+            } catch (stripeError) {
+                console.error("Stripe işlem hatası:", stripeError);
+                toast.error("Ödeme işlemi sırasında hata oluştu");
                 setLoading(false);
                 return;
-            }
-
-            const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
-                type: 'card',
-                card: cardNumberElement,
-            });
-
-            if (pmError) {
-                alert(`Ödeme yöntemi oluşturulurken hata: ${pmError.message}`);
-                setLoading(false);
-                return;
-            }
-
-            const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-                payment_method: paymentMethod.id,
-            });
-
-            if (confirmError) {
-                alert(`Ödeme hatası: ${confirmError.message}`);
-                setLoading(false);
-            } else if (paymentIntent?.status === 'succeeded') {
-                alert('Ödeme başarılı!');
-                const paymentData: PaymentData = {
-                    userId,
-                    items: JSON.stringify(cartPrdcts),
-                    totalPrice,
-                };
-                await handlePaymentSuccess(paymentData);
-                setLoading(false);
             }
         } catch (error) {
             console.error("Ödeme hatası:", error);
             setLoading(false);
         }
     };
-
     // Show loading screen during initial loading or when session is loading
     if (!isMounted || sessionStatus === "loading") {
         return <LoadingScreen />;
