@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import LoadingScreen from './components/LoadingScreen';
 
 type PaymentData = {
     userId: string;
@@ -23,90 +24,56 @@ type PaymentData = {
 
 // Use dynamic import with ssr: false for the entire component
 const FormPayment = () => {
+    const { data: session, status } = useSession();
+    const [isMounted, setIsMounted] = useState(false);
+    const [sessionStatus, setSessionStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
     const [addressId, setAddressId] = useState<string | null>(null);
     const { cartPrdcts, removeItemsFromCart, selectedAddressId } = useCart();
     const [totalPrice, setTotalPrice] = useState(0);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
-    const { data: session, status } = useSession();
-    const userId = session?.user?.id;
     const stripe = useStripe();
     const elements = useElements();
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [isMounted, setIsMounted] = useState(false);
+    const userId = session?.user?.id;
 
-    // Use this instead of isBrowser to prevent hydration issues
+    // First useEffect - Handle component mounting
     useEffect(() => {
         setIsMounted(true);
+        return () => setIsMounted(false);
     }, []);
 
+    // Second useEffect - Handle session status
     useEffect(() => {
-        if (status === "unauthenticated") {
-            toast.error("Ödeme yapmak için giriş yapmalısınız");
+        if (status === "loading") {
+            setSessionStatus("loading");
+        } else if (status === "authenticated") {
+            setSessionStatus("authenticated");
+            console.log("Oturum yüklendi!", { duration: 2000 });
+        } else {
+            setSessionStatus("unauthenticated");
             router.push('/login');
         }
     }, [status, router]);
 
+    // Third useEffect - Calculate total price
     useEffect(() => {
         if (!isMounted) return;
 
-        let total = 0;
-        cartPrdcts?.forEach(prd => {
-            total += Number(prd.price) * prd.quantity;
-        });
-        setTotalPrice(total);
+        const totalHesapla = () => {
+            let total = 0;
+            cartPrdcts?.forEach(prd => {
+                total += Number(prd.price) * prd.quantity;
+            });
+            setTotalPrice(total);
+        };
 
-        // Only fetch client secret on client-side and when total is available
-        if (total > 0) {
-            const fetchClientSecret = async () => {
-                try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/create-payment-intent`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ amount: total }),
-                    });
-
-                    const data = await response.json();
-                    setClientSecret(data.clientSecret);
-                } catch (error) {
-                    console.error("Client secret alınamadı:", error);
-                }
-            };
-
-            fetchClientSecret();
-        }
+        totalHesapla();
     }, [cartPrdcts, isMounted]);
 
-    useEffect(() => {
-        if (!isMounted) return;
-
-        // Session check
-        if (status === "unauthenticated") {
-            toast.error("Ödeme yapmak için giriş yapmalısınız");
-            router.push('/login');
-            return;
-        }
-      
-        // Address check
-        const urlAddressId = searchParams?.get('addressId');
-        const localAddressId = localStorage.getItem('selectedAddressId');
-        const finalAddressId = urlAddressId || localAddressId;
-      
-        if (!finalAddressId) {
-            toast.error("Lütfen önce bir adres seçin");
-            router.push('/cart');
-            return;
-        }
-      
-        setAddressId(finalAddressId);
-        localStorage.setItem('selectedAddressId', finalAddressId);
-      
-    }, [status, router, searchParams, isMounted]);
-
+    // Fourth useEffect - Check address from URL or localStorage
     useEffect(() => {
         if (!isMounted) return;
 
@@ -127,18 +94,7 @@ const FormPayment = () => {
         setAddressId(validAddressId);
     }, [router, searchParams, isMounted]);
 
-    useEffect(() => {
-        const totalHesapla = () => {
-            let total = 0;
-            cartPrdcts?.forEach(prd => {
-                total += Number(prd.price) * prd.quantity;
-            });
-            setTotalPrice(total);
-        };
-
-        totalHesapla();
-    }, [cartPrdcts]);
-
+    // Fifth useEffect - Get client secret for payment
     useEffect(() => {
         if (!isMounted || !totalPrice || !session?.user?.id || !selectedAddressId) return;
 
@@ -171,7 +127,7 @@ const FormPayment = () => {
             toast.error("Eksik bilgi: Lütfen adres ve kullanıcı bilgilerini kontrol edin");
             return;
         }
-      
+
         let items;
         try {
             items = typeof paymentData.items === 'string'
@@ -181,7 +137,7 @@ const FormPayment = () => {
             toast.error("Geçersiz ürün verisi");
             return;
         }
-      
+
         try {
             const response = await fetch('/api/addOrder', {
                 method: 'POST',
@@ -195,9 +151,9 @@ const FormPayment = () => {
                     }))
                 }),
             });
-      
+
             if (!response.ok) throw new Error(await response.text());
-      
+
             removeItemsFromCart();
             toast.success("Sipariş başarıyla oluşturuldu!");
             router.push("/account/orders");
@@ -210,25 +166,25 @@ const FormPayment = () => {
     const handlePayment = async (event: React.FormEvent) => {
         try {
             event.preventDefault();
-            
+
             if (!session?.user) {
                 toast.error("Oturumunuz sona ermiş. Lütfen yeniden giriş yapın");
                 return router.push('/login');
             }
-            
+
             if (!addressId) {
                 toast.error("Lütfen adres seçin");
                 return router.push('/cart');
             }
-            
+
             const addressFromURL = searchParams?.get('address');
             const addressFromStorage = localStorage.getItem('selectedAddressId');
             const finalAddress = addressFromURL || addressFromStorage;
-            
+
             if (!finalAddress) {
                 throw new Error("Adres bilgisi eksik");
             }
-            
+
             if (!stripe || !elements || !userId || !clientSecret) {
                 alert("Stripe yüklenemedi veya kullanıcı bilgisi eksik!");
                 return;
@@ -277,9 +233,14 @@ const FormPayment = () => {
         }
     };
 
-    // Show loading or nothing during server-side rendering
-    if (!isMounted) {
-        return <div className="h-screen flex items-center justify-center">Yükleniyor...</div>;
+    // Show loading screen during initial loading or when session is loading
+    if (!isMounted || sessionStatus === "loading") {
+        return <LoadingScreen />;
+    }
+
+    // Handle unauthenticated users
+    if (sessionStatus === "unauthenticated") {
+        return null; // Router already redirecting to login
     }
 
     return (
@@ -347,7 +308,7 @@ const FormPayment = () => {
                             onClick={handlePayment}
                             disabled={loading}
                         >
-                             Ödeme Yap
+                            Ödeme Yap
                         </button>
                         <div className="flex items-center">
                             <span>

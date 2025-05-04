@@ -122,6 +122,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
           await signOut({ redirect: false });
           setUser(null);
           router.push("/");
+          window.location.reload();
         } catch (error) {
           console.error("Çıkış sırasında bir hata oluştu:", error);
         } finally {
