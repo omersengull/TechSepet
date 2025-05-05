@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import ProductsCard from "../components/Home/ProductsCard";
 import { Product } from "@prisma/client";
 import { ObjectId } from "bson";
@@ -281,7 +281,8 @@ const Page = () => {
 
 
   return (
-    <div className="mx-auto px-4 sm:px-6 lg:px-14 py-6 min-h-screen">
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="mx-auto px-4 sm:px-6 lg:px-14 py-6 min-h-screen">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}
         <aside className="w-full lg:w-1/4 bg-gray-100 p-4 rounded-lg lg:sticky lg:top-4 h-fit overflow-y-auto max-h-screen scrollbar-hide">
@@ -439,6 +440,7 @@ const Page = () => {
         </main>
       </div>
     </div>
+    </Suspense>
   );
 };
 
