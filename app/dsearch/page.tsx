@@ -5,6 +5,7 @@ import ProductsCard from "../components/Home/ProductsCard";
 import { Product } from "@prisma/client";
 import { ObjectId } from "bson";
 import { Product as PrismaProduct, Review, Category as PrismaCategory } from "@prisma/client";
+import { useSearchParams } from "next/navigation";
 interface Category {
   id: ObjectId;
   name: string;
@@ -20,7 +21,7 @@ export interface ProductWithReviews extends PrismaProduct {
 
 const Page = () => {
   // Sıralama
-  const [sortOption, setSortOption] = useState<string>(""); 
+  const [sortOption, setSortOption] = useState<string>("");
   // Kategori
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   // Ürünler
@@ -29,7 +30,7 @@ const Page = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   // Marka dizisi
   const [brand, setBrand] = useState<string[]>([]);
-  
+
   // Filtreleme için
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
@@ -42,7 +43,9 @@ const Page = () => {
     console.log("Ürün üzerine gelindi:", product);
     // İsteğe bağlı: Burada modal açma gibi işlemler yapılabilir.
   };
-
+  const searchParams = useSearchParams();
+  const urlCategory = decodeURIComponent(searchParams?.get('category') || '');
+  const cleanedUrlCategory = urlCategory.replace(/\s+/g, '').toLowerCase();
   const handleMouseLeave = () => {
     setHoveredProduct(null);
     console.log("Ürün üzerinden çıkıldı.");
@@ -54,27 +57,66 @@ const Page = () => {
       try {
         const response = await axios.get("/api/product");
         setProducts(response.data as ProductWithReviews[]);
-        
+
       } catch (error) {
         console.error("Ürünler yüklenirken hata oluştu:", error);
       }
     };
     fetchProducts();
   }, []);
+  const categoryMapping: Record<string, string> = {
+    'phone': 'Telefon',
+    'laptop': 'Laptop',
+    'smartwatch': 'Akıllı Saat',
+    'earphone': 'Kulaklık',
+    'keyboard': 'Klavye',
+    'mouse': 'Mouse',
+    'television': 'Televizyon',
+    'gameconsole': 'Oyun Konsolu',
+    'camera': 'Kamera',
+    'monitor':'Monitör'
 
+
+  };
+  const realCategoryName = urlCategory ? categoryMapping[urlCategory] : null;
   // Kategorileri çek
+  useEffect(() => {
+    if (realCategoryName) {
+      handleCategoryClick(realCategoryName);
+    }
+  }, [realCategoryName]);
+  useEffect(() => {
+    const urlCategory = searchParams?.get("category");
+    const realCategoryName = urlCategory ? categoryMapping[urlCategory] : null;
+
+    // Kategoriler yüklendiyse ve kategori varsa seç
+    if (categories.length > 0 && realCategoryName) {
+      const matchedCategory = categories.find(cat =>
+        cat.name.toLowerCase().replace(/\s+/g, '') === realCategoryName.toLowerCase().replace(/\s+/g, '')
+      );
+      if (matchedCategory) {
+        setSelectedCategory(matchedCategory.name); // Seçimi yap
+      }
+    }
+  }, [searchParams, categories]); // Hem URL hem kategori listesi değişimini dinle
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("/api/categories");
         const data = await response.json();
         setCategories(data);
+        const urlCategory = searchParams?.get('category');
+        if (urlCategory && data.length > 0) {
+          const realCategoryName = categoryMapping[urlCategory];
+          const matchedCategory = data.find(cat => cat.name === realCategoryName);
+          if (matchedCategory) setSelectedCategory(matchedCategory.name);
+        }
       } catch (error) {
         console.error("Kategoriler yüklenirken hata oluştu:", error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [searchParams]);
 
   // Markaları çek
   useEffect(() => {
@@ -96,7 +138,11 @@ const Page = () => {
     setSelectedBrands([]);
     setSelectedSpecifications({});
   };
-
+  useEffect(() => {
+    if (urlCategory) {
+      handleCategoryClick(urlCategory);
+    }
+  }, [urlCategory]);
   // Marka değişimi
   const handleBrandChange = (brand: string) => {
     if (selectedBrands.includes(brand)) {
@@ -151,26 +197,26 @@ const Page = () => {
 
   // Kategori ObjectId
   const selectedCategoryObjectId = categories
-  .find(cat => cat.name === selectedCategory)
-  ?.id
-  .toString();
+    .find(cat => cat.name === selectedCategory)
+    ?.id
+    .toString();
 
-// filtrelenmiş markalar:
-const availableBrands = Array.from(
-  new Set(
-    products
-      .filter(product =>
-        product.category?.name.toLowerCase() === selectedCategory?.toLowerCase()
-      )
-      .map(product => product.brand.toUpperCase())
-  )
-);
+  // filtrelenmiş markalar:
+  const availableBrands = Array.from(
+    new Set(
+      products
+        .filter(product =>
+          product.category?.name.toLowerCase() === selectedCategory?.toLowerCase()
+        )
+        .map(product => product.brand.toUpperCase())
+    )
+  );
   // Filtrelenmiş ürünler
   const filteredProducts = products.filter((product: any) => {
     const categoryName =
       product.category &&
-      typeof product.category === "object" &&
-      typeof product.category.name === "string"
+        typeof product.category === "object" &&
+        typeof product.category.name === "string"
         ? product.category.name.toLowerCase().trim()
         : "";
 
@@ -198,42 +244,42 @@ const availableBrands = Array.from(
 
     return matchesCategory && matchesBrand && matchesPrice && matchesSpecifications;
   });
-  
+
   // "Yüksek puanlı" için ortalama rating hesapla
-function getAverageRating(product: any) {
-  const { reviews } = product;
-  if (!reviews || reviews.length === 0) {
-    return 0; // Henüz değerlendirme yoksa 0 kabul ediyoruz
+  function getAverageRating(product: any) {
+    const { reviews } = product;
+    if (!reviews || reviews.length === 0) {
+      return 0; // Henüz değerlendirme yoksa 0 kabul ediyoruz
+    }
+    const total = reviews.reduce((acc: number, review: any) => acc + review.rating, 0);
+    return total / reviews.length;
   }
-  const total = reviews.reduce((acc: number, review: any) => acc + review.rating, 0);
-  return total / reviews.length; 
-}
 
-// Filtrelenmiş ürünleri sıralama
-const finalProducts = [...filteredProducts].sort((a, b) => {
-  switch (sortOption) {
-    case "dusukFiyat":
-      return a.price - b.price; // Küçükten büyüğe
-    case "yuksekFiyat":
-      return b.price - a.price; // Büyükten küçüğe
+  // Filtrelenmiş ürünleri sıralama
+  const finalProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortOption) {
+      case "dusukFiyat":
+        return a.price - b.price; // Küçükten büyüğe
+      case "yuksekFiyat":
+        return b.price - a.price; // Büyükten küçüğe
 
-    case "cokDegerlendirilen":
-      // Değerlendirme sayısına göre çoktan aza
-      return (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0);
+      case "cokDegerlendirilen":
+        // Değerlendirme sayısına göre çoktan aza
+        return (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0);
 
-    case "yuksekPuanli":
-      // Ortalama puana göre büyükten küçüğe
-      return getAverageRating(b) - getAverageRating(a);
-    case "yeniEklenen":
-      // Tarihe göre en yeni olanı önce göstermek
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case "yuksekPuanli":
+        // Ortalama puana göre büyükten küçüğe
+        return getAverageRating(b) - getAverageRating(a);
+      case "yeniEklenen":
+        // Tarihe göre en yeni olanı önce göstermek
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
-    default:
-      return 0;
-  }
-});
+      default:
+        return 0;
+    }
+  });
 
-  
+
   return (
     <div className="mx-auto px-4 sm:px-6 lg:px-14 py-6 min-h-screen">
       <div className="flex flex-col lg:flex-row gap-6">
@@ -257,11 +303,10 @@ const finalProducts = [...filteredProducts].sort((a, b) => {
                         handleCategoryClick(category?.name || "");
                       }}
                       href="#"
-                      className={`cursor-pointer ${
-                        selectedCategory === category?.name
+                      className={`cursor-pointer ${selectedCategory === category?.name
                           ? "text-blue-600 font-bold"
                           : ""
-                      }`}
+                        }`}
                     >
                       {category?.name}
                     </a>
@@ -291,26 +336,26 @@ const finalProducts = [...filteredProducts].sort((a, b) => {
 
           {/* Marka Filtreleme */}
           <div className="mt-3">
-  <h2 className="text-lg font-bold mt-6 mb-4">Marka</h2>
-  { !selectedCategory ? (
-      <p className="text-gray-500">Marka filtresi için lütfen bir kategori seçin.</p>
-    ) : availableBrands.length > 0 ? (
-      availableBrands.map((brnd, index) => (
-        <label key={index} className="flex items-center">
-          <input
-            type="checkbox"
-            checked={selectedBrands.includes(brnd)}
-            onChange={() => handleBrandChange(brnd)}
-            className="mr-2"
-          />
-          {brnd}
-        </label>
-      ))
-    ) : (
-      <p className="text-gray-500">Bu kategoride marka bulunamadı.</p>
-    )
-  }
-</div>
+            <h2 className="text-lg font-bold mt-6 mb-4">Marka</h2>
+            {!selectedCategory ? (
+              <p className="text-gray-500">Marka filtresi için lütfen bir kategori seçin.</p>
+            ) : availableBrands.length > 0 ? (
+              availableBrands.map((brnd, index) => (
+                <label key={index} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedBrands.includes(brnd)}
+                    onChange={() => handleBrandChange(brnd)}
+                    className="mr-2"
+                  />
+                  {brnd}
+                </label>
+              ))
+            ) : (
+              <p className="text-gray-500">Bu kategoride marka bulunamadı.</p>
+            )
+            }
+          </div>
 
           {/* Özellik Filtreleme */}
           {selectedCategory &&
@@ -379,11 +424,11 @@ const finalProducts = [...filteredProducts].sort((a, b) => {
             {finalProducts.length > 0 ? (
               finalProducts.map((prd: any, index: number) => (
                 <ProductsCard
-                key={index}
-                product={prd}
-                onMouseEnter={() => handleMouseEnter(prd)}
-                onMouseLeave={handleMouseLeave}
-              />
+                  key={index}
+                  product={prd}
+                  onMouseEnter={() => handleMouseEnter(prd)}
+                  onMouseLeave={handleMouseLeave}
+                />
               ))
             ) : (
               <p className="text-center text-gray-500 col-span-full">

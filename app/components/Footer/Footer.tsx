@@ -6,8 +6,8 @@ import { IoMail } from "react-icons/io5";
 import { useRouter } from 'next/navigation';
 
 const Footer = () => {
-    const router=useRouter();
-    const [policyType, setPolicyType] = useState(""); 
+    const router = useRouter();
+    const [policyType, setPolicyType] = useState("");
     return (
         <div className="bg-slate-300 p-6 md:p-10 text-black">
             <div className="flex flex-col md:flex-row  max-width">
@@ -18,9 +18,9 @@ const Footer = () => {
                             <h1 className='text-2xl  text-blue-600'>Bilgi</h1>
                         </li>
                         <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">Hakkımızda</a>
+                            <a href="/about">Hakkımızda</a>
                         </li>
-                        <li onClick={()=>{router.push("/account/personalinformation")}} className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                        <li onClick={() => { router.push("/account/personalinformation") }} className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
                             <a href="/account/personalinformation">Profil Ayarları</a>
                         </li>
                         <li className="mb-3   py-1 rounded-xl hover:bg-gray-200" >
@@ -38,25 +38,25 @@ const Footer = () => {
                         <li className="mb-4">
                             <h1 className="text-2xl text-blue-600">Politikalar</h1>
                         </li>
-                        <li 
-                            className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200 cursor-pointer" 
+                        <li
+                            className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
                             onClick={() => setPolicyType("gizlilik")}
                         >
                             Gizlilik Politikası
                         </li>
-                        <li 
+                        <li
                             className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
                             onClick={() => setPolicyType("kullanim")}
                         >
                             Kullanım Şartları
                         </li>
-                        <li 
+                        <li
                             className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
                             onClick={() => setPolicyType("cerez")}
                         >
                             Çerez Politikası
                         </li>
-                        <li 
+                        <li
                             className="mb-3 py-1 rounded-xl hover:bg-gray-200 cursor-pointer"
                             onClick={() => setPolicyType("iade")}
                         >
@@ -70,31 +70,128 @@ const Footer = () => {
 
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <li className="mb-3 mt-2  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Telefonlar</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=phone');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Telefon
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Laptoplar</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=laptop');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Laptop
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Akıllı Saatler</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=smartwatch');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Akıllı Saat
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Kulaklıklar</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=earphone');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Kulaklık
+                                    </a>
+                                </li>
+
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=keyboard');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Klavye
+                                    </a>
                                 </li>
                             </div>
                             <div>
-                                <li className="mb-3 mt-2  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Gaming Ürünler</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=mouse');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Mouse
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Televizyonlar</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=television');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Televizyon
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Kameralar</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=gameconsole');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Oyun Konsolu
+                                    </a>
                                 </li>
-                                <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
-                                    <a href="#">Oyun Konsolları</a>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=camera');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Kamera
+                                    </a>
+                                </li>
+                                <li className="mb-3 mt-2 py-1 rounded-xl hover:bg-gray-200">
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.push('/dsearch?category=monitor');
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        Monitör
+                                    </a>
                                 </li>
                             </div>
                         </div>
@@ -150,7 +247,7 @@ const Footer = () => {
             </div>
 
             <div className="mt-10 text-center text-sm">
-                © 2024 TechSepet.com. Her hakkı saklıdır. Bu web sitesinde yer alan tüm içerikler, metinler, resimler, videolar ve diğer materyaller TechSepet.com’a aittir ve ilgili telif hakkı kanunları kapsamında korunmaktadır.
+                © 2024-2025 TechSepet.com. Her hakkı saklıdır. Bu web sitesinde yer alan tüm içerikler, metinler, resimler, videolar ve diğer materyaller TechSepet.com’a aittir ve ilgili telif hakkı kanunları kapsamında korunmaktadır.
                 <br />
                 Kullanıcıların gizliliğine büyük önem veriyoruz. Kişisel verilerin korunması ve gizlilik politikamızla ilgili daha fazla bilgi almak için lütfen Gizlilik Politikası sayfamızı ziyaret ediniz.
                 <br />
@@ -159,7 +256,7 @@ const Footer = () => {
             {policyType && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg max-w-3xl w-full relative shadow-lg">
-                        <button 
+                        <button
                             className="absolute top-2 right-4 text-xl font-bold text-red-600"
                             onClick={() => setPolicyType("")}
                         >
@@ -174,61 +271,61 @@ const Footer = () => {
                         <p className="text-gray-700 text-sm max-h-[400px] overflow-auto p-4 border rounded-md">
                             {policyType === "gizlilik" && (
                                 <>
-                                    TechSepet olarak kullanıcı verilerini koruma konusunda hassasiyet göstermekteyiz. 
-                                    Kullanıcılarımızın kişisel verilerinin korunması, işlenmesi ve paylaşımıyla ilgili 
-                                    tüm süreçler 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) ve diğer ilgili 
+                                    TechSepet olarak kullanıcı verilerini koruma konusunda hassasiyet göstermekteyiz.
+                                    Kullanıcılarımızın kişisel verilerinin korunması, işlenmesi ve paylaşımıyla ilgili
+                                    tüm süreçler 6698 sayılı Kişisel Verileri Koruma Kanunu (“KVKK”) ve diğer ilgili
                                     mevzuat hükümlerine uygun olarak yürütülmektedir.
                                     <br /><br />
-                                    **Toplanan Veriler:**  
-                                    Ad, soyad, e-posta adresi, telefon numarası, adres bilgileri, ödeme bilgileri ve çerezler.  
+                                    **Toplanan Veriler:**
+                                    Ad, soyad, e-posta adresi, telefon numarası, adres bilgileri, ödeme bilgileri ve çerezler.
                                     <br /><br />
-                                    **Gizlilik ve Güvenlik:**  
-                                    Kullanıcı bilgileriniz asla üçüncü taraflarla ticari amaçlarla paylaşılmaz.  
-                                    Güvenliğiniz için en güncel teknik önlemler uygulanmaktadır.  
+                                    **Gizlilik ve Güvenlik:**
+                                    Kullanıcı bilgileriniz asla üçüncü taraflarla ticari amaçlarla paylaşılmaz.
+                                    Güvenliğiniz için en güncel teknik önlemler uygulanmaktadır.
                                 </>
                             )}
                             {policyType === "kullanim" && (
                                 <>
                                     TechSepet hizmetlerini kullanırken aşağıdaki kurallara uymanız gerekmektedir:
                                     <br /><br />
-                                    **Hizmet Kullanımı:**  
-                                    TechSepet.shop üzerinden yapılan tüm alışverişler, geçerli yasalara uygun olmalıdır.  
+                                    **Hizmet Kullanımı:**
+                                    TechSepet.shop üzerinden yapılan tüm alışverişler, geçerli yasalara uygun olmalıdır.
                                     <br /><br />
-                                    **Hesap Güvenliği:**  
-                                    Kullanıcı hesaplarınızın güvenliği sizin sorumluluğunuzdadır.  
+                                    **Hesap Güvenliği:**
+                                    Kullanıcı hesaplarınızın güvenliği sizin sorumluluğunuzdadır.
                                     <br /><br />
-                                    **İçerik Hakları:**  
-                                    Sitede yer alan tüm içerikler TechSepet'e aittir ve izinsiz kullanılamaz.  
+                                    **İçerik Hakları:**
+                                    Sitede yer alan tüm içerikler TechSepet'e aittir ve izinsiz kullanılamaz.
                                 </>
                             )}
                             {policyType === "cerez" && (
                                 <>
                                     TechSepet olarak web sitemizde çerezleri (cookies) kullanmaktayız.
                                     <br /><br />
-                                    **Çerezlerin Kullanımı:**  
-                                    Çerezler, kullanıcı deneyimini iyileştirmek ve site trafiğini analiz etmek için kullanılır.  
+                                    **Çerezlerin Kullanımı:**
+                                    Çerezler, kullanıcı deneyimini iyileştirmek ve site trafiğini analiz etmek için kullanılır.
                                     <br /><br />
-                                    **Çerez Türleri:**  
-                                    - Zorunlu Çerezler  
-                                    - Analitik Çerezler  
-                                    - Reklam ve Pazarlama Çerezleri  
+                                    **Çerez Türleri:**
+                                    - Zorunlu Çerezler
+                                    - Analitik Çerezler
+                                    - Reklam ve Pazarlama Çerezleri
                                     <br /><br />
-                                    **Çerezleri Yönetme:**  
-                                    Tarayıcınızın ayarlarından çerezleri devre dışı bırakabilirsiniz.  
+                                    **Çerezleri Yönetme:**
+                                    Tarayıcınızın ayarlarından çerezleri devre dışı bırakabilirsiniz.
                                 </>
                             )}
                             {policyType === "iade" && (
                                 <>
                                     Müşteri memnuniyeti bizim için önemlidir. TechSepet olarak aşağıdaki iade politikası uygulanmaktadır:
                                     <br /><br />
-                                    **İade Koşulları:**  
-                                    - Ürün kullanılmamış ve ambalajı açılmamış olmalıdır.  
-                                    - İade süresi, teslimat tarihinden itibaren 14 gündür.  
+                                    **İade Koşulları:**
+                                    - Ürün kullanılmamış ve ambalajı açılmamış olmalıdır.
+                                    - İade süresi, teslimat tarihinden itibaren 14 gündür.
                                     <br /><br />
-                                    **İade Süreci:**  
-                                    1. İade talebinizi müşteri hizmetlerine iletin.  
-                                    2. Ürünü, faturasıyla birlikte bize gönderin.  
-                                    3. Ürün kontrol edildikten sonra iade süreci başlatılır.  
+                                    **İade Süreci:**
+                                    1. İade talebinizi müşteri hizmetlerine iletin.
+                                    2. Ürünü, faturasıyla birlikte bize gönderin.
+                                    3. Ürün kontrol edildikten sonra iade süreci başlatılır.
                                 </>
                             )}
                         </p>

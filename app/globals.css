@@ -34,6 +34,23 @@
   position: relative;
   bottom: 10px;
 }
+.techteam {
+  position: relative;
+  background: url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D") no-repeat center center/cover;
+  height: 100vh; /* veya sabit bir yükseklik */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.techteam .overlay {
+  background-color: rgba(0, 0, 0, 0.5); /* yarı saydam koyu katman */
+  padding: 2rem;
+  border-radius: 10px;
+}
+
 
 .container1 {
   background-color: #fff;
