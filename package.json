@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+     "fix:updatedAt": "ts-node --esm scripts/fixUpdatedAt.ts",
     "fix-orders": "ts-node scripts/fixorders.ts",
     "dev": "next dev",
     "postinstall": "prisma generate",

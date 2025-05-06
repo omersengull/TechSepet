@@ -153,9 +153,14 @@ const FeaturedProductsDualSlider: React.FC = () => {
     const fetchBestSelling = async () => {
       try {
         const response = await axios.get("/api/order");
-        setBestSellingProducts(response.data);
+        if (response.data && response.data.length > 0) {
+          setBestSellingProducts(response.data);
+        } else {
+          console.log("Çok satan ürün bulunamadı.");
+        }
       } catch (error) {
         console.error("Error fetching best sellers:", error);
+        // Kullanıcıya hata mesajı göster
       }
     };
     fetchBestSelling();

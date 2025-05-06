@@ -24,11 +24,9 @@ const Footer = () => {
                             <a href="/account/personalinformation">Profil Ayarları</a>
                         </li>
                         <li className="mb-3   py-1 rounded-xl hover:bg-gray-200" >
-                            <a href="#">Sipariş Takibi</a>
+                            <a href="/account/order-track">Sipariş Takibi</a>
                         </li>
-                        <li className="mb-3   py-1 rounded-xl hover:bg-gray-200">
-                            <a href="#">İade Ve Değişim</a>
-                        </li>
+                        
                         <li className="mb-3  py-1 rounded-xl hover:bg-gray-200">
                             <a href="/help">S.S.S. Ve Yardım</a>
                         </li>

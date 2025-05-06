@@ -20,7 +20,6 @@ const AdminSideBar = () => {
     { name: "Stok Yönetimi", icon: AiOutlineStock, url: "/admin/stock" },
     { name: "İndirim Kuponları", icon: BiSolidDiscount, url: "/admin/coupons" },
     { name: "Ürünleri Düzenle", icon: MdManageHistory, url: "/admin/organize" },
-    { name: "Ürünleri Sil", icon: MdDeleteForever, url: "/admin/manage" },
     { name: "Yedek", icon: MdBackup, url: "/admin/backup" },
     { name: "Satış Rapor", icon: HiDocumentReport, url: "/admin/salesReport" },
   ];

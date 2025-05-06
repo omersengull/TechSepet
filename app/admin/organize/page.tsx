@@ -1,15 +1,20 @@
-
 "use client";
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Product } from '@prisma/client';
 import Link from 'next/link';
 import { HashLoader } from 'react-spinners';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+
 type ProductWithCategory = Product & {
   category: {
     name: string;
   } | null;
 };
+
 export default function OrganizeProducts() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,13 +34,35 @@ export default function OrganizeProducts() {
     }
   };
 
+  const handleDelete = useCallback(async (productId: string, imageUrl: string) => {
+    toast.loading("Silme işlemi için bekleyin...");
+    
+    try {
+      // Resmi sil
+      await axios.post("/api/delete-image", { imageUrl });
+      
+      // Ürünü sil
+      await axios.delete(`/api/product/${productId}`);
+      
+      // Ürün listesini güncelle
+      setProducts(prev => prev.filter(product => product.id !== productId));
+      
+      toast.success("Ürün başarıyla silindi!");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message;
+      toast.error(`Silme hatası: ${errorMessage}`);
+    } finally {
+      toast.dismiss();
+    }
+  }, []);
+
   if (loading) return <div className='min-h-screen flex justify-center items-center'><HashLoader /></div>;
 
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4 md:mb-6">Ürün Yönetimi</h1>
-  
-      {/* Masaüstü Tablo */}
+
+      {/* Masaüstü Görünüm */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full bg-white shadow rounded-lg">
           <thead className="bg-gray-50">
@@ -44,6 +71,7 @@ export default function OrganizeProducts() {
               <th className="py-3 px-4 border-b text-left">Fiyat</th>
               <th className="py-3 px-4 border-b text-left">Kategori</th>
               <th className="py-3 px-4 border-b text-left">İşlemler</th>
+              <th className="py-3 px-4 border-b text-left">Ürünü Sil</th>
             </tr>
           </thead>
           <tbody>
@@ -64,13 +92,21 @@ export default function OrganizeProducts() {
                     Düzenle
                   </Link>
                 </td>
+                <td className="py-3 px-4 border-b">
+                  <button 
+                    onClick={() => handleDelete(product.id, product.image)}
+                    className="text-red-600 hover:text-red-800 font-medium"
+                  >
+                    Sil
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-  
-      {/* Mobil Liste */}
+
+      {/* Mobil Görünüm */}
       <div className="md:hidden space-y-4">
         {products.map((product) => (
           <div key={product.id} className="bg-white p-4 rounded-lg shadow">
@@ -87,12 +123,20 @@ export default function OrganizeProducts() {
                   {product.category?.name || 'Kategori yok'}
                 </span>
               </div>
-              <Link
-                href={`/admin/organize/edit/${product.id}`}
-                className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700"
-              >
-                Düzenle
-              </Link>
+              <div className="flex gap-2">
+                <Link
+                  href={`/admin/organize/edit/${product.id}`}
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700"
+                >
+                  Düzenle
+                </Link>
+                <button 
+                  onClick={() => handleDelete(product.id, product.image)}
+                  className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
+                >
+                  Sil
+                </button>
+              </div>
             </div>
           </div>
         ))}

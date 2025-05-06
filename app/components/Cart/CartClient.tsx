@@ -137,7 +137,8 @@ const CartClient = () => {
     const [isFormChecked, setIsFormChecked] = useState(false);
 
     // Miktar artırma
-    const increaseFunc = (productId: string) => {
+    const increaseFunc = (productId: string) => (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
         if (!isBrowser) return;
 
         setCartPrdcts(prevCart => {
@@ -157,7 +158,8 @@ const CartClient = () => {
     };
 
     // Miktar azaltma
-    const decreaseFunc = (productId: string) => {
+    const decreaseFunc = (productId: string) => (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
         if (!isBrowser) return;
 
         setCartPrdcts(prevCart => {
@@ -294,10 +296,11 @@ const CartClient = () => {
                                             Stokta yok
                                         </div>
                                     )}
+                                   
                                     <Counter
                                         cardProduct={prd}
-                                        increaseFunc={() => increaseFunc(prd.id)}
-                                        decreaseFunc={() => decreaseFunc(prd.id)}
+                                        increaseFunc={increaseFunc(prd.id)}
+                                        decreaseFunc={decreaseFunc(prd.id)}
                                     />
                                 </div>
                             </div>
