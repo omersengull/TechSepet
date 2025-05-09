@@ -30,7 +30,7 @@ export default function BackupPage() {
     }
     setLoading(false);
   };
-
+  
   const loadBackups = async () => {
     try {
       const response = await axios.get('/api/backup/list');

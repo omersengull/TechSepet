@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/pages/api/auth/[...nextauth]"; // Doğru import
+import { authOptions } from "@/pages/api/auth/[...nextauth]"; 
 
 const prisma = new PrismaClient();
 
-// ⭐ Favoriye ürün ekleme (POST)
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);

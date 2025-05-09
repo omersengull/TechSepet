@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/libs/prismadb';
 
-// app/api/products/[productId]/route.ts
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

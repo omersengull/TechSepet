@@ -47,14 +47,13 @@ function Page() {
         const data: Favorite[] = await response.json();
         setFavorites(data);
         
-        // Initialize clicked states
+ 
         const initialStates = data.reduce((acc, fav) => ({
           ...acc,
           [fav.id]: true
         }), {});
         setClickedStates(initialStates);
 
-        // Fetch ratings for each product
         data.forEach(async (fav) => {
           if (fav.product?.id) {
             try {

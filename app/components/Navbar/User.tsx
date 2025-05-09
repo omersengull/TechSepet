@@ -10,78 +10,42 @@ import { IoLogOut } from "react-icons/io5";
 import { MdAccountBox, MdFavorite, MdOutlineContactPage } from "react-icons/md";
 import { PiNotePencilBold } from "react-icons/pi";
 import { FaBox, FaLocationDot } from "react-icons/fa6";
+import Skeleton from "react-loading-skeleton";
 
 interface UserProps {
-  currentUser: User | null | undefined;
+  currentUser: SafeUser | null | undefined;
 }
 
-// Prisma User tipini extend eden yeni bir tip tanımlayalım
-type SafeUser = Omit<User, "hashedPassword" | "name" | "surname"> & {
-  hashedPassword: string;
-  name: string;
-  surname: string;
-  resetToken: string | null;
-  resetTokenExpiry: Date | null;
-  verificationToken: string | null;
-  verificationTokenExpiry: Date | null;
-  addresses: {
+type SafeUser = Omit<User, "hashedPassword"> & {
+  name: string;            // Kullanıcı adı (gerekli)
+  surname: string;         // Soyadı (gerekli)
+  addresses?: {            // Adresler opsiyonel
     address: string;
     title: string;
     id: string;
-    createdAt: Date;
-    updatedAt: Date;
     city: string;
     postalCode: string;
-    userId: string;
   }[];
+  resetToken?: string | null;               // Şifre sıfırlama (opsiyonel)
+  resetTokenExpiry?: Date | null;           // Şifre sıfırlama süresi (opsiyonel)
+  verificationToken?: string | null;        // Email doğrulama (opsiyonel)
+  verificationTokenExpiry?: Date | null;    // Doğrulama süresi (opsiyonel)
 };
 
 const User: React.FC<UserProps> = ({ currentUser }) => {
+  const [loading1, setLoading1] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const { setIsLoading } = useSpinner();
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(false);
   const [user, setUser] = useState<SafeUser | null | undefined>(currentUser as SafeUser);
   const menuRef = useRef<HTMLDivElement>(null);
-
+  useEffect(() => {
+    // Veri yüklendikten sonra
+    setLoading1(false);
+  }, [user]);
   // useSession hook'u ile oturum durumundaki değişiklikleri dinliyoruz
   const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      // Aşağıdaki kısımda daha önce role: "USER" olarak zorla atanıyordu.
-      // Bunu yerine veritabanından gelen (currentUser) rolü esas alıyoruz.
-      // Eğer currentUser.role boş gelirse, "USER" olarak varsayabiliriz.
-      const transformedUser: SafeUser = {
-        id: "default-id",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        emailVerified: null,
-        hashedPassword: "default-hash",
-        gender: null,
-        // Aşağıdaki name-surname atamalarını koruyoruz
-        surname: session.user.name?.split(" ")[1] || "Surname",
-        phone: null,
-        birthday: null,
-        addresses: [],
-        // --- ORİJİNALDE role: "USER" ZORLA VARDI ---
-        // role: "USER",
-        // --- YENİ: veritabanından gelen rolü esas alıyoruz ---
-        role: currentUser?.role || "USER",
-        name: session.user.name?.split(" ")[0] || "Name",
-        email: session.user.email || "example@gmail.com",
-        image: session.user.image || null,
-        resetToken: user?.resetToken ?? null,
-        resetTokenExpiry: user?.resetTokenExpiry ?? null,
-        verificationToken: user?.verificationToken ?? null,
-        verificationTokenExpiry: user?.verificationTokenExpiry ?? null,
-      };
-      setUser(transformedUser);
-    } else {
-      setUser(null);
-    }
-  }, [status, session, currentUser, user?.resetToken, user?.resetTokenExpiry, user?.verificationToken, user?.verificationTokenExpiry]);
-
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -93,7 +57,46 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  const [userLoading, setUserLoading] = useState(true);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const u = await getCurrentUser();
+        if (u) {
+          // 1) API'den gelen ham kullanıcı objesi 'u'
+          // 2) Bunu SafeUser tipine dönüştürüyoruz:
+          const transformedUser: SafeUser = {
+            ...u,
+            name: u.name || session?.user?.name?.split(" ")[0] || "User",
+            surname: u.surname || session?.user?.name?.split(" ")[1] || "",
+            createdAt: new Date(u.createdAt),
+            updatedAt: new Date(u.updatedAt),
+            emailVerified: u.emailVerified ? new Date(u.emailVerified) : null,
+            birthday: u.birthday ? new Date(u.birthday) : null,
+            addresses: u.addresses?.map(addr => ({
+              ...addr,
+              createdAt: addr.createdAt ? new Date(addr.createdAt) : undefined,
+              updatedAt: addr.updatedAt ? new Date(addr.updatedAt) : undefined,
+            })),
+            resetToken: u.resetToken ?? null,
+            resetTokenExpiry: u.resetTokenExpiry ? new Date(u.resetTokenExpiry) : null,
+            verificationToken: u.verificationToken ?? null,
+            verificationTokenExpiry: u.verificationTokenExpiry ? new Date(u.verificationTokenExpiry) : null,
+          };
 
+          setUser(transformedUser);
+        }
+      } catch (error) {
+        console.error("Kullanıcı yüklenirken hata:", error);
+        setUser(null);
+      } finally {
+        // Hem başarılı hem hata durumunda yükleme flag'ini false'a çek
+        setUserLoading(false);
+      }
+    };
+
+    load();
+  }, [session]);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -152,7 +155,44 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       setOpenMenu(false);
     }
   }, [user]);
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          const transformedUser: SafeUser = {
+            ...user,
+            name: user.name || session?.user?.name?.split(' ')[0] || 'User',
+            surname: user.surname || session?.user?.name?.split(' ')[1] || '',
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+            emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
+            birthday: user.birthday ? new Date(user.birthday) : null,
+            addresses: user.addresses?.map(addr => ({
+              ...addr,
+              createdAt: addr.createdAt ? new Date(addr.createdAt) : undefined,
+              updatedAt: addr.updatedAt ? new Date(addr.updatedAt) : undefined
+            })),
+            resetTokenExpiry: user.resetTokenExpiry ? new Date(user.resetTokenExpiry) : null,
+            verificationTokenExpiry: user.verificationTokenExpiry ? new Date(user.verificationTokenExpiry) : null
+          };
+          setUser(transformedUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setUser(null);
+      }
+    };
 
+    checkUser();
+  }, [session]);
+
+  // Session değişikliklerini dinle
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      setUser(null);
+    }
+  }, [status]);
   // Menüdeki seçenekleri rol'e göre render edelim
   const renderMenuItems = () => {
     // Kullanıcı yoksa (henüz login olmamış)
@@ -191,6 +231,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
     // Admin olmayan giriş yapmış kullanıcı için tüm menü seçenekleri
     return (
       <>
+
         <a
           href="/account"
           className="flex items-center hover:bg-gray-100 px-3 py-2 rounded-md"
@@ -234,6 +275,7 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
 
   return (
     <div className="md:flex relative z-40" ref={menuRef}>
+
       <div
         onClick={() => setOpenMenu(!openMenu)}
         className="rounded-full cursor-pointer border border-white bg-white p-3"
@@ -241,18 +283,18 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
         <FaRegUser className="text-black m-1" />
       </div>
 
+
+
       {/* Mobil görünüm */}
       {isMobile && (
         <div
-          className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${
-            openMenu ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity ${openMenu ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
           onClick={() => setOpenMenu(false)}
         >
           <div
-            className={`fixed top-0 right-0 w-3/4 max-w-[320px] h-full bg-white p-5 shadow-lg transform transition-transform ${
-              openMenu ? "translate-x-0" : "translate-x-full"
-            }`}
+            className={`fixed top-0 right-0 w-3/4 max-w-[320px] h-full bg-white p-5 shadow-lg transform transition-transform ${openMenu ? "translate-x-0" : "translate-x-full"
+              }`}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -269,9 +311,17 @@ const User: React.FC<UserProps> = ({ currentUser }) => {
       )}
 
       {/* Büyük ekranlarda dropdown menü */}
-      {!isMobile && openMenu && (
+      {!isMobile && openMenu && !userLoading && (
         <div className="absolute w-[250px] top-14 bg-white shadow-lg right-0 p-4 rounded-md border">
-          <div className="space-y-2 text-slate-700">{renderMenuItems()}</div>
+          {loading1 ? (
+            <div className="space-y-3">
+              <Skeleton height={25} width="100%" />
+              <Skeleton height={25} width="100%" />
+              <Skeleton height={25} width="100%" />
+            </div>
+          ) : (
+            <div className="space-y-2 text-slate-700">{renderMenuItems()}</div>
+          )}
         </div>
       )}
     </div>

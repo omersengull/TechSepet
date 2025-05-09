@@ -33,7 +33,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const fileName = `backup_${timestamp}.json`;
 
-    const backupDir = path.join(process.cwd(), 'backups');
+    const backupDir = path.join('/tmp', 'backups'); // ✨ Sadece bu satırı değiştir
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir);
     }

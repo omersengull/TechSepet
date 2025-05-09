@@ -7,12 +7,13 @@ if (!secretKey) {
 }
 
 const stripe = new Stripe(secretKey, {
-  apiVersion: '2022-11-15', // daha yaygın & stabil bir versiyon önerisi
+  apiVersion: '2022-11-15', 
+  
 });
 
 export async function POST(request) {
   try {
-    // Eğer tutarı client'tan alıyorsanız:
+ 
     const {
       amount
     } = await request.json();

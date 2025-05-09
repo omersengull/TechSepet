@@ -14,8 +14,8 @@ export async function POST(request: Request) {
   try {
     const { imageUrl } = await request.json();
     
-    // URL'den dosya adını çıkar (örnek: "https://storage.googleapis.com/techsepet1/images/Adsız.png")
-    const fileNamePart = imageUrl.split("/images/")[1]?.split("?")[0]; // "Adsız.png"
+
+    const fileNamePart = imageUrl.split("/images/")[1]?.split("?")[0];
 
     if (!fileNamePart) {
       return NextResponse.json(

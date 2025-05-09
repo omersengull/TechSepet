@@ -11,7 +11,7 @@ interface Coupon {
   isSingleUse: boolean;
 }
 type FormData = {
-  discountValue: string; // ✅
+  discountValue: string;
   discountType: 'FIXED' | 'PERCENTAGE';
 }
 export default function CreateCouponPage() {
@@ -19,7 +19,7 @@ export default function CreateCouponPage() {
   const [formData, setFormData] = useState({
     code: '',
     discountType: 'FIXED',
-    discountValue: '', // ✅ Doğru alan
+    discountValue: '', 
     maxDiscount: '',
     validUntil: '',
     isSingleUse: false,
@@ -66,7 +66,7 @@ export default function CreateCouponPage() {
 
   return (
     <div className="flex flex-col md:flex-row gap-8 mb-10 p-4">
-      {/* Create Coupon Form */}
+
       <div className="w-full md:max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-6">Yeni Kupon Oluştur</h1>
 
@@ -160,7 +160,8 @@ export default function CreateCouponPage() {
         </form>
       </div>
 
-      {/* Active Coupons List */}
+
+
       <div className="w-full md:max-w-2xl p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6">Aktif Kuponlar</h2>
 

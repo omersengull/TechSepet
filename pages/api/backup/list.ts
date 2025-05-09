@@ -5,7 +5,7 @@ import path from 'path';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const backupDir = path.join(process.cwd(), 'backups');
+    const backupDir = path.join('/tmp', 'backups'); // ✨ Aynı şekilde burayı da değiştir
     
     if (!fs.existsSync(backupDir)) {
       return res.status(404).json({ message: 'Yedek dosyası bulunamadı.' });

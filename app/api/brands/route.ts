@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/libs/prismadb"; // Prisma setup'ını buraya koymalısın
+import prisma from "@/libs/prismadb"; 
 
 export async function GET() {
   try {

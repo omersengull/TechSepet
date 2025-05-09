@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]"; 
-// NOT: authOptions yolunu kendi projenize göre güncelleyin
 
 const prisma = new PrismaClient();
 
