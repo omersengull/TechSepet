@@ -6,6 +6,7 @@ import { Product } from "@prisma/client";
 import { ObjectId } from "bson";
 import { Product as PrismaProduct, Review, Category as PrismaCategory } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
+import { HashLoader } from "react-spinners";
 interface Category {
   id: ObjectId;
   name: string;
@@ -20,7 +21,7 @@ export interface ProductWithReviews extends PrismaProduct {
 }
 const Page = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><HashLoader color="#3B82F6"/></div>}>
       <SearchComponent />
     </Suspense>
   );

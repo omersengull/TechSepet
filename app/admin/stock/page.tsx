@@ -68,7 +68,7 @@ export default function StockManagement() {
 
   if (loading) return (
     <div className="min-h-screen flex justify-center items-center">
-      <HashLoader size={50} color="#3B82F6" />
+      <HashLoader size={50} />
     </div>
   );
 
