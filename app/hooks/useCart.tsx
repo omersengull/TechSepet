@@ -137,10 +137,7 @@ const loadCart = async () => {
             }
           });
       
-          // Başarı mesajını SADECE burada göster
-          toast.success("Ürün sepete eklendi", { 
-            id: "unique-add-to-cart" // Aynı mesajın tekrarını önler
-          });
+         
       
         } catch (error) {
           console.error("Hata:", error);
