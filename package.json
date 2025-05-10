@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-     "fix:updatedAt": "ts-node --esm scripts/fixUpdatedAt.ts",
+    "fix:updatedAt": "ts-node --esm scripts/fixUpdatedAt.ts",
     "fix-orders": "ts-node scripts/fixorders.ts",
     "dev": "next dev",
     "postinstall": "prisma generate",
@@ -36,7 +36,7 @@
     "iyzipay": "^2.0.63",
     "jose": "^6.0.10",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^3.7.4",
+    "mongodb": "^6.16.0",
     "next": "^14.2.13",
     "next-auth": "^4.24.11",
     "nodemailer": "^6.10.0",

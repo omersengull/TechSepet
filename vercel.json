@@ -1,4 +1,11 @@
 {
+  "routes": [
+    {
+      "src": "/.well-known/appspecific/com.chrome.devtools.json",
+      "dest": "/api/well-known",
+      "status": 200
+    }
+  ],
   "headers":[
 {
       "source": "/api/backup/download",
@@ -13,6 +20,10 @@
   ],
   "version": 2,
   "functions": {
+    "api/backup/create.ts": {
+      "memory": 1024,
+      "maxDuration": 300  
+    },
     "pages/api/**/*.ts": {
       "maxDuration": 60
     },

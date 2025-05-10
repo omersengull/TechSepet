@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.setHeader('Allow', ['GET', 'HEAD']);
         return res.status(405).json({ error: `Method ${req.method} not allowed` });
     }
- 
- 
+
+
     try {
         const { file } = req.query;
         if (!file || typeof file !== 'string') {
@@ -26,12 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const client = new MongoClient(process.env.MONGODB_URI!, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
             connectTimeoutMS: 30000,
             socketTimeoutMS: 30000,
             serverSelectionTimeoutMS: 30000,
+            maxPoolSize: 1,
             retryWrites: true,
+            
             w: 'majority'
         });
 

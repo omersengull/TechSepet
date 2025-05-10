@@ -10,9 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     connectTimeoutMS: 30000,
     socketTimeoutMS: 30000,
     serverSelectionTimeoutMS: 30000,
-    maxPoolSize: 1 // Vercel'de bağlantı sorunlarını önlemek için
+    maxPoolSize: 1,
+    retryWrites: true,
+    w: 'majority'
   });
-
   try {
     await client.connect();
     const db = client.db(process.env.MONGODB_DB!);
@@ -31,11 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 3. Stream ile yazma işlemi
     const fileName = `backup_${Date.now()}.json`;
     const uploadStream = bucket.openUploadStream(fileName);
-    
+
     // Yedek veriyi küçük parçalarla yaz
     const jsonString = JSON.stringify(backupData);
     const chunkSize = 1024 * 1024; // 1MB chunk'lar
-    
+
     for (let i = 0; i < jsonString.length; i += chunkSize) {
       const chunk = jsonString.slice(i, i + chunkSize);
       uploadStream.write(chunk);
