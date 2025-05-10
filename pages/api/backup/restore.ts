@@ -21,30 +21,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: 'Yedek dosyası bulunamadı.' });
   }
 
-  try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db(dbName);
+  let client; // client'ı try dışında tanımladık ki finally'de erişilebilsin
 
+  try {
+    client = await MongoClient.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true, // Bu satırı ekledik
+    } as any); // TypeScript için 'as any' ekledik çünkü MongoDriver tipleri Next.js ile çakışabilir
+
+    const db = client.db(dbName);
     const backupData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-    for (const [collectionName, documents] of Object.entries(backupData)) {
-      if (!Array.isArray(documents)) continue;
+    // Tüm koleksiyon işlemlerini bir transaction içinde yapmak daha güvenli olur
+    const session = client.startSession();
+    
+    try {
+      await session.withTransaction(async () => {
+        for (const [collectionName, documents] of Object.entries(backupData)) {
+          if (!Array.isArray(documents)) continue;
 
-      const collection = db.collection(collectionName);
+          const collection = db.collection(collectionName);
 
-      for (const doc of documents) {
-        const filter = { _id: doc._id };
-        const update = { $set: doc };
-        const options = { upsert: true }; // yoksa ekle, varsa güncelle
+          // Toplu işlem için bulkWrite kullanımı (daha performanslı)
+          const operations = documents.map(doc => ({
+            updateOne: {
+              filter: { _id: doc._id },
+              update: { $set: doc },
+              upsert: true
+            }
+          }));
 
-        await collection.updateOne(filter, update, options);
-      }
+          if (operations.length > 0) {
+            await collection.bulkWrite(operations, { session });
+          }
+        }
+      });
+      
+      res.status(200).json({ message: 'Yedek veriler başarıyla geri yüklendi (güncellendi).' });
+    } finally {
+      await session.endSession();
     }
-
-    await client.close();
-    res.status(200).json({ message: 'Yedek veriler başarıyla geri yüklendi (güncellendi).' });
   } catch (error) {
     console.error('Geri yükleme hatası:', error);
-    res.status(500).json({ message: 'Geri yükleme sırasında bir hata oluştu.' });
+    res.status(500).json({ 
+      message: 'Geri yükleme sırasında bir hata oluştu.',
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata'
+    });
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 }
