@@ -1,23 +1,28 @@
-// pages/api/backup/list.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
-import path from 'path';
+import { MongoClient } from 'mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const client = new MongoClient(process.env.MONGODB_URI!);
+  
   try {
-    const backupDir = path.join('/tmp', 'backups'); // ✨ Aynı şekilde burayı da değiştir
-    
-    if (!fs.existsSync(backupDir)) {
-      return res.status(404).json({ message: 'Yedek dosyası bulunamadı.' });
-    }
+    await client.connect();
+    const db = client.db(process.env.MONGODB_DB!);
 
-    // Yedekleme klasöründeki dosyaları listele
-    const backupFiles = fs.readdirSync(backupDir).sort().reverse();
+    // GridFS'teki tüm yedekleri listele
+    const files = await db.collection('backups.files')
+      .find()
+      .sort({ uploadDate: -1 }) // Yeniden eskiye
+      .project({ filename: 1, _id: 0 })
+      .toArray();
 
-    // Yedekleme dosyalarını JSON formatında döndür
-    res.status(200).json({ backups: backupFiles });
+    const backups = files.map(file => file.filename);
+    res.status(200).json({ backups });
   } catch (error) {
-    console.error('Yedekleme dosyalarını listeleme hatası:', error);
-    res.status(500).json({ message: 'Yedekleme dosyalarını listeleme sırasında bir hata oluştu.' });
+    console.error('Listeleme hatası:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Listeleme başarısız'
+    });
+  } finally {
+    await client.close();
   }
 }
