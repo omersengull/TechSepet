@@ -36,7 +36,7 @@ export type CardProductProps = {
 };
 
 interface User {
-  id: ObjectId;
+  id: string;
   name: string;
   image: string | null;
   surname: string;
