@@ -12,13 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const client = new MongoClient(process.env.MONGODB_URI!, {
     connectTimeoutMS: 30000,
-    socketTimeoutMS: 0, // No timeout for operations
+    socketTimeoutMS: 0, 
     serverSelectionTimeoutMS: 30000,
     maxPoolSize: 1,
     retryWrites: true,
     w: 'majority',
     minPoolSize: 1,
-    maxIdleTimeMS: 0 // Keep connection alive indefinitely
+    maxIdleTimeMS: 0 
   });
 
   try {
@@ -26,15 +26,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const db = client.db(process.env.MONGODB_DB!);
     const bucket = new GridFSBucket(db, { bucketName: 'backups' });
 
-    // Start a session
+
     const session = client.startSession({
       defaultTransactionOptions: {
-        maxCommitTimeMS: 300000 // 5 minutes
+        maxCommitTimeMS: 300000 
       }
     });
 
     try {
-      // 1) Collect data with session
+
       const collections = await db.listCollections({}, { session }).toArray();
       const backupData: Record<string, any[]> = {};
       
@@ -48,11 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       const jsonString = JSON.stringify(backupData);
 
-      // 2) Create upload stream - GridFS doesn't directly support session in options
-      // so we'll use the session for the entire operation context
+   
       const fileName = `backup_${Date.now()}.json`;
       
-      // Wrap the upload in the session
+
       return await session.withTransaction(async () => {
         const uploadStream = bucket.openUploadStream(fileName);
 
