@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await client.connect();
     const db = client.db(process.env.MONGODB_DB!);
 
-    // GridFS'teki tüm yedekleri listele
+
     const files = await db.collection('backups.files')
       .find()
-      .sort({ uploadDate: -1 }) // Yeniden eskiye
+      .sort({ uploadDate: -1 }) 
       .project({ filename: 1, _id: 0 })
       .toArray();
 
